@@ -19,9 +19,11 @@ const ParsedSchema = z.object({
   })).optional().default([]),
   labValues: z.array(z.object({
     name: z.string(), value: z.union([z.string(), z.number()]),
-    unit: z.string().optional().default(""), refRange: z.string().optional().default(""),
-    flag: z.enum(["normal", "high", "low", "critical"]).optional(),
+    unit: z.string().nullish().transform((v) => v ?? ""),
+    refRange: z.string().nullish().transform((v) => v ?? ""),
+    flag: z.enum(["normal", "high", "low", "critical"]).nullish().transform((v) => v ?? undefined),
   })).optional().default([]),
+
   notes: z.string().optional().default(""),
 });
 

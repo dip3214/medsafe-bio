@@ -18,7 +18,8 @@ export const Route = createFileRoute("/api/chat")({
         const token = authHeader.slice(7);
 
         const body = (await request.json()) as { messages?: UIMessage[]; threadId?: string };
-        if (!Array.isArray(body.messages)) return new Response("Bad request", { status: 400 });
+        const messages = body.messages;
+        if (!Array.isArray(messages)) return new Response("Bad request", { status: 400 });
 
         const supabase = createClient<Database>(url, pub, {
           global: { headers: { Authorization: `Bearer ${token}` } },

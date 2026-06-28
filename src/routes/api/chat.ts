@@ -81,16 +81,16 @@ You are NOT a doctor — for anything urgent or treatment-changing, recommend co
         const result = streamText({
           model: gateway("google/gemini-2.5-flash"),
           system,
-          messages: await convertToModelMessages(body.messages),
+          messages: await convertToModelMessages(messages),
         });
 
         return result.toUIMessageStreamResponse({
-          originalMessages: body.messages,
-          onFinish: async ({ messages }) => {
+          originalMessages: messages,
+          onFinish: async ({ messages: finalMessages }) => {
             const threadId = body.threadId;
             if (!threadId) return;
-            const last = messages[messages.length - 1];
-            const user = body.messages[body.messages.length - 1];
+            const last = finalMessages[finalMessages.length - 1];
+            const user = messages[messages.length - 1];
             const text = (m: UIMessage) =>
               (m.parts ?? [])
                 .map((p: any) => (p.type === "text" ? p.text : ""))

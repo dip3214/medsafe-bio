@@ -13,17 +13,29 @@ const ParsedSchema = z.object({
   patientGender: z.string().nullable().optional(),
   summary: z.string().optional().default(""),
   diagnoses: z.array(z.string()).optional().default([]),
-  medicines: z.array(z.object({
-    name: z.string(), dose: z.string().optional().default(""),
-    frequency: z.string().optional().default(""), duration: z.string().optional().default(""),
-  })).optional().default([]),
-  labValues: z.array(z.object({
-    name: z.string(), value: z.union([z.string(), z.number()]),
-    unit: z.string().nullish().transform((v) => v ?? ""),
-    refRange: z.string().nullish().transform((v) => v ?? ""),
-    flag: z.enum(["normal", "high", "low", "critical"]).nullish().transform((v) => v ?? undefined),
-  })).optional().default([]),
-
+  medicines: z
+    .array(
+      z.object({
+        name: z.string(),
+        dose: z.string().optional().default(""),
+        frequency: z.string().optional().default(""),
+        duration: z.string().optional().default(""),
+      }),
+    )
+    .optional()
+    .default([]),
+  labValues: z
+    .array(
+      z.object({
+        name: z.string(),
+        value: z.union([z.string(), z.number()]),
+        unit: z.string().nullish().transform((v) => v ?? ""),
+        refRange: z.string().nullish().transform((v) => v ?? ""),
+        flag: z.enum(["normal", "high", "low", "critical"]).nullish().transform((v) => v ?? undefined),
+      }),
+    )
+    .optional()
+    .default([]),
   notes: z.string().optional().default(""),
 });
 
@@ -32,17 +44,25 @@ const CreateInput = z.object({
   fileName: z.string(),
   mimeType: z.string(),
   fileSize: z.number().optional(),
+  memberId: z.string().uuid().optional(),
   parsed: ParsedSchema,
 });
 
+const ListInput = z.object({ memberId: z.string().uuid().optional() }).optional();
+
 export const listMedicalDocs = createServerFn({ method: "GET" })
   .middleware([requireSupabaseAuth])
-  .handler(async ({ context }) => {
-    const { data: docs, error } = await context.supabase
+  .inputValidator((d: unknown) => ListInput.parse(d) ?? {})
+  .handler(async ({ context, data }) => {
+    let q = context.supabase
       .from("documents")
-      .select("id, title, document_date, document_type, storage_path, mime_type, file_size_bytes, created_at, extractions(structured_data)")
+      .select(
+        "id, title, document_date, document_type, storage_path, mime_type, file_size_bytes, member_id, created_at, extractions(structured_data)",
+      )
       .eq("user_id", context.userId)
       .order("created_at", { ascending: false });
+    if (data?.memberId) q = q.eq("member_id", data.memberId);
+    const { data: docs, error } = await q;
     if (error) throw new Error(error.message);
     return (docs || []).map((d: any) => {
       const s = d.extractions?.[0]?.structured_data || {};
@@ -63,6 +83,7 @@ export const listMedicalDocs = createServerFn({ method: "GET" })
         notes: s.notes || "",
         fileName: s.fileName || d.title,
         storagePath: d.storage_path,
+        memberId: d.member_id || undefined,
         createdAt: d.created_at,
       };
     });
@@ -74,10 +95,24 @@ export const createMedicalDoc = createServerFn({ method: "POST" })
   .handler(async ({ context, data }) => {
     const p = data.parsed;
     const docDate = p.date && /^\d{4}-\d{2}-\d{2}$/.test(p.date) ? p.date : new Date().toISOString().slice(0, 10);
+
+    // Resolve member: explicit > default
+    let memberId = data.memberId;
+    if (!memberId) {
+      const { data: def } = await context.supabase
+        .from("family_members")
+        .select("id")
+        .eq("user_id", context.userId)
+        .eq("is_default", true)
+        .maybeSingle();
+      memberId = def?.id ?? undefined;
+    }
+
     const { data: doc, error: docErr } = await context.supabase
       .from("documents")
       .insert({
         user_id: context.userId,
+        member_id: memberId ?? null,
         title: p.title || data.fileName,
         document_date: docDate,
         document_type: p.kind,
@@ -92,6 +127,7 @@ export const createMedicalDoc = createServerFn({ method: "POST" })
 
     const { error: exErr } = await context.supabase.from("extractions").insert({
       user_id: context.userId,
+      member_id: memberId ?? null,
       document_id: doc.id,
       extraction_type: p.kind,
       model_name: "google/gemini-2.5-flash",
@@ -118,4 +154,38 @@ export const deleteMedicalDoc = createServerFn({ method: "POST" })
     const { error } = await context.supabase.from("documents").delete().eq("id", data.id).eq("user_id", context.userId);
     if (error) throw new Error(error.message);
     return { ok: true };
+  });
+
+// Latest flagged lab values for the landing page card
+export const listFlaggedLatest = createServerFn({ method: "GET" })
+  .middleware([requireSupabaseAuth])
+  .inputValidator((d: unknown) => z.object({ memberId: z.string().uuid().optional() }).optional().parse(d) ?? {})
+  .handler(async ({ context, data }) => {
+    let q = context.supabase
+      .from("documents")
+      .select("id, title, document_date, member_id, extractions(structured_data)")
+      .eq("user_id", context.userId)
+      .order("document_date", { ascending: false })
+      .limit(10);
+    if (data?.memberId) q = q.eq("member_id", data.memberId);
+    const { data: rows } = await q;
+    const out: { name: string; value: string; unit: string; refRange: string; flag: string; date: string; doc: string }[] = [];
+    for (const d of rows ?? []) {
+      const s: any = (d as any).extractions?.[0]?.structured_data ?? {};
+      for (const v of s.labValues ?? []) {
+        if (v.flag && v.flag !== "normal") {
+          out.push({
+            name: v.name,
+            value: String(v.value ?? ""),
+            unit: v.unit ?? "",
+            refRange: v.refRange ?? "",
+            flag: v.flag,
+            date: d.document_date ?? "",
+            doc: d.title ?? "",
+          });
+        }
+      }
+      if (out.length >= 5) break;
+    }
+    return out.slice(0, 3);
   });

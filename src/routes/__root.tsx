@@ -11,6 +11,7 @@ import { useEffect, type ReactNode } from "react";
 
 import appCss from "../styles.css?url";
 import { reportLovableError } from "../lib/lovable-error-reporting";
+import { ActiveMemberProvider } from "@/lib/active-member";
 
 function NotFoundComponent() {
   return (
@@ -77,24 +78,16 @@ export const Route = createRootRouteWithContext<{ queryClient: QueryClient }>()(
     meta: [
       { charSet: "utf-8" },
       { name: "viewport", content: "width=device-width, initial-scale=1" },
-      { title: "Lovable App" },
-      { name: "description", content: "Schema Sync applies existing database migrations to a Supabase project, ensuring the schema matches application requirements." },
-      { name: "author", content: "Lovable" },
-      { property: "og:title", content: "Lovable App" },
-      { property: "og:description", content: "Schema Sync applies existing database migrations to a Supabase project, ensuring the schema matches application requirements." },
+      { title: "MedSafe — your family's health, in one place" },
+      { name: "description", content: "MedSafe organizes every prescription and lab report into a clean clinical timeline, with a private AI assistant grounded in your own records." },
+      { name: "author", content: "MedSafe" },
+      { property: "og:title", content: "MedSafe — your family's health, in one place" },
+      { property: "og:description", content: "Structured medical records, trends and a private AI assistant for Indian families." },
       { property: "og:type", content: "website" },
       { name: "twitter:card", content: "summary" },
-      { name: "twitter:site", content: "@Lovable" },
-      { name: "twitter:title", content: "Lovable App" },
-      { name: "twitter:description", content: "Schema Sync applies existing database migrations to a Supabase project, ensuring the schema matches application requirements." },
-      { property: "og:image", content: "https://storage.googleapis.com/gpt-engineer-file-uploads/ULubKVC5qyPXMEOUQGCc5r4SN2i2/social-images/social-1782674704092-B9793013-D1CB-47A4-A17F-AEC7456EAE9F_4_5005_c.webp" },
-      { name: "twitter:image", content: "https://storage.googleapis.com/gpt-engineer-file-uploads/ULubKVC5qyPXMEOUQGCc5r4SN2i2/social-images/social-1782674704092-B9793013-D1CB-47A4-A17F-AEC7456EAE9F_4_5005_c.webp" },
     ],
     links: [
-      {
-        rel: "stylesheet",
-        href: appCss,
-      },
+      { rel: "stylesheet", href: appCss },
     ],
   }),
   shellComponent: RootShell,
@@ -122,8 +115,9 @@ function RootComponent() {
 
   return (
     <QueryClientProvider client={queryClient}>
-      {/* Required: nested routes render here. Removing <Outlet /> breaks all child routes. */}
-      <Outlet />
+      <ActiveMemberProvider>
+        <Outlet />
+      </ActiveMemberProvider>
     </QueryClientProvider>
   );
 }

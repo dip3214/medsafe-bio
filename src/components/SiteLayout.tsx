@@ -2,19 +2,15 @@ import { Link, useNavigate } from "@tanstack/react-router";
 import { useEffect, useState, type ReactNode } from "react";
 import { Plus, MessageSquare, LogOut, LogIn, ShieldCheck, BadgeCheck } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
+import { MemberSwitcher } from "@/components/MemberSwitcher";
+import { ConsentBanner } from "@/components/ConsentBanner";
 
-const SEGMENTS = [
-  { to: "/", label: "MedSafe Kids", key: "kids" },
-  { to: "/services", label: "MedSafe Parents", key: "parents" },
-  { to: "/upload", label: "MedSafe Me", key: "me" },
-] as const;
-
-const NAV_DESKTOP = [
+const NAV = [
   { to: "/upload", label: "Upload" },
   { to: "/dashboard", label: "Dashboard" },
+  { to: "/members", label: "Family" },
   { to: "/doctors", label: "Doctors" },
   { to: "/care", label: "Care" },
-  { to: "/chat", label: "Ask" },
 ] as const;
 
 export function SiteLayout({ children }: { children: ReactNode }) {
@@ -37,7 +33,7 @@ export function SiteLayout({ children }: { children: ReactNode }) {
   return (
     <div className="min-h-screen bg-background text-foreground">
       <header className="sticky top-0 z-40 border-b border-border/60 bg-background/85 backdrop-blur">
-        <div className="mx-auto flex max-w-7xl items-center justify-between gap-6 px-4 py-3">
+        <div className="mx-auto flex max-w-7xl items-center justify-between gap-4 px-4 py-3">
           <Link to="/" className="flex items-center gap-2.5">
             <div className="grid h-9 w-9 place-items-center rounded-xl bg-primary text-primary-foreground">
               <Plus className="h-5 w-5" strokeWidth={3} />
@@ -48,33 +44,35 @@ export function SiteLayout({ children }: { children: ReactNode }) {
           </Link>
 
           <nav className="hidden items-center gap-1 rounded-full bg-secondary/60 p-1 lg:flex">
-            {SEGMENTS.map((s) => (
+            {NAV.map((n) => (
               <Link
-                key={s.key}
-                to={s.to}
-                className="rounded-full px-4 py-1.5 text-sm font-medium text-muted-foreground transition-colors hover:text-foreground"
+                key={n.to}
+                to={n.to}
+                className="rounded-full px-3.5 py-1.5 text-sm font-medium text-muted-foreground transition-colors hover:text-foreground"
                 activeProps={{ className: "bg-card text-primary shadow-sm" }}
-                activeOptions={{ exact: s.to === "/" }}
               >
-                {s.label}
+                {n.label}
               </Link>
             ))}
           </nav>
 
           <div className="flex items-center gap-2">
-            <span className="hidden items-center gap-1.5 rounded-full border border-border bg-card px-2.5 py-1 text-[11px] font-medium text-foreground/80 md:inline-flex">
-              <span className="h-1.5 w-1.5 rounded-full bg-green-600" />
-              HIPAA-aligned
-            </span>
-            <span className="hidden items-center gap-1.5 rounded-full border border-border bg-card px-2.5 py-1 text-[11px] font-medium text-foreground/80 md:inline-flex">
-              <ShieldCheck className="h-3 w-3" /> ISO 27001
+            {email && <MemberSwitcher />}
+            <span className="hidden items-center gap-1.5 rounded-full border border-border bg-card px-2.5 py-1 text-[11px] font-medium text-foreground/80 xl:inline-flex">
+              <ShieldCheck className="h-3 w-3 text-primary" /> DPDP-aligned
             </span>
             {email ? (
-              <button onClick={signOut} className="inline-flex items-center gap-1.5 rounded-full bg-primary px-4 py-1.5 text-sm font-medium text-primary-foreground hover:bg-primary/90">
-                <LogOut className="h-3.5 w-3.5" /> Sign out
+              <button
+                onClick={signOut}
+                className="inline-flex items-center gap-1.5 rounded-full bg-primary px-3.5 py-1.5 text-sm font-medium text-primary-foreground hover:bg-primary/90"
+              >
+                <LogOut className="h-3.5 w-3.5" /> <span className="hidden sm:inline">Sign out</span>
               </button>
             ) : (
-              <Link to="/auth" className="inline-flex items-center gap-1.5 rounded-full bg-primary px-4 py-1.5 text-sm font-medium text-primary-foreground hover:bg-primary/90">
+              <Link
+                to="/auth"
+                className="inline-flex items-center gap-1.5 rounded-full bg-primary px-3.5 py-1.5 text-sm font-medium text-primary-foreground hover:bg-primary/90"
+              >
                 <LogIn className="h-3.5 w-3.5" /> Sign in
               </Link>
             )}
@@ -83,10 +81,13 @@ export function SiteLayout({ children }: { children: ReactNode }) {
 
         <div className="border-t border-border/60 lg:hidden">
           <div className="mx-auto flex max-w-7xl gap-1 overflow-x-auto px-3 py-2">
-            {SEGMENTS.concat(NAV_DESKTOP as any).map((n) => (
-              <Link key={n.to + n.label} to={n.to as any}
+            {NAV.map((n) => (
+              <Link
+                key={n.to}
+                to={n.to}
                 className="whitespace-nowrap rounded-full bg-secondary/60 px-3 py-1 text-xs text-muted-foreground"
-                activeProps={{ className: "bg-primary text-primary-foreground" }} activeOptions={{ exact: n.to === "/" }}>
+                activeProps={{ className: "bg-primary text-primary-foreground" }}
+              >
                 {n.label}
               </Link>
             ))}
@@ -94,18 +95,19 @@ export function SiteLayout({ children }: { children: ReactNode }) {
         </div>
       </header>
 
-      <main>{children}</main>
+      <main className="pb-28">{children}</main>
 
       {email && (
         <Link
           to="/chat"
-          className="fixed bottom-5 right-5 z-30 inline-flex items-center gap-2 rounded-full bg-primary px-5 py-3 text-sm font-semibold text-primary-foreground shadow-xl shadow-primary/30 hover:bg-primary/90"
+          className="fixed bottom-5 right-5 z-30 inline-flex items-center gap-2 rounded-full bg-primary px-5 py-3 text-sm font-semibold text-primary-foreground shadow-xl shadow-primary/30 transition hover:scale-[1.03] hover:bg-primary/90 active:scale-95"
+          style={{ paddingBottom: "max(env(safe-area-inset-bottom), 0.75rem)" }}
         >
           <MessageSquare className="h-4 w-4" /> Ask MedSafe
         </Link>
       )}
 
-      <footer className="mt-16 border-t border-border/60 bg-secondary/40">
+      <footer className="border-t border-border/60 bg-secondary/40">
         <div className="mx-auto max-w-7xl px-4 py-10 text-sm text-muted-foreground">
           <div className="flex flex-wrap items-center justify-between gap-4">
             <div>
@@ -115,10 +117,17 @@ export function SiteLayout({ children }: { children: ReactNode }) {
               </div>
               <div className="mt-1 text-xs">Structured clinical data · AI-grounded chat · Kolkata</div>
             </div>
-            <div className="text-xs">© {new Date().getFullYear()} MedSafe · A DeRiskBio initiative</div>
+            <nav className="flex flex-wrap gap-x-4 gap-y-1 text-xs">
+              <Link to="/privacy" className="hover:text-foreground">Privacy</Link>
+              <Link to="/dpdp-notice" className="hover:text-foreground">DPDP Notice</Link>
+              <Link to="/account" className="hover:text-foreground">Your rights</Link>
+              <span>© {new Date().getFullYear()} MedSafe · A DeRiskBio initiative</span>
+            </nav>
           </div>
         </div>
       </footer>
+
+      <ConsentBanner />
     </div>
   );
 }

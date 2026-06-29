@@ -6,7 +6,8 @@ import { useServerFn } from "@tanstack/react-start";
 import { useQuery } from "@tanstack/react-query";
 import { useMemo } from "react";
 import { LineChart, Line, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer } from "recharts";
-import { Activity, AlertTriangle, CalendarDays, FlaskConical, Pill, TrendingUp, TrendingDown, Upload, UserRound, Sparkles, HeartPulse, ShieldCheck } from "lucide-react";
+import { Activity, AlertTriangle, CalendarDays, FlaskConical, Pill, TrendingUp, TrendingDown, Upload, UserRound, Sparkles, HeartPulse, ShieldCheck, FileDown } from "lucide-react";
+import { useActiveMember } from "@/lib/active-member";
 
 export const Route = createFileRoute("/_authenticated/dashboard")({
   head: () => ({
@@ -20,7 +21,11 @@ export const Route = createFileRoute("/_authenticated/dashboard")({
 
 function DashboardPage() {
   const listDocs = useServerFn(listMedicalDocs);
-  const { data: docs = [] } = useQuery({ queryKey: ["medsafe-docs"], queryFn: () => listDocs() as Promise<MedicalDoc[]> });
+  const { active } = useActiveMember();
+  const { data: docs = [] } = useQuery({
+    queryKey: ["medsafe-docs", active?.id ?? null],
+    queryFn: () => listDocs({ data: { memberId: active?.id } }) as Promise<MedicalDoc[]>,
+  });
   const groups = groupDocs(docs);
   const patient = [...docs].reverse().find((d) => d.patientName);
 
@@ -65,9 +70,14 @@ function DashboardPage() {
               Every clinical event from your reports, lined up so you can see what's getting better and what needs attention.
             </p>
           </div>
-          <Link to="/upload" className="inline-flex items-center gap-2 rounded-md bg-primary px-4 py-2 text-sm font-medium text-primary-foreground">
-            <Upload className="h-4 w-4" /> Add document
-          </Link>
+          <div className="flex gap-2">
+            <Link to="/summary" className="inline-flex items-center gap-2 rounded-md border border-border bg-card px-4 py-2 text-sm font-medium hover:bg-accent">
+              <FileDown className="h-4 w-4" /> Export summary report
+            </Link>
+            <Link to="/upload" className="inline-flex items-center gap-2 rounded-md bg-primary px-4 py-2 text-sm font-medium text-primary-foreground">
+              <Upload className="h-4 w-4" /> Add document
+            </Link>
+          </div>
         </div>
 
         {patient?.patientName && (

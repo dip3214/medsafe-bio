@@ -22,6 +22,7 @@ export type Database = {
           due_date: string | null
           episode_id: string | null
           id: string
+          member_id: string | null
           priority: string | null
           status: string
           title: string
@@ -35,6 +36,7 @@ export type Database = {
           due_date?: string | null
           episode_id?: string | null
           id?: string
+          member_id?: string | null
           priority?: string | null
           status?: string
           title: string
@@ -48,6 +50,7 @@ export type Database = {
           due_date?: string | null
           episode_id?: string | null
           id?: string
+          member_id?: string | null
           priority?: string | null
           status?: string
           title?: string
@@ -60,6 +63,13 @@ export type Database = {
             columns: ["episode_id"]
             isOneToOne: false
             referencedRelation: "episodes"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "action_items_member_id_fkey"
+            columns: ["member_id"]
+            isOneToOne: false
+            referencedRelation: "family_members"
             referencedColumns: ["id"]
           },
         ]
@@ -110,6 +120,7 @@ export type Database = {
           created_at: string
           id: string
           last_message_at: string
+          member_id: string | null
           title: string
           updated_at: string
           user_id: string
@@ -118,6 +129,7 @@ export type Database = {
           created_at?: string
           id?: string
           last_message_at?: string
+          member_id?: string | null
           title?: string
           updated_at?: string
           user_id: string
@@ -126,42 +138,63 @@ export type Database = {
           created_at?: string
           id?: string
           last_message_at?: string
+          member_id?: string | null
           title?: string
           updated_at?: string
           user_id?: string
         }
-        Relationships: []
+        Relationships: [
+          {
+            foreignKeyName: "chat_threads_member_id_fkey"
+            columns: ["member_id"]
+            isOneToOne: false
+            referencedRelation: "family_members"
+            referencedColumns: ["id"]
+          },
+        ]
       }
       consents: {
         Row: {
+          accepted_at: string | null
+          ai_processing_consent: boolean
+          analytics_consent: boolean
           consent_type: string
           created_at: string
           granted: boolean
           granted_at: string | null
           id: string
           revoked_at: string | null
+          storage_consent: boolean
           updated_at: string
           user_id: string
           version: string | null
         }
         Insert: {
+          accepted_at?: string | null
+          ai_processing_consent?: boolean
+          analytics_consent?: boolean
           consent_type: string
           created_at?: string
           granted?: boolean
           granted_at?: string | null
           id?: string
           revoked_at?: string | null
+          storage_consent?: boolean
           updated_at?: string
           user_id: string
           version?: string | null
         }
         Update: {
+          accepted_at?: string | null
+          ai_processing_consent?: boolean
+          analytics_consent?: boolean
           consent_type?: string
           created_at?: string
           granted?: boolean
           granted_at?: string | null
           id?: string
           revoked_at?: string | null
+          storage_consent?: boolean
           updated_at?: string
           user_id?: string
           version?: string | null
@@ -176,6 +209,7 @@ export type Database = {
           episode_id: string | null
           file_size_bytes: number | null
           id: string
+          member_id: string | null
           mime_type: string | null
           processing_status: string | null
           storage_path: string
@@ -190,6 +224,7 @@ export type Database = {
           episode_id?: string | null
           file_size_bytes?: number | null
           id?: string
+          member_id?: string | null
           mime_type?: string | null
           processing_status?: string | null
           storage_path: string
@@ -204,6 +239,7 @@ export type Database = {
           episode_id?: string | null
           file_size_bytes?: number | null
           id?: string
+          member_id?: string | null
           mime_type?: string | null
           processing_status?: string | null
           storage_path?: string
@@ -219,6 +255,13 @@ export type Database = {
             referencedRelation: "episodes"
             referencedColumns: ["id"]
           },
+          {
+            foreignKeyName: "documents_member_id_fkey"
+            columns: ["member_id"]
+            isOneToOne: false
+            referencedRelation: "family_members"
+            referencedColumns: ["id"]
+          },
         ]
       }
       episodes: {
@@ -230,6 +273,7 @@ export type Database = {
           episode_type: string | null
           hospital_name: string | null
           id: string
+          member_id: string | null
           start_date: string | null
           status: string | null
           title: string
@@ -244,6 +288,7 @@ export type Database = {
           episode_type?: string | null
           hospital_name?: string | null
           id?: string
+          member_id?: string | null
           start_date?: string | null
           status?: string | null
           title: string
@@ -258,13 +303,22 @@ export type Database = {
           episode_type?: string | null
           hospital_name?: string | null
           id?: string
+          member_id?: string | null
           start_date?: string | null
           status?: string | null
           title?: string
           updated_at?: string
           user_id?: string
         }
-        Relationships: []
+        Relationships: [
+          {
+            foreignKeyName: "episodes_member_id_fkey"
+            columns: ["member_id"]
+            isOneToOne: false
+            referencedRelation: "family_members"
+            referencedColumns: ["id"]
+          },
+        ]
       }
       extractions: {
         Row: {
@@ -273,6 +327,7 @@ export type Database = {
           document_id: string
           extraction_type: string | null
           id: string
+          member_id: string | null
           model_name: string | null
           raw_text: string | null
           structured_data: Json | null
@@ -285,6 +340,7 @@ export type Database = {
           document_id: string
           extraction_type?: string | null
           id?: string
+          member_id?: string | null
           model_name?: string | null
           raw_text?: string | null
           structured_data?: Json | null
@@ -297,6 +353,7 @@ export type Database = {
           document_id?: string
           extraction_type?: string | null
           id?: string
+          member_id?: string | null
           model_name?: string | null
           raw_text?: string | null
           structured_data?: Json | null
@@ -311,7 +368,53 @@ export type Database = {
             referencedRelation: "documents"
             referencedColumns: ["id"]
           },
+          {
+            foreignKeyName: "extractions_member_id_fkey"
+            columns: ["member_id"]
+            isOneToOne: false
+            referencedRelation: "family_members"
+            referencedColumns: ["id"]
+          },
         ]
+      }
+      family_members: {
+        Row: {
+          avatar_color: string | null
+          created_at: string
+          dob: string | null
+          id: string
+          is_default: boolean
+          name: string
+          relation: string | null
+          segment: Database["public"]["Enums"]["family_segment"]
+          updated_at: string
+          user_id: string
+        }
+        Insert: {
+          avatar_color?: string | null
+          created_at?: string
+          dob?: string | null
+          id?: string
+          is_default?: boolean
+          name: string
+          relation?: string | null
+          segment?: Database["public"]["Enums"]["family_segment"]
+          updated_at?: string
+          user_id: string
+        }
+        Update: {
+          avatar_color?: string | null
+          created_at?: string
+          dob?: string | null
+          id?: string
+          is_default?: boolean
+          name?: string
+          relation?: string | null
+          segment?: Database["public"]["Enums"]["family_segment"]
+          updated_at?: string
+          user_id?: string
+        }
+        Relationships: []
       }
       lab_results: {
         Row: {
@@ -320,6 +423,7 @@ export type Database = {
           episode_id: string | null
           flag: string | null
           id: string
+          member_id: string | null
           reference_high: number | null
           reference_low: number | null
           test_date: string | null
@@ -336,6 +440,7 @@ export type Database = {
           episode_id?: string | null
           flag?: string | null
           id?: string
+          member_id?: string | null
           reference_high?: number | null
           reference_low?: number | null
           test_date?: string | null
@@ -352,6 +457,7 @@ export type Database = {
           episode_id?: string | null
           flag?: string | null
           id?: string
+          member_id?: string | null
           reference_high?: number | null
           reference_low?: number | null
           test_date?: string | null
@@ -377,6 +483,13 @@ export type Database = {
             referencedRelation: "episodes"
             referencedColumns: ["id"]
           },
+          {
+            foreignKeyName: "lab_results_member_id_fkey"
+            columns: ["member_id"]
+            isOneToOne: false
+            referencedRelation: "family_members"
+            referencedColumns: ["id"]
+          },
         ]
       }
       medications: {
@@ -388,6 +501,7 @@ export type Database = {
           episode_id: string | null
           frequency: string | null
           id: string
+          member_id: string | null
           name: string
           notes: string | null
           prescribed_by: string | null
@@ -404,6 +518,7 @@ export type Database = {
           episode_id?: string | null
           frequency?: string | null
           id?: string
+          member_id?: string | null
           name: string
           notes?: string | null
           prescribed_by?: string | null
@@ -420,6 +535,7 @@ export type Database = {
           episode_id?: string | null
           frequency?: string | null
           id?: string
+          member_id?: string | null
           name?: string
           notes?: string | null
           prescribed_by?: string | null
@@ -434,6 +550,13 @@ export type Database = {
             columns: ["episode_id"]
             isOneToOne: false
             referencedRelation: "episodes"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "medications_member_id_fkey"
+            columns: ["member_id"]
+            isOneToOne: false
+            referencedRelation: "family_members"
             referencedColumns: ["id"]
           },
         ]
@@ -526,6 +649,7 @@ export type Database = {
           document_id: string | null
           episode_id: string | null
           id: string
+          member_id: string | null
           model_name: string | null
           summary_type: string | null
           updated_at: string
@@ -537,6 +661,7 @@ export type Database = {
           document_id?: string | null
           episode_id?: string | null
           id?: string
+          member_id?: string | null
           model_name?: string | null
           summary_type?: string | null
           updated_at?: string
@@ -548,6 +673,7 @@ export type Database = {
           document_id?: string | null
           episode_id?: string | null
           id?: string
+          member_id?: string | null
           model_name?: string | null
           summary_type?: string | null
           updated_at?: string
@@ -566,6 +692,13 @@ export type Database = {
             columns: ["episode_id"]
             isOneToOne: false
             referencedRelation: "episodes"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "summaries_member_id_fkey"
+            columns: ["member_id"]
+            isOneToOne: false
+            referencedRelation: "family_members"
             referencedColumns: ["id"]
           },
         ]
@@ -606,6 +739,7 @@ export type Database = {
     }
     Enums: {
       app_role: "admin" | "doctor" | "patient"
+      family_segment: "kids" | "parents" | "me"
     }
     CompositeTypes: {
       [_ in never]: never
@@ -734,6 +868,7 @@ export const Constants = {
   public: {
     Enums: {
       app_role: ["admin", "doctor", "patient"],
+      family_segment: ["kids", "parents", "me"],
     },
   },
 } as const

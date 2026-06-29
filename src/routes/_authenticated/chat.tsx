@@ -1,92 +1,284 @@
-import { createFileRoute, Outlet, Link, useNavigate, useParams } from "@tanstack/react-router";
-import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
+import { createFileRoute } from "@tanstack/react-router";
+import { useChat } from "@ai-sdk/react";
+import { DefaultChatTransport, type UIMessage } from "ai";
+import { useEffect, useMemo, useRef, useState } from "react";
+import { useQuery } from "@tanstack/react-query";
 import { useServerFn } from "@tanstack/react-start";
-import { Plus, Trash2, MessageSquare } from "lucide-react";
+import ReactMarkdown from "react-markdown";
+import { Send, Square, Stethoscope, User, Sparkles, Trash2 } from "lucide-react";
 import { SiteLayout } from "@/components/SiteLayout";
-import { listChatThreads, createChatThread, deleteChatThread } from "@/lib/chat.functions";
+import { supabase } from "@/integrations/supabase/client";
+import { getOrCreateChatThread, getChatThreadMessages, clearChatThread } from "@/lib/chat.functions";
+import { useActiveMember } from "@/lib/active-member";
 
 export const Route = createFileRoute("/_authenticated/chat")({
-  component: ChatLayout,
+  head: () => ({
+    meta: [
+      { title: "Ask MedSafe — your private medical assistant" },
+      { name: "description", content: "Ask anything about your records. Answers are grounded in your uploaded prescriptions and lab reports." },
+    ],
+  }),
+  component: ChatPage,
 });
 
-function ChatLayout() {
-  const list = useServerFn(listChatThreads);
-  const create = useServerFn(createChatThread);
-  const del = useServerFn(deleteChatThread);
-  const qc = useQueryClient();
-  const navigate = useNavigate();
-  const params = useParams({ strict: false }) as { threadId?: string };
-  const activeId = params.threadId;
+const STARTERS = [
+  "Summarise my latest lab report in plain language",
+  "Which of my recent values are out of range, and why does it matter?",
+  "List all medicines I'm currently taking, with their purpose",
+  "Compare my last two visits — what improved, what got worse?",
+];
 
-  const { data: threads = [] } = useQuery({
-    queryKey: ["chatThreads"],
-    queryFn: () => list(),
+function ChatPage() {
+  const { active } = useActiveMember();
+  const memberId = active?.id ?? null;
+
+  const ensure = useServerFn(getOrCreateChatThread);
+  const fetchMessages = useServerFn(getChatThreadMessages);
+
+  const { data: thread, isLoading: tLoading, refetch: refetchThread } = useQuery({
+    queryKey: ["chat-thread", memberId],
+    queryFn: () => ensure({ data: { memberId } }) as Promise<{ id: string }>,
+    enabled: true,
   });
 
-  const newThread = useMutation({
-    mutationFn: () => create({ data: { title: "New chat" } }),
-    onSuccess: async ({ id }) => {
-      await qc.invalidateQueries({ queryKey: ["chatThreads"] });
-      navigate({ to: "/chat/$threadId", params: { threadId: id } });
-    },
-  });
-
-  const removeThread = useMutation({
-    mutationFn: (id: string) => del({ data: { id } }),
-    onSuccess: async (_, id) => {
-      await qc.invalidateQueries({ queryKey: ["chatThreads"] });
-      if (activeId === id) navigate({ to: "/chat" });
-    },
+  const { data: initialMessages, isLoading: mLoading } = useQuery({
+    queryKey: ["chat-messages", thread?.id],
+    queryFn: () => fetchMessages({ data: { threadId: thread!.id } }),
+    enabled: !!thread?.id,
   });
 
   return (
     <SiteLayout>
-      <div className="mx-auto grid h-[calc(100vh-9rem)] max-w-7xl grid-cols-1 gap-4 px-4 py-4 md:grid-cols-[260px_1fr]">
-        <aside className="flex flex-col rounded-xl border border-border bg-card">
-          <div className="flex items-center justify-between border-b border-border px-3 py-3">
-            <div className="text-sm font-semibold">Conversations</div>
-            <button
-              onClick={() => newThread.mutate()}
-              disabled={newThread.isPending}
-              className="inline-flex items-center gap-1 rounded-md bg-primary px-2.5 py-1 text-xs font-medium text-primary-foreground hover:bg-primary/90"
-            >
-              <Plus className="h-3.5 w-3.5" /> New
-            </button>
+      <section className="mx-auto max-w-3xl px-4 py-8 sm:py-10">
+        <div className="mb-5 flex items-end justify-between gap-3">
+          <div>
+            <div className="text-xs uppercase tracking-wider text-primary">Ask MedSafe</div>
+            <h1 className="font-display text-3xl">
+              {active ? `Talking about ${active.name}` : "Your private medical assistant"}
+            </h1>
+            <p className="mt-1 text-sm text-muted-foreground">
+              Grounded in {active?.name || "your"} uploaded prescriptions and lab reports. Private to your account.
+            </p>
           </div>
-          <div className="flex-1 overflow-y-auto p-2">
-            {threads.length === 0 && (
-              <div className="px-2 py-4 text-xs text-muted-foreground">
-                No chats yet. Start one to ask about your records.
+        </div>
+
+        <div className="overflow-hidden rounded-2xl border border-border bg-card shadow-sm">
+          {tLoading || mLoading || !thread ? (
+            <div className="p-10 text-center text-sm text-muted-foreground">Loading your assistant…</div>
+          ) : (
+            <ChatWindow
+              key={thread.id}
+              threadId={thread.id}
+              memberId={memberId}
+              initialMessages={(initialMessages as unknown as UIMessage[]) ?? []}
+              onCleared={refetchThread}
+            />
+          )}
+        </div>
+      </section>
+    </SiteLayout>
+  );
+}
+
+function ChatWindow({
+  threadId,
+  memberId,
+  initialMessages,
+  onCleared,
+}: {
+  threadId: string;
+  memberId: string | null;
+  initialMessages: UIMessage[];
+  onCleared: () => void;
+}) {
+  const transport = useMemo(
+    () =>
+      new DefaultChatTransport({
+        api: "/api/chat",
+        prepareSendMessagesRequest: async ({ messages }) => {
+          const { data } = await supabase.auth.getSession();
+          const token = data.session?.access_token;
+          const headers: Record<string, string> = {};
+          if (token) headers.Authorization = `Bearer ${token}`;
+          return { body: { messages, threadId, memberId }, headers };
+        },
+      }),
+    [threadId, memberId],
+  );
+
+  const { messages, sendMessage, status, stop, error, setMessages } = useChat({
+    id: threadId,
+    messages: initialMessages,
+    transport,
+  });
+
+  const [input, setInput] = useState("");
+  const taRef = useRef<HTMLTextAreaElement>(null);
+  const scrollRef = useRef<HTMLDivElement>(null);
+  const endRef = useRef<HTMLDivElement>(null);
+
+  useEffect(() => {
+    taRef.current?.focus();
+  }, []);
+
+  useEffect(() => {
+    endRef.current?.scrollIntoView({ behavior: "smooth", block: "end" });
+  }, [messages, status]);
+
+  const busy = status === "submitted" || status === "streaming";
+  const empty = messages.length === 0;
+
+  async function submit(text?: string) {
+    const value = (text ?? input).trim();
+    if (!value || busy) return;
+    if (!text) setInput("");
+    await sendMessage({ text: value });
+    requestAnimationFrame(() => taRef.current?.focus());
+  }
+
+  const clear = useServerFn(clearChatThread);
+  async function clearChat() {
+    await clear({ data: { threadId } });
+    setMessages([]);
+    onCleared();
+  }
+
+  return (
+    <div className="flex h-[calc(100vh-18rem)] min-h-[480px] flex-col">
+      <div
+        ref={scrollRef}
+        className="chat-scroll flex-1 overflow-y-auto px-4 py-6 sm:px-8"
+      >
+        {empty ? (
+          <EmptyState onPick={(t) => submit(t)} />
+        ) : (
+          <div className="space-y-5">
+            {messages.map((m) => (
+              <Message key={m.id} message={m} />
+            ))}
+            {status === "submitted" && <TypingDots />}
+            {error && (
+              <div className="rounded-md border border-destructive/40 bg-destructive/10 px-3 py-2 text-sm text-destructive">
+                {error.message || "Something went wrong."}
               </div>
             )}
-            <ul className="space-y-1">
-              {threads.map((t) => (
-                <li key={t.id} className="group flex items-center gap-1">
-                  <Link
-                    to="/chat/$threadId"
-                    params={{ threadId: t.id }}
-                    className="flex min-w-0 flex-1 items-center gap-2 rounded-md px-2 py-1.5 text-sm text-foreground hover:bg-accent"
-                    activeProps={{ className: "bg-accent text-accent-foreground" }}
-                  >
-                    <MessageSquare className="h-3.5 w-3.5 shrink-0 text-muted-foreground" />
-                    <span className="truncate">{t.title || "New chat"}</span>
-                  </Link>
-                  <button
-                    onClick={() => removeThread.mutate(t.id)}
-                    className="opacity-0 transition group-hover:opacity-100"
-                    aria-label="Delete chat"
-                  >
-                    <Trash2 className="h-3.5 w-3.5 text-muted-foreground hover:text-destructive" />
-                  </button>
-                </li>
-              ))}
-            </ul>
+            <div ref={endRef} />
           </div>
-        </aside>
-        <section className="min-h-0 overflow-hidden rounded-xl border border-border bg-card">
-          <Outlet />
-        </section>
+        )}
       </div>
-    </SiteLayout>
+
+      <div className="border-t border-border bg-background p-3">
+        <div className="flex items-end gap-2">
+          {!empty && (
+            <button
+              onClick={clearChat}
+              className="inline-flex h-11 items-center gap-1 rounded-lg border border-border bg-card px-3 text-xs text-muted-foreground transition hover:bg-accent"
+              aria-label="Clear chat"
+            >
+              <Trash2 className="h-3.5 w-3.5" /> Clear
+            </button>
+          )}
+          <textarea
+            ref={taRef}
+            value={input}
+            onChange={(e) => setInput(e.target.value)}
+            onKeyDown={(e) => {
+              if (e.key === "Enter" && !e.shiftKey) {
+                e.preventDefault();
+                submit();
+              }
+            }}
+            rows={1}
+            placeholder="Ask about your reports, medicines, lab trends…"
+            className="chat-input max-h-40 min-h-[44px] flex-1 resize-none rounded-lg border border-border bg-background px-3 py-2.5 text-sm outline-none transition focus:border-primary/60 focus:ring-2 focus:ring-primary/20"
+          />
+          {busy ? (
+            <button
+              onClick={() => stop()}
+              className="inline-flex h-11 w-11 items-center justify-center rounded-lg border border-border bg-card transition hover:bg-accent"
+              aria-label="Stop"
+            >
+              <Square className="h-4 w-4" />
+            </button>
+          ) : (
+            <button
+              onClick={() => submit()}
+              disabled={!input.trim()}
+              className="inline-flex h-11 w-11 items-center justify-center rounded-lg bg-primary text-primary-foreground transition hover:bg-primary/90 active:scale-95 disabled:opacity-40"
+              aria-label="Send"
+            >
+              <Send className="h-4 w-4" />
+            </button>
+          )}
+        </div>
+      </div>
+    </div>
+  );
+}
+
+function EmptyState({ onPick }: { onPick: (text: string) => void }) {
+  return (
+    <div className="flex h-full flex-col items-center justify-center gap-6 py-8 text-center animate-fade-in">
+      <div className="grid h-14 w-14 place-items-center rounded-2xl bg-primary text-primary-foreground">
+        <Sparkles className="h-7 w-7" />
+      </div>
+      <div>
+        <h2 className="font-display text-2xl">How can I help today?</h2>
+        <p className="mt-1 max-w-md text-sm text-muted-foreground">
+          Pick a starter — or type your own. Answers come from your own records.
+        </p>
+      </div>
+      <div className="grid w-full max-w-2xl gap-2 sm:grid-cols-2">
+        {STARTERS.map((p, i) => (
+          <button
+            key={p}
+            onClick={() => onPick(p)}
+            style={{ animationDelay: `${i * 60}ms` }}
+            className="suggestion-card animate-fade-in rounded-xl border border-border bg-background px-4 py-3 text-left text-sm transition-transform hover:scale-[1.02] hover:border-primary/40 hover:bg-accent active:scale-[0.98]"
+          >
+            {p}
+          </button>
+        ))}
+      </div>
+    </div>
+  );
+}
+
+function TypingDots() {
+  return (
+    <div className="flex items-center gap-2 text-sm text-muted-foreground">
+      <div className="grid h-7 w-7 place-items-center rounded-full bg-primary text-primary-foreground">
+        <Stethoscope className="h-3.5 w-3.5" />
+      </div>
+      <span className="typing-dots inline-flex gap-1">
+        <span /> <span /> <span />
+      </span>
+    </div>
+  );
+}
+
+function Message({ message }: { message: UIMessage }) {
+  const text = (message.parts ?? []).map((p: any) => (p.type === "text" ? p.text : "")).join("");
+  if (message.role === "user") {
+    return (
+      <div className="flex justify-end gap-3 animate-fade-in">
+        <div className="max-w-[85%] rounded-2xl rounded-tr-sm bg-primary px-4 py-2.5 text-sm text-primary-foreground">
+          {text}
+        </div>
+        <div className="grid h-7 w-7 shrink-0 place-items-center rounded-full bg-secondary text-secondary-foreground">
+          <User className="h-3.5 w-3.5" />
+        </div>
+      </div>
+    );
+  }
+  return (
+    <div className="flex gap-3 animate-fade-in">
+      <div className="grid h-7 w-7 shrink-0 place-items-center rounded-full bg-primary text-primary-foreground">
+        <Stethoscope className="h-3.5 w-3.5" />
+      </div>
+      <div className="prose prose-sm max-w-none flex-1 text-foreground prose-headings:text-foreground prose-strong:text-foreground prose-a:text-primary">
+        <ReactMarkdown>{text || "…"}</ReactMarkdown>
+      </div>
+    </div>
   );
 }

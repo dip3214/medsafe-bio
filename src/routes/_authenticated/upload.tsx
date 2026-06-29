@@ -9,6 +9,7 @@ import { groupDocs } from "@/lib/medsafe-types";
 import type { MedicalDoc } from "@/lib/medsafe-types";
 import { supabase } from "@/integrations/supabase/client";
 import { Upload, FileText, Loader2, Pill, FlaskConical, Stethoscope, CalendarDays, Trash2, AlertTriangle, UserRound } from "lucide-react";
+import { useActiveMember } from "@/lib/active-member";
 
 export const Route = createFileRoute("/_authenticated/upload")({
   head: () => ({
@@ -26,8 +27,12 @@ function UploadPage() {
   const createDoc = useServerFn(createMedicalDoc);
   const removeDoc = useServerFn(deleteMedicalDoc);
   const listDocs = useServerFn(listMedicalDocs);
+  const { active } = useActiveMember();
 
-  const { data: docs = [] } = useQuery({ queryKey: ["medsafe-docs"], queryFn: () => listDocs() as Promise<MedicalDoc[]> });
+  const { data: docs = [] } = useQuery({
+    queryKey: ["medsafe-docs", active?.id ?? null],
+    queryFn: () => listDocs({ data: { memberId: active?.id } }) as Promise<MedicalDoc[]>,
+  });
 
   const [busy, setBusy] = useState(false);
   const [err, setErr] = useState<string | null>(null);
@@ -57,7 +62,7 @@ function UploadPage() {
 
       await createDoc({ data: {
         storagePath: path, fileName: file.name, mimeType: file.type || "application/octet-stream",
-        fileSize: file.size, parsed,
+        fileSize: file.size, parsed, memberId: active?.id,
       }});
       qc.invalidateQueries({ queryKey: ["medsafe-docs"] });
     } catch (e: any) {

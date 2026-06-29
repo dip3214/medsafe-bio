@@ -17,7 +17,7 @@ export const Route = createFileRoute("/api/chat")({
         if (!authHeader.startsWith("Bearer ")) return new Response("Unauthorized", { status: 401 });
         const token = authHeader.slice(7);
 
-        const body = (await request.json()) as { messages?: UIMessage[]; threadId?: string };
+        const body = (await request.json()) as { messages?: UIMessage[]; threadId?: string; memberId?: string };
         const messages = body.messages;
         if (!Array.isArray(messages)) return new Response("Bad request", { status: 400 });
 
@@ -29,13 +29,26 @@ export const Route = createFileRoute("/api/chat")({
         if (claimsErr || !claims?.claims?.sub) return new Response("Unauthorized", { status: 401 });
         const userId = claims.claims.sub as string;
 
-        // Build MedSafe clinical context for this user
-        const { data: docs } = await supabase
+        // Resolve active member (passed) and load their context
+        let memberLabel = "the patient";
+        if (body.memberId) {
+          const { data: m } = await supabase
+            .from("family_members")
+            .select("name, relation, segment")
+            .eq("id", body.memberId)
+            .eq("user_id", userId)
+            .maybeSingle();
+          if (m) memberLabel = `${m.name}${m.relation ? ` (${m.relation})` : ""}`;
+        }
+
+        let q = supabase
           .from("documents")
           .select("title, document_date, document_type, extractions(structured_data)")
           .eq("user_id", userId)
           .order("document_date", { ascending: false })
           .limit(40);
+        if (body.memberId) q = q.eq("member_id", body.memberId);
+        const { data: docs } = await q;
 
         const contextLines: string[] = [];
         for (const d of docs ?? []) {
@@ -64,17 +77,15 @@ export const Route = createFileRoute("/api/chat")({
                 .join("; ")}`,
             );
         }
-        const contextBlock = contextLines.length
-          ? contextLines.join("\n")
-          : "(no documents uploaded yet)";
+        const contextBlock = contextLines.length ? contextLines.join("\n") : "(no documents uploaded yet)";
 
-        const system = `You are MedSafe Assistant — a careful, India-aware clinical companion for a patient using the MedSafe app.
-You have access to the patient's structured medical records below, parsed from their uploaded prescriptions and lab reports.
+        const system = `You are MedSafe Assistant — a careful, India-aware clinical companion answering questions about ${memberLabel}.
+You have access to ${memberLabel}'s structured medical records below, parsed from uploaded prescriptions and lab reports.
 Always ground your answers in this data; quote specific dates, values, and medicines when relevant. If the records don't contain the answer, say so plainly.
 Use INR for costs and DD/MM/YYYY for dates. Be warm, concise, and structured (short paragraphs, bullets when helpful). Use Markdown.
 You are NOT a doctor — for anything urgent or treatment-changing, recommend consulting their physician.
 
-=== PATIENT RECORDS (most recent first) ===${contextBlock}
+=== ${memberLabel.toUpperCase()}'S RECORDS (most recent first) ===${contextBlock}
 === END RECORDS ===`;
 
         const gateway = createLovableAiGatewayProvider(apiKey);

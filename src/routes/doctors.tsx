@@ -58,12 +58,6 @@ function DoctorsPage() {
                   <div className="mt-1 text-xs text-muted-foreground">{d.experienceYears} yrs · ₹{d.consultationFee}</div>
                 </div>
               </div>
-              <div className="mt-4 flex flex-wrap gap-2">
-                <button className="inline-flex items-center gap-2 rounded-md bg-primary px-3 py-1.5 text-xs font-medium text-primary-foreground hover:bg-primary/90">
-                  <Send className="h-3.5 w-3.5" /> Share my history
-                </button>
-                <button className="rounded-md border border-border bg-background px-3 py-1.5 text-xs hover:bg-accent">Book consultation</button>
-              </div>
             </div>
           ))}
         </div>

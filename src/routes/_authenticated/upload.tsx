@@ -8,7 +8,7 @@ import { createMedicalDoc, deleteMedicalDoc, listMedicalDocs } from "@/lib/medsa
 import { groupDocs } from "@/lib/medsafe-types";
 import type { MedicalDoc } from "@/lib/medsafe-types";
 import { supabase } from "@/integrations/supabase/client";
-import { Upload, FileText, Loader2, Pill, FlaskConical, Stethoscope, CalendarDays, Trash2, AlertTriangle, UserRound } from "lucide-react";
+import { Upload, FileText, Loader2, Pill, FlaskConical, Stethoscope, CalendarDays, Trash2, AlertTriangle, UserRound, ShoppingBasket, Sparkles } from "lucide-react";
 import { useActiveMember } from "@/lib/active-member";
 
 export const Route = createFileRoute("/_authenticated/upload")({
@@ -121,10 +121,11 @@ function UploadPage() {
             </div>
             <div className="text-sm text-muted-foreground">Drop file here or click to choose. PDF, JPG, PNG.</div>
             <label className="cursor-pointer rounded-md bg-primary px-4 py-2 text-sm font-medium text-primary-foreground hover:bg-primary/90">
-              {busy ? <span className="inline-flex items-center gap-2"><Loader2 className="h-4 w-4 animate-spin" /> Extracting & uploading…</span> : "Choose file"}
+              {busy ? <span className="inline-flex items-center gap-2"><Loader2 className="h-4 w-4 animate-spin" /> Working…</span> : "Choose file"}
               <input type="file" accept="image/*,application/pdf" className="hidden" disabled={busy}
                 onChange={(e) => { const f = e.target.files?.[0]; if (f) onFile(f); e.target.value = ""; }} />
             </label>
+            {busy && <ExtractionLoader />}
             {err && (
               <div className="mt-2 inline-flex items-center gap-2 rounded-md bg-destructive/10 px-3 py-1.5 text-xs text-destructive">
                 <AlertTriangle className="h-4 w-4" /> {err}
@@ -241,6 +242,22 @@ function DocCard({ d, onDelete }: { d: MedicalDoc; onDelete: () => void }) {
           <FileText className="-mt-0.5 mr-1 inline h-3 w-3" />Stored at {d.storagePath.split("/").pop()}
         </div>
       )}
+    </div>
+  );
+}
+
+function ExtractionLoader() {
+  return (
+    <div className="mt-2 inline-flex flex-col items-center gap-2 rounded-xl border border-border bg-background px-4 py-3">
+      <div className="extract-anim text-primary">
+        <Pill className="h-5 w-5" />
+        <FlaskConical className="h-5 w-5" />
+        <Stethoscope className="h-5 w-5" />
+        <ShoppingBasket className="h-5 w-5" />
+      </div>
+      <div className="inline-flex items-center gap-1.5 text-xs text-muted-foreground">
+        <Sparkles className="h-3 w-3 text-primary" /> Reading your document — extracting diagnoses, meds & labs…
+      </div>
     </div>
   );
 }

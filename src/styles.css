@@ -160,6 +160,68 @@
   .typing-dots > span:nth-child(2) { animation-delay: .15s; }
   .typing-dots > span:nth-child(3) { animation-delay: .3s; }
 
+  /* Scroll-triggered reveal */
+  .reveal {
+    opacity: 0;
+    transform: translateY(14px);
+    transition: opacity 600ms ease, transform 600ms cubic-bezier(.2,.7,.2,1);
+    will-change: opacity, transform;
+  }
+  .reveal-in { opacity: 1; transform: translateY(0); }
+  @media (prefers-reduced-motion: reduce) {
+    .reveal { opacity: 1; transform: none; transition: none; }
+  }
+
+  /* Teddy bear intro */
+  .teddy { display: inline-flex; align-items: center; gap: 2px; line-height: 1; }
+  .teddy-bear { display: inline-block; }
+  .teddy-thumb {
+    display: inline-block;
+    font-size: 0.85em;
+    animation: teddy-thumb-pop 380ms cubic-bezier(.2,.8,.2,1.2) both;
+  }
+  .teddy-hidden { opacity: 0; transform: translate(-40px, -50%); }
+  .teddy-walk .teddy-bear {
+    animation: teddy-walk-in 1.3s cubic-bezier(.2,.7,.2,1) both, teddy-waddle 380ms ease-in-out 0s 4;
+  }
+  .teddy-thumbs .teddy-bear, .teddy-rest .teddy-bear { animation: teddy-bob 1.6s ease-in-out infinite; }
+  .teddy-rest { animation: teddy-fade-out 600ms ease 1.2s both; }
+
+  @keyframes teddy-walk-in {
+    from { opacity: 0; transform: translateX(-44px); }
+    to   { opacity: 1; transform: translateX(0); }
+  }
+  @keyframes teddy-waddle {
+    0%, 100% { rotate: -6deg; } 50% { rotate: 6deg; }
+  }
+  @keyframes teddy-bob {
+    0%, 100% { transform: translateY(0); } 50% { transform: translateY(-2px); }
+  }
+  @keyframes teddy-thumb-pop {
+    from { opacity: 0; transform: scale(.4) rotate(-20deg); }
+    to   { opacity: 1; transform: scale(1) rotate(0); }
+  }
+  @keyframes teddy-fade-out {
+    to { opacity: 0; transform: translateX(8px); }
+  }
+
+  /* Extraction loader sequence */
+  .extract-anim { display: inline-flex; gap: .5rem; align-items: center; }
+  .extract-anim > * {
+    opacity: 0;
+    animation: extract-pop 1.8s ease-in-out infinite both;
+  }
+  .extract-anim > *:nth-child(1) { animation-delay: 0s; }
+  .extract-anim > *:nth-child(2) { animation-delay: .3s; }
+  .extract-anim > *:nth-child(3) { animation-delay: .6s; }
+  .extract-anim > *:nth-child(4) { animation-delay: .9s; }
+  @keyframes extract-pop {
+    0%   { opacity: 0; transform: translateY(6px) scale(.85); }
+    25%  { opacity: 1; transform: translateY(0) scale(1); }
+    60%  { opacity: 1; transform: translateY(0) scale(1); }
+    100% { opacity: 0; transform: translateY(-6px) scale(.9); }
+  }
+
   @media print {
     header, footer, .print\:hidden { display: none !important; }
     body { background: white; }

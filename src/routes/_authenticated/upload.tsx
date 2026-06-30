@@ -246,6 +246,22 @@ function DocCard({ d, onDelete }: { d: MedicalDoc; onDelete: () => void }) {
   );
 }
 
+function ExtractionLoader() {
+  return (
+    <div className="mt-2 inline-flex flex-col items-center gap-2 rounded-xl border border-border bg-background px-4 py-3">
+      <div className="extract-anim text-primary">
+        <Pill className="h-5 w-5" />
+        <FlaskConical className="h-5 w-5" />
+        <Stethoscope className="h-5 w-5" />
+        <ShoppingBasket className="h-5 w-5" />
+      </div>
+      <div className="inline-flex items-center gap-1.5 text-xs text-muted-foreground">
+        <Sparkles className="h-3 w-3 text-primary" /> Reading your document — extracting diagnoses, meds & labs…
+      </div>
+    </div>
+  );
+}
+
 function flagClass(f?: string) {
   switch (f) {
     case "high": return "bg-orange-100 text-orange-800";

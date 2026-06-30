@@ -35,7 +35,6 @@ const GROUPS: { title: string; items: { icon: any; title: string; text: string; 
     title: "Convenience & Future",
     items: [
       { icon: Pill, title: "Medicines at Doorstep", text: "Reorder from your prescriptions; doorstep delivery once trust is built.", to: "/services" },
-      { icon: Activity, title: "Book Consultations", text: "Book your trusted doctor; pre-share structured history before the visit.", to: "/doctors" },
       { icon: Brain, title: "Digital Twin (roadmap)", text: "Personalized simulation of your physiology as your data grows.", to: "/services" },
       { icon: FlaskConical, title: "Genomics & Pre-cancer (roadmap)", text: "Early detection models powered by longitudinal data + genomics.", to: "/services" },
     ],

@@ -1,8 +1,8 @@
-import { createFileRoute } from "@tanstack/react-router";
+import { createFileRoute, useNavigate } from "@tanstack/react-router";
 import { useState } from "react";
 import { useMutation, useQueryClient } from "@tanstack/react-query";
 import { useServerFn } from "@tanstack/react-start";
-import { Plus, Trash2, CheckCircle2 } from "lucide-react";
+import { Plus, Trash2, CheckCircle2, Upload as UploadIcon } from "lucide-react";
 import { SiteLayout } from "@/components/SiteLayout";
 import { useActiveMember, segmentLabel, type Segment, type Member } from "@/lib/active-member";
 import { createFamilyMember, deleteFamilyMember } from "@/lib/family.functions";
@@ -19,6 +19,7 @@ export const Route = createFileRoute("/_authenticated/members")({
 
 function MembersPage() {
   const { members, activeId, setActiveId, refetch } = useActiveMember();
+  const navigate = useNavigate();
   const qc = useQueryClient();
   const create = useServerFn(createFamilyMember);
   const del = useServerFn(deleteFamilyMember);
@@ -104,6 +105,13 @@ function MembersPage() {
                       title="Make active"
                     >
                       <CheckCircle2 className={`h-4 w-4 ${activeId === m.id ? "text-primary" : ""}`} />
+                    </button>
+                    <button
+                      onClick={() => { setActiveId(m.id); navigate({ to: "/upload" }); }}
+                      className="rounded-md p-1.5 text-xs text-muted-foreground hover:text-primary"
+                      title={`Upload to ${m.name}`}
+                    >
+                      <UploadIcon className="h-4 w-4" />
                     </button>
                     {!m.is_default && (
                       <button

@@ -8,7 +8,9 @@ import { createMedicalDoc, deleteMedicalDoc, listMedicalDocs } from "@/lib/medsa
 import { groupDocs } from "@/lib/medsafe-types";
 import type { MedicalDoc } from "@/lib/medsafe-types";
 import { supabase } from "@/integrations/supabase/client";
-import { Upload, FileText, Loader2, Pill, FlaskConical, Stethoscope, CalendarDays, Trash2, AlertTriangle, UserRound, ShoppingBasket, Sparkles } from "lucide-react";
+import { Upload, FileText, Loader2, Pill, FlaskConical, Stethoscope, CalendarDays, Trash2, AlertTriangle, UserRound } from "lucide-react";
+import { Player } from "@lottiefiles/react-lottie-player";
+import notebookLottie from "@/assets/doctor_notebook.lottie.asset.json";
 import { useActiveMember } from "@/lib/active-member";
 
 export const Route = createFileRoute("/_authenticated/upload")({
@@ -248,16 +250,9 @@ function DocCard({ d, onDelete }: { d: MedicalDoc; onDelete: () => void }) {
 
 function ExtractionLoader() {
   return (
-    <div className="mt-2 inline-flex flex-col items-center gap-2 rounded-xl border border-border bg-background px-4 py-3">
-      <div className="extract-anim text-primary">
-        <Pill className="h-5 w-5" />
-        <FlaskConical className="h-5 w-5" />
-        <Stethoscope className="h-5 w-5" />
-        <ShoppingBasket className="h-5 w-5" />
-      </div>
-      <div className="inline-flex items-center gap-1.5 text-xs text-muted-foreground">
-        <Sparkles className="h-3 w-3 text-primary" /> Reading your document — extracting diagnoses, meds & labs…
-      </div>
+    <div className="fixed inset-0 z-50 flex flex-col items-center justify-center gap-4 bg-background/90 backdrop-blur-sm">
+      <Player autoplay loop src={notebookLottie.url} style={{ width: 280, height: 280 }} />
+      <div className="text-sm text-muted-foreground">Reading your document — extracting diagnoses, meds & labs…</div>
     </div>
   );
 }

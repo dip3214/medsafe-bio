@@ -1,12 +1,9 @@
 import { Link, useNavigate } from "@tanstack/react-router";
 import { useEffect, useState, type ReactNode } from "react";
-import { MessageSquare, LogOut, LogIn, ShieldCheck, BadgeCheck } from "lucide-react";
-import { Player } from "@lottiefiles/react-lottie-player";
+import { MessageSquare, LogOut, LogIn, ShieldCheck, BadgeCheck, HeartPulse } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 import { MemberSwitcher } from "@/components/MemberSwitcher";
 import { ConsentBanner } from "@/components/ConsentBanner";
-import { TeddyIntro } from "@/components/TeddyIntro";
-import doctorLottie from "@/assets/doctor.lottie.asset.json";
 
 const NAV = [
   { to: "/upload", label: "Upload" },
@@ -37,15 +34,10 @@ export function SiteLayout({ children }: { children: ReactNode }) {
     <div className="min-h-screen bg-background text-foreground">
       <header className="sticky top-0 z-40 border-b border-border/60 bg-background/85 backdrop-blur">
         <div className="mx-auto flex max-w-7xl items-center justify-between gap-4 px-4 py-3">
-          <Link to="/" className="relative flex items-center gap-2.5 pl-7">
-            <TeddyIntro />
-            <Player
-              autoplay
-              keepLastFrame
-              loop={false}
-              src={doctorLottie.url}
-              style={{ width: 56, height: 56 }}
-            />
+          <Link to="/" className="flex items-center gap-2.5">
+            <span className="grid h-9 w-9 place-items-center rounded-full bg-primary text-primary-foreground shadow-sm">
+              <HeartPulse className="h-5 w-5" />
+            </span>
             <span className="text-xl font-semibold tracking-tight">
               med<span className="text-primary">Safe</span>
             </span>

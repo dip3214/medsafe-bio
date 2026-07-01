@@ -1,10 +1,12 @@
 import { Link, useNavigate } from "@tanstack/react-router";
 import { useEffect, useState, type ReactNode } from "react";
-import { Plus, MessageSquare, LogOut, LogIn, ShieldCheck, BadgeCheck } from "lucide-react";
+import { MessageSquare, LogOut, LogIn, ShieldCheck, BadgeCheck } from "lucide-react";
+import { Player } from "@lottiefiles/react-lottie-player";
 import { supabase } from "@/integrations/supabase/client";
 import { MemberSwitcher } from "@/components/MemberSwitcher";
 import { ConsentBanner } from "@/components/ConsentBanner";
 import { TeddyIntro } from "@/components/TeddyIntro";
+import doctorLottie from "@/assets/doctor.lottie.asset.json";
 
 const NAV = [
   { to: "/upload", label: "Upload" },

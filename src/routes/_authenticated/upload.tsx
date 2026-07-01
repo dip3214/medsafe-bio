@@ -9,8 +9,6 @@ import { groupDocs } from "@/lib/medsafe-types";
 import type { MedicalDoc } from "@/lib/medsafe-types";
 import { supabase } from "@/integrations/supabase/client";
 import { Upload, FileText, Loader2, Pill, FlaskConical, Stethoscope, CalendarDays, Trash2, AlertTriangle, UserRound } from "lucide-react";
-import { Player } from "@lottiefiles/react-lottie-player";
-import notebookLottie from "@/assets/doctor_notebook.lottie.asset.json";
 import { useActiveMember } from "@/lib/active-member";
 
 export const Route = createFileRoute("/_authenticated/upload")({

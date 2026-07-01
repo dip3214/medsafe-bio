@@ -248,12 +248,21 @@ function DocCard({ d, onDelete }: { d: MedicalDoc; onDelete: () => void }) {
 
 function ExtractionLoader() {
   return (
-    <div className="fixed inset-0 z-50 flex flex-col items-center justify-center gap-4 bg-background/90 backdrop-blur-sm">
-      <Player autoplay loop src={notebookLottie.url} style={{ width: 280, height: 280 }} />
-      <div className="text-sm text-muted-foreground">Reading your document — extracting diagnoses, meds & labs…</div>
+    <div className="mt-4 flex w-full flex-col items-center justify-center gap-3 rounded-xl border border-border bg-accent/40 p-6 animate-fade-in">
+      <div className="flex items-center gap-3">
+        <span className="relative flex h-3 w-3">
+          <span className="absolute inline-flex h-full w-full animate-ping rounded-full bg-primary opacity-60" />
+          <span className="relative inline-flex h-3 w-3 rounded-full bg-primary" />
+        </span>
+        <Loader2 className="h-5 w-5 animate-spin text-primary" />
+        <FileText className="h-5 w-5 text-primary/70" />
+      </div>
+      <div className="text-sm font-medium text-foreground">Reading your document…</div>
+      <div className="text-xs text-muted-foreground">Extracting diagnoses, medicines & lab values</div>
     </div>
   );
 }
+
 
 function flagClass(f?: string) {
   switch (f) {

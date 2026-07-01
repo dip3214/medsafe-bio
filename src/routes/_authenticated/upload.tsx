@@ -248,20 +248,109 @@ function DocCard({ d, onDelete }: { d: MedicalDoc; onDelete: () => void }) {
 
 function ExtractionLoader() {
   return (
-    <div className="mt-4 flex w-full flex-col items-center justify-center gap-3 rounded-xl border border-border bg-accent/40 p-6 animate-fade-in">
-      <div className="flex items-center gap-3">
-        <span className="relative flex h-3 w-3">
-          <span className="absolute inline-flex h-full w-full animate-ping rounded-full bg-primary opacity-60" />
-          <span className="relative inline-flex h-3 w-3 rounded-full bg-primary" />
-        </span>
-        <Loader2 className="h-5 w-5 animate-spin text-primary" />
-        <FileText className="h-5 w-5 text-primary/70" />
+    <div className="ext mt-4 w-full animate-fade-in">
+      <style>{`
+        @keyframes ext-pulse-doc { 0%,100%{transform:scale(1);} 50%{transform:scale(1.04);} }
+        @keyframes ext-scan { 0%{top:14px;opacity:.7;} 100%{top:146px;opacity:0;} }
+        @keyframes ext-row { from{opacity:0;transform:translateX(-8px);} to{opacity:1;transform:translateX(0);} }
+        @keyframes ext-msg { 0%,18%{opacity:1;} 22%,100%{opacity:0;} }
+        @keyframes ext-dot { 0%,80%,100%{transform:translateY(0);} 40%{transform:translateY(-5px);} }
+        @keyframes ext-rise1 { 0%{transform:translate(0,0) scale(1);opacity:1;} 70%{opacity:1;} 100%{transform:translate(-40px,-140px) scale(.5);opacity:0;} }
+        @keyframes ext-rise2 { 0%{transform:translate(0,0) scale(1);opacity:1;} 70%{opacity:1;} 100%{transform:translate(6px,-140px) scale(.5);opacity:0;} }
+        @keyframes ext-rise3 { 0%{transform:translate(0,0) scale(1);opacity:1;} 70%{opacity:1;} 100%{transform:translate(45px,-140px) scale(.5);opacity:0;} }
+        .ext .doc-pulse { animation: ext-pulse-doc 2s ease-in-out infinite; }
+        .ext .scan { animation: ext-scan 2s linear infinite; }
+        .ext .fi1 { animation: ext-rise1 2.4s ease-in-out infinite; animation-delay:.3s; }
+        .ext .fi2 { animation: ext-rise2 2.4s ease-in-out infinite; animation-delay:1s; }
+        .ext .fi3 { animation: ext-rise3 2.4s ease-in-out infinite; animation-delay:1.7s; }
+        .ext .msg1 { animation: ext-msg 4.8s ease-in-out infinite; }
+        .ext .msg2 { animation: ext-msg 4.8s ease-in-out infinite; animation-delay:1.2s; }
+        .ext .msg3 { animation: ext-msg 4.8s ease-in-out infinite; animation-delay:2.4s; }
+        .ext .msg4 { animation: ext-msg 4.8s ease-in-out infinite; animation-delay:3.6s; }
+        .ext .d1 { animation: ext-dot 1.2s ease-in-out infinite; }
+        .ext .d2 { animation: ext-dot 1.2s ease-in-out infinite; animation-delay:.2s; }
+        .ext .d3 { animation: ext-dot 1.2s ease-in-out infinite; animation-delay:.4s; }
+        .ext .r1 { animation: ext-row .5s ease forwards; animation-delay:.8s; opacity:0; }
+        .ext .r2 { animation: ext-row .5s ease forwards; animation-delay:1.6s; opacity:0; }
+        .ext .r3 { animation: ext-row .5s ease forwards; animation-delay:2.4s; opacity:0; }
+        .ext .doc-line { height:7px; border-radius:4px; background:hsl(var(--border)); opacity:.6; }
+      `}</style>
+
+      <div className="flex flex-col items-center gap-4 py-4">
+        <div className="flex items-start justify-center gap-8">
+          {/* Document */}
+          <div className="relative flex flex-col items-center gap-3">
+            <div className="text-[10px] font-medium uppercase tracking-wider text-muted-foreground">Your report</div>
+            <div className="doc-pulse relative flex h-40 w-28 flex-col gap-1.5 overflow-hidden rounded-lg border border-border bg-card p-3">
+              <div className="absolute -right-1.5 -top-1.5 grid h-6 w-6 place-items-center rounded-full bg-primary">
+                <FileText className="h-3 w-3 text-primary-foreground" />
+              </div>
+              <div className="mb-1 text-[9px] font-medium text-muted-foreground">Lab Report</div>
+              <div className="doc-line" style={{ width: "95%" }} />
+              <div className="doc-line" style={{ width: "80%" }} />
+              <div className="doc-line" style={{ width: "55%" }} />
+              <div className="doc-line" style={{ width: "95%" }} />
+              <div className="doc-line" style={{ width: "80%" }} />
+              <div className="doc-line" style={{ width: "55%" }} />
+              <div className="doc-line" style={{ width: "95%" }} />
+              <div className="scan absolute left-0 right-0 h-0.5 bg-primary/70" />
+            </div>
+            <div className="pointer-events-none absolute -bottom-2 left-1/2 flex -translate-x-1/2 gap-2.5">
+              <div className="fi1 grid h-8 w-8 place-items-center rounded-lg border border-border bg-background">
+                <FlaskConical className="h-4 w-4 text-primary" />
+              </div>
+              <div className="fi2 grid h-8 w-8 place-items-center rounded-lg border border-border bg-background">
+                <Pill className="h-4 w-4 text-primary" />
+              </div>
+              <div className="fi3 grid h-8 w-8 place-items-center rounded-lg border border-border bg-background">
+                <Stethoscope className="h-4 w-4 text-primary" />
+              </div>
+            </div>
+          </div>
+
+          {/* Arrow */}
+          <div className="flex items-center pt-16">
+            <div className="relative h-0.5 w-10 bg-border">
+              <span className="absolute -right-1 -top-1 h-0 w-0 border-y-4 border-l-[7px] border-y-transparent border-l-border" />
+            </div>
+          </div>
+
+          {/* Results */}
+          <div className="flex w-44 flex-col gap-2 pt-11">
+            <div className="text-[10px] font-medium uppercase tracking-wider text-muted-foreground">Clinical events</div>
+            <div className="r1 flex items-center justify-between rounded-lg border border-border bg-card px-3 py-2">
+              <span className="text-[13px] font-medium">HbA1c</span>
+              <span className="rounded-full bg-red-100 px-2 py-0.5 text-[11px] font-medium text-red-800">6.4%</span>
+            </div>
+            <div className="r2 flex items-center justify-between rounded-lg border border-border bg-card px-3 py-2">
+              <span className="text-[13px] font-medium">LDL</span>
+              <span className="rounded-full bg-amber-100 px-2 py-0.5 text-[11px] font-medium text-amber-800">118</span>
+            </div>
+            <div className="r3 flex items-center justify-between rounded-lg border border-border bg-card px-3 py-2">
+              <span className="text-[13px] font-medium">Vitamin D</span>
+              <span className="rounded-full bg-emerald-100 px-2 py-0.5 text-[11px] font-medium text-emerald-800">42</span>
+            </div>
+          </div>
+        </div>
+
+        <div className="mt-2 flex flex-col items-center gap-2">
+          <div className="relative flex h-6 w-64 items-center justify-center">
+            <span className="msg1 absolute text-sm text-muted-foreground">Reading your report…</span>
+            <span className="msg2 absolute text-sm text-muted-foreground">Identifying clinical events…</span>
+            <span className="msg3 absolute text-sm text-muted-foreground">Structuring your health data…</span>
+            <span className="msg4 absolute text-sm text-muted-foreground">Almost done…</span>
+          </div>
+          <div className="flex items-center gap-1.5">
+            <span className="d1 h-1.5 w-1.5 rounded-full bg-primary/70" />
+            <span className="d2 h-1.5 w-1.5 rounded-full bg-primary/70" />
+            <span className="d3 h-1.5 w-1.5 rounded-full bg-primary/70" />
+          </div>
+        </div>
       </div>
-      <div className="text-sm font-medium text-foreground">Reading your document…</div>
-      <div className="text-xs text-muted-foreground">Extracting diagnoses, medicines & lab values</div>
     </div>
   );
 }
+
 
 
 function flagClass(f?: string) {

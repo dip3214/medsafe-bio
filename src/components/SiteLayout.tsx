@@ -19,6 +19,8 @@ const LIFESTYLE_NAV = { to: "/lifestyle" as const, label: "Lifestyle" };
 export function SiteLayout({ children }: { children: ReactNode }) {
   const [email, setEmail] = useState<string | null>(null);
   const navigate = useNavigate();
+  const { active } = useActiveMember();
+  const navItems = active?.segment === "me" ? [...NAV, LIFESTYLE_NAV] : NAV;
 
   useEffect(() => {
     supabase.auth.getUser().then(({ data }) => setEmail(data.user?.email ?? null));

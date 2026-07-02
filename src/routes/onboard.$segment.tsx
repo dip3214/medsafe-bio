@@ -65,7 +65,7 @@ function OnboardPage() {
     }
   }, [authed, members, segment]);
 
-  const info = INTRO[segment];
+  const info = INTRO[segment as Segment];
   const Icon = info.icon;
 
   const [name, setName] = useState("");

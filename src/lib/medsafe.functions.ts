@@ -189,3 +189,24 @@ export const listFlaggedLatest = createServerFn({ method: "GET" })
     }
     return out.slice(0, 3);
   });
+
+// Signed URL for the ORIGINAL uploaded file. The extracted data is a
+// convenience layer — the original document is the source of truth and must
+// always be one click away from anywhere it's referenced.
+export const getDocumentSignedUrl = createServerFn({ method: "POST" })
+  .middleware([requireSupabaseAuth])
+  .inputValidator((d: unknown) => z.object({ documentId: z.string().uuid() }).parse(d))
+  .handler(async ({ context, data }) => {
+    const { data: doc, error } = await context.supabase
+      .from("documents")
+      .select("storage_path, member_id, user_id")
+      .eq("id", data.documentId)
+      .eq("user_id", context.userId)
+      .maybeSingle();
+    if (error || !doc?.storage_path) throw new Error("Document not found");
+    const { data: signed, error: sErr } = await context.supabase.storage
+      .from("medical-documents")
+      .createSignedUrl(doc.storage_path, 60 * 5);
+    if (sErr || !signed) throw new Error(sErr?.message || "Could not sign URL");
+    return { url: signed.signedUrl };
+  });

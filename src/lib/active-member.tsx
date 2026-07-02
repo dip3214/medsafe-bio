@@ -1,8 +1,19 @@
 import { createContext, useContext, useEffect, useState, type ReactNode } from "react";
-import { useQuery } from "@tanstack/react-query";
+import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { useServerFn } from "@tanstack/react-start";
 import { listFamilyMembers } from "@/lib/family.functions";
 import { supabase } from "@/integrations/supabase/client";
+
+// Query keys that hold member-scoped data. Invalidated on every member switch
+// so a switched context never shows the previous member's rows.
+const MEMBER_SCOPED_KEYS = [
+  "medsafe-docs",
+  "dashboard",
+  "flagged-latest",
+  "chat-thread",
+  "chat-messages",
+  "summary",
+];
 
 export type Segment = "kids" | "parents" | "me";
 export type Member = {
@@ -59,11 +70,18 @@ export function ActiveMemberProvider({ children }: { children: ReactNode }) {
     } catch {}
   }, [members, activeId]);
 
+  const qc = useQueryClient();
   function setActiveId(id: string) {
+    if (id === activeId) return;
     _setActiveId(id);
     try {
       localStorage.setItem(LS_KEY, id);
     } catch {}
+    // Purge any member-scoped queries so a switch never leaks the previous
+    // member's data, even transiently on a slow network.
+    for (const k of MEMBER_SCOPED_KEYS) {
+      qc.removeQueries({ queryKey: [k] });
+    }
   }
 
   const active = members.find((m) => m.id === activeId) || null;

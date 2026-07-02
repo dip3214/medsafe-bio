@@ -4,18 +4,23 @@ import { MessageSquare, LogOut, LogIn, ShieldCheck, BadgeCheck, HeartPulse } fro
 import { supabase } from "@/integrations/supabase/client";
 import { MemberSwitcher } from "@/components/MemberSwitcher";
 import { ConsentBanner } from "@/components/ConsentBanner";
+import { useActiveMember } from "@/lib/active-member";
 
 const NAV = [
   { to: "/upload", label: "Upload" },
   { to: "/dashboard", label: "Dashboard" },
   { to: "/members", label: "Family" },
   { to: "/doctors", label: "Doctors" },
-  { to: "/care", label: "Care" },
+  { to: "/care", label: "Upcoming" },
 ] as const;
+
+const LIFESTYLE_NAV = { to: "/lifestyle" as const, label: "Lifestyle" };
 
 export function SiteLayout({ children }: { children: ReactNode }) {
   const [email, setEmail] = useState<string | null>(null);
   const navigate = useNavigate();
+  const { active } = useActiveMember();
+  const navItems = active?.segment === "me" ? [...NAV, LIFESTYLE_NAV] : NAV;
 
   useEffect(() => {
     supabase.auth.getUser().then(({ data }) => setEmail(data.user?.email ?? null));
@@ -44,7 +49,7 @@ export function SiteLayout({ children }: { children: ReactNode }) {
           </Link>
 
           <nav className="hidden items-center gap-1 rounded-full bg-secondary/60 p-1 lg:flex">
-            {NAV.map((n) => (
+            {navItems.map((n) => (
               <Link
                 key={n.to}
                 to={n.to}
@@ -81,7 +86,7 @@ export function SiteLayout({ children }: { children: ReactNode }) {
 
         <div className="border-t border-border/60 lg:hidden">
           <div className="mx-auto flex max-w-7xl gap-1 overflow-x-auto px-3 py-2">
-            {NAV.map((n) => (
+            {navItems.map((n) => (
               <Link
                 key={n.to}
                 to={n.to}

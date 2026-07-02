@@ -1,4 +1,4 @@
-import { createFileRoute, Link } from "@tanstack/react-router";
+import { createFileRoute, Link, useNavigate } from "@tanstack/react-router";
 import { useQuery } from "@tanstack/react-query";
 import { useServerFn } from "@tanstack/react-start";
 import { useEffect, useState } from "react";
@@ -183,44 +183,81 @@ function SampleEventsCard() {
   );
 }
 
-const SEG_CARDS = [
+type Seg = "kids" | "parents" | "me";
+const SEG_CARDS: { segment: Seg; surface: string; badge: string; title: string; desc: string }[] = [
   {
+    segment: "kids",
     surface: "bg-kids text-kids-foreground",
     badge: "MedSafe Kids",
     title: "Because little ones need a big record.",
     desc: "Vaccination certificates, growth charts, school medicals — held safely from day one.",
-    to: "/members" as const,
   },
   {
+    segment: "parents",
     surface: "bg-parents text-parents-foreground",
     badge: "MedSafe Parents",
     title: "Care for the ones who cared for you.",
     desc: "A gentle companion for ageing parents — medications, BP, sugar, follow-ups, all in one calm view.",
-    to: "/care" as const,
   },
   {
+    segment: "me",
     surface: "bg-me text-me-foreground",
     badge: "MedSafe Me",
     title: "Your health story, on your terms.",
     desc: "Every lab, every prescription, organized by visit and trended over time.",
-    to: "/dashboard" as const,
   },
 ];
 
 function Segments() {
+  const navigate = useNavigate();
+  const { members, setActiveId } = useActiveMember();
+  const [authed, setAuthed] = useState(false);
+  useEffect(() => {
+    supabase.auth.getUser().then(({ data }) => setAuthed(!!data.user));
+    const { data: sub } = supabase.auth.onAuthStateChange((_e, s) => setAuthed(!!s?.user));
+    return () => sub.subscription.unsubscribe();
+  }, []);
+
+  function onExplore(seg: Seg) {
+    if (!authed) {
+      navigate({ to: "/auth" });
+      return;
+    }
+    const existing = members.find((m) => m.segment === seg);
+    if (existing) {
+      setActiveId(existing.id);
+      navigate({ to: "/dashboard" });
+      return;
+    }
+    if (seg === "me") {
+      // Me segment always has a default profile from signup; fall back to dashboard.
+      const def = members.find((m) => m.is_default) || members[0];
+      if (def) {
+        setActiveId(def.id);
+        navigate({ to: "/dashboard" });
+        return;
+      }
+    }
+    navigate({ to: "/onboard/$segment", params: { segment: seg } });
+  }
+
   return (
     <section className="mx-auto grid max-w-7xl gap-5 px-4 pb-16 md:grid-cols-3">
       {SEG_CARDS.map((c) => (
-        <Link key={c.badge} to={c.to} className={`group flex flex-col rounded-3xl p-7 transition hover:-translate-y-0.5 ${c.surface}`}>
+        <button
+          key={c.segment}
+          onClick={() => onExplore(c.segment)}
+          className={`group flex flex-col rounded-3xl p-7 text-left transition duration-200 hover:-translate-y-1 hover:shadow-xl hover:shadow-black/5 ${c.surface}`}
+        >
           <span className="inline-flex w-fit items-center rounded-full bg-card/60 px-3 py-1 text-xs font-semibold backdrop-blur">
             {c.badge}
           </span>
           <h3 className="mt-5 font-display text-3xl leading-tight">{c.title}</h3>
           <p className="mt-3 text-sm opacity-90">{c.desc}</p>
-          <span className="mt-6 inline-flex items-center gap-1.5 text-sm font-semibold opacity-80 group-hover:opacity-100">
+          <span className="mt-6 inline-flex items-center gap-1.5 text-sm font-semibold opacity-80 transition group-hover:gap-2 group-hover:opacity-100">
             Explore <ArrowRight className="h-4 w-4" />
           </span>
-        </Link>
+        </button>
       ))}
     </section>
   );

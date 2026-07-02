@@ -492,6 +492,75 @@ export type Database = {
           },
         ]
       }
+      lifestyle_goals: {
+        Row: {
+          created_at: string
+          exercise_days_per_week: number | null
+          exercise_min_per_day: number | null
+          id: string
+          sleep_hours_target: number | null
+          updated_at: string
+          user_id: string
+        }
+        Insert: {
+          created_at?: string
+          exercise_days_per_week?: number | null
+          exercise_min_per_day?: number | null
+          id?: string
+          sleep_hours_target?: number | null
+          updated_at?: string
+          user_id: string
+        }
+        Update: {
+          created_at?: string
+          exercise_days_per_week?: number | null
+          exercise_min_per_day?: number | null
+          id?: string
+          sleep_hours_target?: number | null
+          updated_at?: string
+          user_id?: string
+        }
+        Relationships: []
+      }
+      lifestyle_logs: {
+        Row: {
+          created_at: string
+          exercise_minutes: number | null
+          exercise_type: string | null
+          id: string
+          log_date: string
+          meals: string | null
+          sleep_hours: number | null
+          source: string
+          updated_at: string
+          user_id: string
+        }
+        Insert: {
+          created_at?: string
+          exercise_minutes?: number | null
+          exercise_type?: string | null
+          id?: string
+          log_date?: string
+          meals?: string | null
+          sleep_hours?: number | null
+          source?: string
+          updated_at?: string
+          user_id: string
+        }
+        Update: {
+          created_at?: string
+          exercise_minutes?: number | null
+          exercise_type?: string | null
+          id?: string
+          log_date?: string
+          meals?: string | null
+          sleep_hours?: number | null
+          source?: string
+          updated_at?: string
+          user_id?: string
+        }
+        Relationships: []
+      }
       medications: {
         Row: {
           active: boolean
@@ -736,6 +805,7 @@ export type Database = {
         }
         Returns: boolean
       }
+      owns_member: { Args: { _member: string }; Returns: boolean }
     }
     Enums: {
       app_role: "admin" | "doctor" | "patient"

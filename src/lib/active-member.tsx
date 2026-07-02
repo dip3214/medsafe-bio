@@ -70,11 +70,18 @@ export function ActiveMemberProvider({ children }: { children: ReactNode }) {
     } catch {}
   }, [members, activeId]);
 
+  const qc = useQueryClient();
   function setActiveId(id: string) {
+    if (id === activeId) return;
     _setActiveId(id);
     try {
       localStorage.setItem(LS_KEY, id);
     } catch {}
+    // Purge any member-scoped queries so a switch never leaks the previous
+    // member's data, even transiently on a slow network.
+    for (const k of MEMBER_SCOPED_KEYS) {
+      qc.removeQueries({ queryKey: [k] });
+    }
   }
 
   const active = members.find((m) => m.id === activeId) || null;

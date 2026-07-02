@@ -17,6 +17,7 @@ import { Route as CareRouteImport } from './routes/care'
 import { Route as AuthRouteImport } from './routes/auth'
 import { Route as AuthenticatedRouteRouteImport } from './routes/_authenticated/route'
 import { Route as IndexRouteImport } from './routes/index'
+import { Route as OnboardSegmentRouteImport } from './routes/onboard.$segment'
 import { Route as ApiChatRouteImport } from './routes/api/chat'
 import { Route as AuthenticatedUploadRouteImport } from './routes/_authenticated/upload'
 import { Route as AuthenticatedSummaryRouteImport } from './routes/_authenticated/summary'
@@ -63,6 +64,11 @@ const AuthenticatedRouteRoute = AuthenticatedRouteRouteImport.update({
 const IndexRoute = IndexRouteImport.update({
   id: '/',
   path: '/',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const OnboardSegmentRoute = OnboardSegmentRouteImport.update({
+  id: '/onboard/$segment',
+  path: '/onboard/$segment',
   getParentRoute: () => rootRouteImport,
 } as any)
 const ApiChatRoute = ApiChatRouteImport.update({
@@ -122,6 +128,7 @@ export interface FileRoutesByFullPath {
   '/summary': typeof AuthenticatedSummaryRoute
   '/upload': typeof AuthenticatedUploadRoute
   '/api/chat': typeof ApiChatRoute
+  '/onboard/$segment': typeof OnboardSegmentRoute
 }
 export interface FileRoutesByTo {
   '/': typeof IndexRoute
@@ -139,6 +146,7 @@ export interface FileRoutesByTo {
   '/summary': typeof AuthenticatedSummaryRoute
   '/upload': typeof AuthenticatedUploadRoute
   '/api/chat': typeof ApiChatRoute
+  '/onboard/$segment': typeof OnboardSegmentRoute
 }
 export interface FileRoutesById {
   __root__: typeof rootRouteImport
@@ -158,6 +166,7 @@ export interface FileRoutesById {
   '/_authenticated/summary': typeof AuthenticatedSummaryRoute
   '/_authenticated/upload': typeof AuthenticatedUploadRoute
   '/api/chat': typeof ApiChatRoute
+  '/onboard/$segment': typeof OnboardSegmentRoute
 }
 export interface FileRouteTypes {
   fileRoutesByFullPath: FileRoutesByFullPath
@@ -177,6 +186,7 @@ export interface FileRouteTypes {
     | '/summary'
     | '/upload'
     | '/api/chat'
+    | '/onboard/$segment'
   fileRoutesByTo: FileRoutesByTo
   to:
     | '/'
@@ -194,6 +204,7 @@ export interface FileRouteTypes {
     | '/summary'
     | '/upload'
     | '/api/chat'
+    | '/onboard/$segment'
   id:
     | '__root__'
     | '/'
@@ -212,6 +223,7 @@ export interface FileRouteTypes {
     | '/_authenticated/summary'
     | '/_authenticated/upload'
     | '/api/chat'
+    | '/onboard/$segment'
   fileRoutesById: FileRoutesById
 }
 export interface RootRouteChildren {
@@ -224,6 +236,7 @@ export interface RootRouteChildren {
   PrivacyRoute: typeof PrivacyRoute
   ServicesRoute: typeof ServicesRoute
   ApiChatRoute: typeof ApiChatRoute
+  OnboardSegmentRoute: typeof OnboardSegmentRoute
 }
 
 declare module '@tanstack/react-router' {
@@ -282,6 +295,13 @@ declare module '@tanstack/react-router' {
       path: '/'
       fullPath: '/'
       preLoaderRoute: typeof IndexRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/onboard/$segment': {
+      id: '/onboard/$segment'
+      path: '/onboard/$segment'
+      fullPath: '/onboard/$segment'
+      preLoaderRoute: typeof OnboardSegmentRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/api/chat': {
@@ -376,6 +396,7 @@ const rootRouteChildren: RootRouteChildren = {
   PrivacyRoute: PrivacyRoute,
   ServicesRoute: ServicesRoute,
   ApiChatRoute: ApiChatRoute,
+  OnboardSegmentRoute: OnboardSegmentRoute,
 }
 export const routeTree = rootRouteImport
   ._addFileChildren(rootRouteChildren)

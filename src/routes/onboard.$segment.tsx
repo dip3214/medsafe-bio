@@ -152,5 +152,3 @@ function OnboardPage() {
   );
 }
 
-// Local import to avoid pulling if unused
-import { Navigate } from "@tanstack/react-router";

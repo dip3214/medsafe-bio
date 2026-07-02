@@ -79,14 +79,34 @@ export const Route = createFileRoute("/api/chat")({
         }
         const contextBlock = contextLines.length ? contextLines.join("\n") : "(no documents uploaded yet)";
 
+        // Lifestyle context — recent daily logs for this account. Available
+        // regardless of segment so a user can ask "how have I been sleeping?"
+        const { data: lsLogs } = await supabase
+          .from("lifestyle_logs")
+          .select("log_date, sleep_hours, exercise_type, exercise_minutes, meals")
+          .eq("user_id", userId)
+          .order("log_date", { ascending: false })
+          .limit(14);
+        const lsBlock = (lsLogs ?? [])
+          .map(
+            (l: any) =>
+              `- ${l.log_date}: sleep ${l.sleep_hours ?? "—"}h · ${l.exercise_type ?? "no movement"} ${l.exercise_minutes ?? 0}min${l.meals ? ` · meals: ${String(l.meals).slice(0, 120)}` : ""}`,
+          )
+          .join("\n") || "(no lifestyle logs yet)";
+
         const system = `You are MedSafe Assistant — a careful, India-aware clinical companion answering questions about ${memberLabel}.
-You have access to ${memberLabel}'s structured medical records below, parsed from uploaded prescriptions and lab reports.
+You have access to ${memberLabel}'s structured medical records and daily lifestyle logs below.
 Always ground your answers in this data; quote specific dates, values, and medicines when relevant. If the records don't contain the answer, say so plainly.
-Use INR for costs and DD/MM/YYYY for dates. Be warm, concise, and structured (short paragraphs, bullets when helpful). Use Markdown.
+When the user shares a lifestyle update in natural language (e.g. "slept 6.5 hours", "went for a 20 min run"), acknowledge warmly and note that the Lifestyle tab captures these automatically.
+Use INR for costs and DD/MM/YYYY for dates. Be warm, concise, and structured. Use Markdown.
 You are NOT a doctor — for anything urgent or treatment-changing, recommend consulting their physician.
 
 === ${memberLabel.toUpperCase()}'S RECORDS (most recent first) ===${contextBlock}
-=== END RECORDS ===`;
+=== END RECORDS ===
+
+=== LIFESTYLE LOGS (last 14 days) ===
+${lsBlock}
+=== END LIFESTYLE ===`;
 
         const gateway = createLovableAiGatewayProvider(apiKey);
         const result = streamText({

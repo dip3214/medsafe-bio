@@ -49,7 +49,7 @@ export function SiteLayout({ children }: { children: ReactNode }) {
           </Link>
 
           <nav className="hidden items-center gap-1 rounded-full bg-secondary/60 p-1 lg:flex">
-            {NAV.map((n) => (
+            {navItems.map((n) => (
               <Link
                 key={n.to}
                 to={n.to}
@@ -86,7 +86,7 @@ export function SiteLayout({ children }: { children: ReactNode }) {
 
         <div className="border-t border-border/60 lg:hidden">
           <div className="mx-auto flex max-w-7xl gap-1 overflow-x-auto px-3 py-2">
-            {NAV.map((n) => (
+            {navItems.map((n) => (
               <Link
                 key={n.to}
                 to={n.to}

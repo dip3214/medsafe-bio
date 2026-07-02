@@ -4,7 +4,7 @@ import { useServerFn } from "@tanstack/react-start";
 import { useState } from "react";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { extractClinicalDoc } from "@/lib/extract.functions";
-import { createMedicalDoc, deleteMedicalDoc, listMedicalDocs } from "@/lib/medsafe.functions";
+import { createMedicalDoc, deleteMedicalDoc, listMedicalDocs, getDocumentSignedUrl } from "@/lib/medsafe.functions";
 import { groupDocs } from "@/lib/medsafe-types";
 import type { MedicalDoc } from "@/lib/medsafe-types";
 import { supabase } from "@/integrations/supabase/client";

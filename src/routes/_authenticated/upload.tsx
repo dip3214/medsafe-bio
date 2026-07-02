@@ -237,12 +237,31 @@ function DocCard({ d, onDelete }: { d: MedicalDoc; onDelete: () => void }) {
           </div>
         </div>
       )}
-      {d.storagePath && (
-        <div className="mt-3 text-xs text-muted-foreground">
-          <FileText className="-mt-0.5 mr-1 inline h-3 w-3" />Stored at {d.storagePath.split("/").pop()}
-        </div>
-      )}
+      {d.storagePath && <ViewOriginalButton docId={d.id} />}
     </div>
+  );
+}
+
+function ViewOriginalButton({ docId }: { docId: string }) {
+  const sign = useServerFn(getDocumentSignedUrl);
+  const [busy, setBusy] = useState(false);
+  async function open() {
+    setBusy(true);
+    try {
+      const { url } = await sign({ data: { documentId: docId } });
+      window.open(url, "_blank", "noopener,noreferrer");
+    } finally {
+      setBusy(false);
+    }
+  }
+  return (
+    <button
+      onClick={open}
+      disabled={busy}
+      className="mt-3 inline-flex items-center gap-1.5 rounded-md border border-border bg-background px-2.5 py-1.5 text-xs font-medium text-foreground hover:bg-accent disabled:opacity-50"
+    >
+      <ExternalLink className="h-3 w-3" /> {busy ? "Opening…" : "View original document"}
+    </button>
   );
 }
 

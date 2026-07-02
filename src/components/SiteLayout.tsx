@@ -4,14 +4,17 @@ import { MessageSquare, LogOut, LogIn, ShieldCheck, BadgeCheck, HeartPulse } fro
 import { supabase } from "@/integrations/supabase/client";
 import { MemberSwitcher } from "@/components/MemberSwitcher";
 import { ConsentBanner } from "@/components/ConsentBanner";
+import { useActiveMember } from "@/lib/active-member";
 
 const NAV = [
   { to: "/upload", label: "Upload" },
   { to: "/dashboard", label: "Dashboard" },
   { to: "/members", label: "Family" },
   { to: "/doctors", label: "Doctors" },
-  { to: "/care", label: "Care" },
+  { to: "/care", label: "Upcoming" },
 ] as const;
+
+const LIFESTYLE_NAV = { to: "/lifestyle" as const, label: "Lifestyle" };
 
 export function SiteLayout({ children }: { children: ReactNode }) {
   const [email, setEmail] = useState<string | null>(null);

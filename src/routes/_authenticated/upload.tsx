@@ -8,7 +8,7 @@ import { createMedicalDoc, deleteMedicalDoc, listMedicalDocs, getDocumentSignedU
 import { groupDocs } from "@/lib/medsafe-types";
 import type { MedicalDoc } from "@/lib/medsafe-types";
 import { supabase } from "@/integrations/supabase/client";
-import { Upload, FileText, Loader2, Pill, FlaskConical, Stethoscope, CalendarDays, Trash2, AlertTriangle, UserRound } from "lucide-react";
+import { Upload, FileText, Loader2, Pill, FlaskConical, Stethoscope, CalendarDays, Trash2, AlertTriangle, UserRound, ExternalLink } from "lucide-react";
 import { useActiveMember } from "@/lib/active-member";
 
 export const Route = createFileRoute("/_authenticated/upload")({

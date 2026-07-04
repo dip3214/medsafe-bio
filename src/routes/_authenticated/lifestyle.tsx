@@ -1,8 +1,8 @@
 import { createFileRoute, Navigate } from "@tanstack/react-router";
-import { useEffect, useMemo, useState } from "react";
+import { useEffect, useMemo, useRef, useState } from "react";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { useServerFn } from "@tanstack/react-start";
-import { Moon, Activity, UtensilsCrossed, Sparkles, Target, Flame } from "lucide-react";
+import { Moon, Activity, UtensilsCrossed, Sparkles, Target, Flame, Mic, MicOff, Camera, Check, Loader2 } from "lucide-react";
 import { SiteLayout } from "@/components/SiteLayout";
 import { LifestyleHeroBackground } from "@/components/LifestyleHeroBackground";
 import { useActiveMember } from "@/lib/active-member";
@@ -12,6 +12,7 @@ import {
   getLifestyleGoals,
   upsertLifestyleGoals,
   parseLifestyleUpdate,
+  estimateMealCalories,
 } from "@/lib/lifestyle.functions";
 
 export const Route = createFileRoute("/_authenticated/lifestyle")({
@@ -32,6 +33,15 @@ type Log = {
   meals: string | null;
 };
 
+function greeting() {
+  const h = new Date().getHours();
+  if (h < 5) return "Still up";
+  if (h < 12) return "Good morning";
+  if (h < 17) return "Good afternoon";
+  if (h < 21) return "Good evening";
+  return "Good night";
+}
+
 function LifestylePage() {
   const { active } = useActiveMember();
   if (active && active.segment !== "me") return <Navigate to="/dashboard" />;
@@ -42,6 +52,7 @@ function LifestylePage() {
   const getGoals = useServerFn(getLifestyleGoals);
   const saveGoals = useServerFn(upsertLifestyleGoals);
   const parse = useServerFn(parseLifestyleUpdate);
+  const estimate = useServerFn(estimateMealCalories);
 
   const { data: logs = [] } = useQuery({
     queryKey: ["lifestyle-logs"],
@@ -61,6 +72,7 @@ function LifestylePage() {
   const [meals, setMeals] = useState<string>("");
   const [nlText, setNlText] = useState<string>("");
   const [flash, setFlash] = useState<string | null>(null);
+  const [calorieResult, setCalorieResult] = useState<string | null>(null);
 
   useEffect(() => {
     if (todayLog) {
@@ -70,6 +82,11 @@ function LifestylePage() {
       setMeals(todayLog.meals || "");
     }
   }, [todayLog?.log_date]);
+
+  function showFlash(msg: string) {
+    setFlash(msg);
+    setTimeout(() => setFlash(null), 1800);
+  }
 
   const save = useMutation({
     mutationFn: (payload: Partial<Log>) =>
@@ -83,8 +100,7 @@ function LifestylePage() {
       }),
     onSuccess: () => {
       qc.invalidateQueries({ queryKey: ["lifestyle-logs"] });
-      setFlash("Saved");
-      setTimeout(() => setFlash(null), 1200);
+      showFlash("Saved");
     },
   });
 
@@ -99,12 +115,91 @@ function LifestylePage() {
     onSuccess: () => {
       qc.invalidateQueries({ queryKey: ["lifestyle-logs"] });
       setNlText("");
-      setFlash("Logged from your note");
-      setTimeout(() => setFlash(null), 1600);
+      showFlash("Logged from your note");
     },
   });
 
+  // ----- Voice recording -----
+  const [recording, setRecording] = useState(false);
+  const [transcribing, setTranscribing] = useState(false);
+  const recorderRef = useRef<MediaRecorder | null>(null);
+  const chunksRef = useRef<Blob[]>([]);
+
+  async function startRecording() {
+    try {
+      const stream = await navigator.mediaDevices.getUserMedia({ audio: true });
+      const mime = MediaRecorder.isTypeSupported("audio/webm") ? "audio/webm" : "audio/mp4";
+      const rec = new MediaRecorder(stream, { mimeType: mime });
+      chunksRef.current = [];
+      rec.ondataavailable = (e) => e.data.size > 0 && chunksRef.current.push(e.data);
+      rec.onstop = async () => {
+        stream.getTracks().forEach((t) => t.stop());
+        const blob = new Blob(chunksRef.current, { type: mime });
+        if (blob.size < 1000) {
+          showFlash("Recording too short");
+          return;
+        }
+        setTranscribing(true);
+        try {
+          const form = new FormData();
+          form.append("file", blob, `recording.${mime.includes("mp4") ? "mp4" : "webm"}`);
+          const r = await fetch("/api/transcribe", { method: "POST", body: form });
+          const j = await r.json();
+          const text = (j?.text || "").trim();
+          if (!text) {
+            showFlash("Couldn't hear that — try again");
+            return;
+          }
+          setNlText(text);
+          parseMut.mutate(text);
+        } catch (err: any) {
+          showFlash(err?.message || "Transcription failed");
+        } finally {
+          setTranscribing(false);
+        }
+      };
+      rec.start();
+      recorderRef.current = rec;
+      setRecording(true);
+    } catch {
+      showFlash("Microphone permission needed");
+    }
+  }
+  function stopRecording() {
+    recorderRef.current?.stop();
+    recorderRef.current = null;
+    setRecording(false);
+  }
+
+  // ----- Photo → calories -----
+  const [estimating, setEstimating] = useState(false);
+  const photoInputRef = useRef<HTMLInputElement>(null);
+  async function onPhoto(file: File) {
+    setEstimating(true);
+    setCalorieResult(null);
+    try {
+      const dataUrl = await new Promise<string>((res, rej) => {
+        const r = new FileReader();
+        r.onload = () => res(r.result as string);
+        r.onerror = () => rej(new Error("read failed"));
+        r.readAsDataURL(file);
+      });
+      const { text } = await estimate({ data: { imageDataUrl: dataUrl, mimeType: file.type || "image/jpeg" } });
+      setCalorieResult(text);
+      // append to meals note
+      const next = meals ? `${meals}\n${text}` : text;
+      setMeals(next);
+      save.mutate({ meals: next });
+    } catch (err: any) {
+      showFlash(err?.message || "Couldn't estimate");
+    } finally {
+      setEstimating(false);
+    }
+  }
+
   const stats = useMemo(() => computeStats(logs), [logs]);
+  const recent = useMemo(() => logs.slice(0, 7).filter((l) => l.log_date !== today), [logs, today]);
+  const displayName = active?.name?.split(/\s+/)[0] || "there";
 
   return (
     <SiteLayout>
@@ -116,7 +211,7 @@ function LifestylePage() {
             <Sparkles className="h-3 w-3" /> Lifestyle
           </div>
           <h1 className="mt-4 font-display text-4xl leading-tight text-foreground drop-shadow-sm sm:text-5xl">
-            Your day, your rhythm.
+            {greeting()}, {displayName}.
           </h1>
           <p className="mx-auto mt-3 max-w-xl text-sm text-foreground/80">
             A quiet check-in for sleep, movement and meals — small notes today become your story tomorrow.
@@ -129,7 +224,11 @@ function LifestylePage() {
         <div className="rounded-2xl border border-border bg-card p-6 shadow-sm">
           <div className="flex items-center justify-between">
             <h2 className="font-display text-xl">Today's check-in</h2>
-            {flash && <span className="text-xs text-primary animate-fade-in">{flash}</span>}
+            {flash && (
+              <span className="inline-flex items-center gap-1 text-xs text-primary animate-fade-in">
+                <Check className="h-3 w-3" /> {flash}
+              </span>
+            )}
           </div>
           <p className="mt-1 text-xs text-muted-foreground">
             Auto-saves the moment you leave a field. One entry per day; edit anytime.
@@ -138,15 +237,10 @@ function LifestylePage() {
           <div className="mt-5 grid gap-4">
             <Field icon={<Moon className="h-4 w-4" />} label="Sleep last night">
               <input
-                type="number"
-                step="0.25"
-                min="0"
-                max="14"
+                type="number" step="0.25" min="0" max="14"
                 value={sleep}
                 onChange={(e) => setSleep(e.target.value)}
-                onBlur={() =>
-                  sleep !== "" && save.mutate({ sleep_hours: Number(sleep) })
-                }
+                onBlur={() => sleep !== "" && save.mutate({ sleep_hours: Number(sleep) })}
                 placeholder="e.g. 7.5"
                 className="w-32 rounded-md border border-input bg-background px-3 py-2 text-sm"
               />
@@ -166,9 +260,7 @@ function LifestylePage() {
                   ))}
                 </select>
                 <input
-                  type="number"
-                  min="0"
-                  max="240"
+                  type="number" min="0" max="240"
                   value={exMin}
                   onChange={(e) => setExMin(e.target.value)}
                   onBlur={() => exMin !== "" && save.mutate({ exercise_minutes: Number(exMin) })}
@@ -188,16 +280,37 @@ function LifestylePage() {
                 placeholder="Breakfast: poha and tea · Lunch: dal, rice · Dinner: roti and sabzi"
                 className="w-full rounded-md border border-input bg-background px-3 py-2 text-sm"
               />
+              <div className="mt-2 flex flex-wrap items-center gap-2">
+                <input
+                  ref={photoInputRef}
+                  type="file" accept="image/*" capture="environment"
+                  className="hidden"
+                  onChange={(e) => { const f = e.target.files?.[0]; if (f) onPhoto(f); e.target.value = ""; }}
+                />
+                <button
+                  type="button"
+                  onClick={() => photoInputRef.current?.click()}
+                  disabled={estimating}
+                  className="inline-flex items-center gap-1.5 rounded-md border border-border bg-background px-2.5 py-1.5 text-xs font-medium hover:bg-accent disabled:opacity-50"
+                >
+                  {estimating ? <Loader2 className="h-3 w-3 animate-spin" /> : <Camera className="h-3 w-3" />}
+                  {estimating ? "Reading photo…" : "Photo → calories"}
+                </button>
+                {calorieResult && <span className="text-xs text-muted-foreground">{calorieResult}</span>}
+              </div>
             </Field>
           </div>
 
-          {/* Natural language quick entry */}
+          {/* Quick log: text + voice */}
           <div className="mt-6 rounded-xl border border-dashed border-border bg-background/60 p-4">
-            <div className="text-xs font-semibold uppercase tracking-wider text-muted-foreground">
-              Or just tell me
+            <div className="flex items-center justify-between">
+              <div className="text-xs font-semibold uppercase tracking-wider text-muted-foreground">
+                Or just tell me
+              </div>
+              {parseMut.isPending && <span className="text-xs text-muted-foreground">Reading…</span>}
             </div>
             <p className="mt-1 text-xs text-muted-foreground">
-              e.g. "slept 6.5 hours, went for a 20 min run this morning"
+              Type or hold the mic. e.g. "slept 6.5 hours, went for a 20 min run this morning"
             </p>
             <div className="mt-2 flex gap-2">
               <input
@@ -205,16 +318,53 @@ function LifestylePage() {
                 onChange={(e) => setNlText(e.target.value)}
                 placeholder="How was your morning?"
                 className="flex-1 rounded-md border border-input bg-background px-3 py-2 text-sm"
+                onKeyDown={(e) => {
+                  if (e.key === "Enter" && nlText.trim()) parseMut.mutate(nlText.trim());
+                }}
               />
+              <button
+                type="button"
+                onClick={() => (recording ? stopRecording() : startRecording())}
+                disabled={transcribing}
+                title={recording ? "Stop" : "Voice note"}
+                className={`grid place-items-center rounded-md border px-3 py-2 text-xs font-medium ${
+                  recording ? "border-destructive bg-destructive text-destructive-foreground animate-pulse" : "border-border bg-background hover:bg-accent"
+                } disabled:opacity-50`}
+              >
+                {transcribing ? <Loader2 className="h-4 w-4 animate-spin" /> : recording ? <MicOff className="h-4 w-4" /> : <Mic className="h-4 w-4" />}
+              </button>
               <button
                 onClick={() => nlText.trim() && parseMut.mutate(nlText.trim())}
                 disabled={parseMut.isPending || !nlText.trim()}
                 className="rounded-md bg-primary px-3 py-2 text-sm font-medium text-primary-foreground disabled:opacity-50"
               >
-                {parseMut.isPending ? "Reading…" : "Log it"}
+                Log it
               </button>
             </div>
           </div>
+
+          {/* Recent days */}
+          {recent.length > 0 && (
+            <div className="mt-6">
+              <div className="text-xs font-semibold uppercase tracking-wider text-muted-foreground">Last few days</div>
+              <ul className="mt-2 divide-y divide-border rounded-lg border border-border">
+                {recent.map((l) => (
+                  <li key={l.log_date} className="flex flex-wrap items-center gap-x-4 gap-y-1 px-3 py-2 text-xs">
+                    <span className="w-24 font-medium">{formatDayLabel(l.log_date)}</span>
+                    <span className="inline-flex items-center gap-1 text-muted-foreground">
+                      <Moon className="h-3 w-3" /> {l.sleep_hours ?? "—"}h
+                    </span>
+                    <span className="inline-flex items-center gap-1 text-muted-foreground">
+                      <Activity className="h-3 w-3" /> {l.exercise_minutes ? `${l.exercise_minutes}m ${l.exercise_type ?? ""}` : "—"}
+                    </span>
+                    {l.meals && (
+                      <span className="line-clamp-1 flex-1 min-w-0 text-muted-foreground">· {l.meals}</span>
+                    )}
+                  </li>
+                ))}
+              </ul>
+            </div>
+          )}
         </div>
 
         {/* Stats + Goals */}
@@ -230,6 +380,15 @@ function LifestylePage() {
       </section>
     </SiteLayout>
   );
+}
+
+function formatDayLabel(d: string) {
+  const dt = new Date(d + "T00:00:00");
+  const today = new Date(); today.setHours(0,0,0,0);
+  const diff = Math.round((today.getTime() - dt.getTime()) / 86400000);
+  if (diff === 1) return "Yesterday";
+  if (diff < 7) return dt.toLocaleDateString(undefined, { weekday: "short" });
+  return dt.toLocaleDateString("en-IN", { day: "2-digit", month: "short" });
 }
 
 function Field({ icon, label, children }: { icon: React.ReactNode; label: string; children: React.ReactNode }) {
@@ -257,7 +416,6 @@ function computeStats(logs: Log[]): Stats {
   const today = new Date();
   today.setHours(0, 0, 0, 0);
 
-  // Streak: consecutive days with any entry, back from today
   let streak = 0;
   for (let i = 0; i < 60; i++) {
     const d = new Date(today.getTime() - i * 86400000).toISOString().slice(0, 10);
@@ -274,11 +432,7 @@ function computeStats(logs: Log[]): Stats {
       if (l.sleep_hours != null) { sleepSum += Number(l.sleep_hours); sleepDays++; }
       if (l.exercise_minutes) { minSum += l.exercise_minutes; exDays++; }
     }
-    return {
-      avgSleep: sleepDays ? sleepSum / sleepDays : null,
-      totalMin: minSum,
-      exDays,
-    };
+    return { avgSleep: sleepDays ? sleepSum / sleepDays : null, totalMin: minSum, exDays };
   }
 
   const cur = windowStats(0);
@@ -296,33 +450,16 @@ function computeStats(logs: Log[]): Stats {
 
 function StatsCard({ stats }: { stats: Stats }) {
   const sleepTrend =
-    stats.weekAvgSleep && stats.prevWeekAvgSleep
-      ? stats.weekAvgSleep - stats.prevWeekAvgSleep
-      : 0;
+    stats.weekAvgSleep && stats.prevWeekAvgSleep ? stats.weekAvgSleep - stats.prevWeekAvgSleep : 0;
   const moveTrend = stats.weekTotalMin - stats.prevWeekTotalMin;
 
   return (
     <div className="rounded-2xl border border-border bg-card p-6 shadow-sm">
       <h3 className="font-display text-lg">This week's rhythm</h3>
       <div className="mt-4 grid gap-3 sm:grid-cols-3">
-        <Stat
-          label="Streak"
-          value={`${stats.streak} day${stats.streak === 1 ? "" : "s"}`}
-          hint="Days in a row logged"
-          icon={<Flame className="h-4 w-4" />}
-        />
-        <Stat
-          label="Avg sleep"
-          value={stats.weekAvgSleep ? `${stats.weekAvgSleep.toFixed(1)}h` : "—"}
-          hint={trendHint(sleepTrend, "h")}
-          icon={<Moon className="h-4 w-4" />}
-        />
-        <Stat
-          label="Movement"
-          value={`${stats.weekTotalMin} min`}
-          hint={trendHint(moveTrend, "m")}
-          icon={<Activity className="h-4 w-4" />}
-        />
+        <Stat label="Streak" value={`${stats.streak} day${stats.streak === 1 ? "" : "s"}`} hint="Days in a row logged" icon={<Flame className="h-4 w-4" />} />
+        <Stat label="Avg sleep" value={stats.weekAvgSleep ? `${stats.weekAvgSleep.toFixed(1)}h` : "—"} hint={trendHint(sleepTrend, "h")} icon={<Moon className="h-4 w-4" />} />
+        <Stat label="Movement" value={`${stats.weekTotalMin} min`} hint={trendHint(moveTrend, "m")} icon={<Activity className="h-4 w-4" />} />
       </div>
     </div>
   );
@@ -347,16 +484,8 @@ function trendHint(delta: number, unit: string) {
 }
 
 function GoalsCard({
-  goals,
-  stats,
-  onSave,
-  saving,
-}: {
-  goals: any;
-  stats: Stats;
-  onSave: (g: any) => void;
-  saving: boolean;
-}) {
+  goals, stats, onSave, saving,
+}: { goals: any; stats: Stats; onSave: (g: any) => void; saving: boolean }) {
   const [sleepT, setSleepT] = useState<string>("7.5");
   const [minT, setMinT] = useState<string>("30");
   const [daysT, setDaysT] = useState<string>("5");
@@ -385,50 +514,27 @@ function GoalsCard({
         <Target className="h-4 w-4 text-primary" />
         <h3 className="font-display text-lg">Gentle goals</h3>
       </div>
-
       <div className="mt-4 space-y-4">
         <Progress label={`Sleep · ${sleepT}h target`} pct={sleepPct} />
         <Progress label={`Movement · ${daysT} days / week`} pct={daysPct} />
       </div>
-
-      <div className="mt-5 rounded-lg bg-primary/8 p-3 text-sm text-foreground/85">
-        {message}
-      </div>
-
+      <div className="mt-5 rounded-lg bg-primary/8 p-3 text-sm text-foreground/85">{message}</div>
       <div className="mt-5 grid grid-cols-3 gap-2 text-xs">
         <label>
           Sleep hrs
-          <input
-            type="number" step="0.5" min="4" max="12"
-            value={sleepT} onChange={(e) => setSleepT(e.target.value)}
-            className="mt-1 w-full rounded-md border border-input bg-background px-2 py-1"
-          />
+          <input type="number" step="0.5" min="4" max="12" value={sleepT} onChange={(e) => setSleepT(e.target.value)} className="mt-1 w-full rounded-md border border-input bg-background px-2 py-1" />
         </label>
         <label>
           Min/day
-          <input
-            type="number" min="0" max="180"
-            value={minT} onChange={(e) => setMinT(e.target.value)}
-            className="mt-1 w-full rounded-md border border-input bg-background px-2 py-1"
-          />
+          <input type="number" min="0" max="180" value={minT} onChange={(e) => setMinT(e.target.value)} className="mt-1 w-full rounded-md border border-input bg-background px-2 py-1" />
         </label>
         <label>
           Days/wk
-          <input
-            type="number" min="0" max="7"
-            value={daysT} onChange={(e) => setDaysT(e.target.value)}
-            className="mt-1 w-full rounded-md border border-input bg-background px-2 py-1"
-          />
+          <input type="number" min="0" max="7" value={daysT} onChange={(e) => setDaysT(e.target.value)} className="mt-1 w-full rounded-md border border-input bg-background px-2 py-1" />
         </label>
       </div>
       <button
-        onClick={() =>
-          onSave({
-            sleep_hours_target: Number(sleepT),
-            exercise_min_per_day: Number(minT),
-            exercise_days_per_week: Number(daysT),
-          })
-        }
+        onClick={() => onSave({ sleep_hours_target: Number(sleepT), exercise_min_per_day: Number(minT), exercise_days_per_week: Number(daysT) })}
         disabled={saving}
         className="mt-3 w-full rounded-md border border-border bg-background py-1.5 text-xs font-medium hover:bg-accent"
       >
@@ -438,9 +544,7 @@ function GoalsCard({
   );
 }
 
-function clampPct(v: number) {
-  return Math.max(0, Math.min(100, Math.round(v * 100)));
-}
+function clampPct(v: number) { return Math.max(0, Math.min(100, Math.round(v * 100))); }
 
 function Progress({ label, pct }: { label: string; pct: number }) {
   return (
@@ -450,30 +554,19 @@ function Progress({ label, pct }: { label: string; pct: number }) {
         <span className="text-muted-foreground">{pct}%</span>
       </div>
       <div className="mt-1.5 h-2 overflow-hidden rounded-full bg-secondary">
-        <div
-          className="h-full bg-primary transition-all duration-500"
-          style={{ width: `${pct}%` }}
-        />
+        <div className="h-full bg-primary transition-all duration-500" style={{ width: `${pct}%` }} />
       </div>
     </div>
   );
 }
 
 function celebrationMessage({
-  sleepMet,
-  daysMet,
-  streak,
-  daysExercised,
+  sleepMet, daysMet, streak, daysExercised,
 }: { sleepMet: boolean; daysMet: boolean; streak: number; daysExercised: number }) {
-  if (sleepMet && daysMet)
-    return `You've hit both your sleep and movement targets this week — that consistency is really something. Keep this pace.`;
-  if (daysMet)
-    return `${daysExercised} active days this week — your body's noticing. Try adding a gentler wind-down tonight.`;
-  if (sleepMet)
-    return `Your sleep is holding steady above target. Even a short 15-minute walk today would round the week out beautifully.`;
-  if (streak >= 3)
-    return `${streak} days in a row of just showing up here — that's the hardest part. The numbers will follow.`;
-  if (streak === 0)
-    return `A single line today is enough to begin. No pressure — just a note about how you slept.`;
+  if (sleepMet && daysMet) return `You've hit both your sleep and movement targets this week — that consistency is really something. Keep this pace.`;
+  if (daysMet) return `${daysExercised} active days this week — your body's noticing. Try adding a gentler wind-down tonight.`;
+  if (sleepMet) return `Your sleep is holding steady above target. Even a short 15-minute walk today would round the week out beautifully.`;
+  if (streak >= 3) return `${streak} days in a row of just showing up here — that's the hardest part. The numbers will follow.`;
+  if (streak === 0) return `A single line today is enough to begin. No pressure — just a note about how you slept.`;
   return `Small notes, honest ones — that's all this needs. Keep going.`;
 }

@@ -5,6 +5,14 @@ import { supabase } from "@/integrations/supabase/client";
 import { SiteLayout } from "@/components/SiteLayout";
 import { Activity, Loader2 } from "lucide-react";
 
+async function signInWithGoogle() {
+  const { error } = await supabase.auth.signInWithOAuth({
+    provider: "google",
+    options: { redirectTo: window.location.origin + "/upload" },
+  });
+  if (error) throw error;
+}
+
 export const Route = createFileRoute("/auth")({
   validateSearch: z.object({ redirect: z.string().optional() }),
   head: () => ({ meta: [{ title: "Sign in — MedSafe" }] }),

@@ -128,3 +128,42 @@ export const parseLifestyleUpdate = createServerFn({ method: "POST" })
       );
     return parsed;
   });
+
+// Estimate calories & items from a meal photo (Gemini vision).
+const EstimateInput = z.object({
+  imageDataUrl: z.string().min(20),
+  mimeType: z.string(),
+});
+export const estimateMealCalories = createServerFn({ method: "POST" })
+  .middleware([requireSupabaseAuth])
+  .inputValidator((d: unknown) => EstimateInput.parse(d))
+  .handler(async ({ data }) => {
+    const key = process.env.LOVABLE_API_KEY;
+    if (!key) throw new Error("Missing LOVABLE_API_KEY");
+    const resp = await fetch("https://ai.gateway.lovable.dev/v1/chat/completions", {
+      method: "POST",
+      headers: { "Content-Type": "application/json", "Lovable-API-Key": key },
+      body: JSON.stringify({
+        model: "google/gemini-2.5-flash",
+        messages: [
+          { role: "system", content: "You are a friendly Indian nutrition assistant. Given a meal photo, estimate items and total kcal. Reply in <=2 short sentences, e.g. 'Looks like dal, rice and sabzi — about 550 kcal.'" },
+          {
+            role: "user",
+            content: [
+              { type: "text", text: "Estimate calories for this meal." },
+              { type: "image_url", image_url: { url: data.imageDataUrl } },
+            ],
+          },
+        ],
+      }),
+    });
+    if (!resp.ok) {
+      const txt = await resp.text();
+      if (resp.status === 429) throw new Error("AI rate limit. Try again shortly.");
+      if (resp.status === 402) throw new Error("AI credits exhausted.");
+      throw new Error(`Vision failed: ${resp.status} ${txt.slice(0, 200)}`);
+    }
+    const json = await resp.json();
+    const text: string = json?.choices?.[0]?.message?.content?.trim() ?? "";
+    return { text };
+  });

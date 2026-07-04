@@ -11,7 +11,7 @@ const NAV = [
   { to: "/dashboard", label: "Dashboard" },
   { to: "/members", label: "Family" },
   { to: "/doctors", label: "Doctors" },
-  { to: "/care", label: "Care" },
+  { to: "/care", label: "Upcoming" },
 ] as const;
 
 const LIFESTYLE_NAV = { to: "/lifestyle" as const, label: "Lifestyle" };

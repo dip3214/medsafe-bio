@@ -100,7 +100,7 @@ function LifestylePage() {
       }),
     onSuccess: () => {
       qc.invalidateQueries({ queryKey: ["lifestyle-logs"] });
-      showFlash("Saved");
+      showFlash("Your log has been saved");
     },
   });
 

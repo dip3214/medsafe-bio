@@ -268,6 +268,9 @@ function Trust() {
     { t: "AI you can audit.", d: "Every answer is grounded in a specific report or lab value from your timeline — and quotes the source." },
     { t: "Visit-aware history.", d: "Labs and prescriptions within a 10-day window are linked to the same visit, with the right doctor attached." },
     { t: "Built for Indian families.", d: "Three audiences — Kids, Parents, Me — one shared record for the whole family, DPDP-aligned." },
+    { t: "Records + daily life, together.", d: "We keep every prescription and lab report next to your daily sleep, movement and meals — so recommendations reflect the whole picture, not just one visit." },
+    { t: "Lifestyle you actually log.", d: "A 20-second daily check-in — type, or just hold the mic. Photos of a meal turn into a rough calorie estimate. Your rhythm builds itself." },
+    { t: "Smarter, more personal answers.", d: "When you ask about diet or a lab trend, MedSafe cross-references your last report AND your recent lifestyle logs — grounded, specific, India-aware." },
   ];
   return (
     <section className="border-t border-border/60 bg-secondary/40">
@@ -278,6 +281,9 @@ function Trust() {
               <Sparkles className="h-3.5 w-3.5" /> Why MedSafe
             </div>
             <h2 className="mt-2 font-display text-4xl">Quiet software. Loud clinical clarity.</h2>
+            <p className="mt-3 max-w-2xl text-sm text-muted-foreground">
+              We track your health records <em>and</em> your daily life together — so every recommendation is grounded in both what your labs say and how you're actually living.
+            </p>
           </div>
         </div>
         <div className="mt-8 grid gap-4 md:grid-cols-3">

@@ -1,4 +1,4 @@
-import { Link, useNavigate } from "@tanstack/react-router";
+import { Link, useNavigate, useRouterState } from "@tanstack/react-router";
 import { useEffect, useState, type ReactNode } from "react";
 import { MessageSquare, LogOut, LogIn, ShieldCheck, BadgeCheck, HeartPulse } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
@@ -21,6 +21,8 @@ export function SiteLayout({ children }: { children: ReactNode }) {
   const navigate = useNavigate();
   const { active } = useActiveMember();
   const navItems = active?.segment === "me" ? [...NAV, LIFESTYLE_NAV] : NAV;
+  const pathname = useRouterState({ select: (s) => s.location.pathname });
+  const onChatPage = pathname === "/chat";
 
   useEffect(() => {
     supabase.auth.getUser().then(({ data }) => setEmail(data.user?.email ?? null));
@@ -102,7 +104,7 @@ export function SiteLayout({ children }: { children: ReactNode }) {
 
       <main className="pb-28">{children}</main>
 
-      {email && (
+      {email && !onChatPage && (
         <Link
           to="/chat"
           className="fixed bottom-5 right-5 z-30 inline-flex items-center gap-2 rounded-full bg-primary px-5 py-3 text-sm font-semibold text-primary-foreground shadow-xl shadow-primary/30 transition hover:scale-[1.03] hover:bg-primary/90 active:scale-95"

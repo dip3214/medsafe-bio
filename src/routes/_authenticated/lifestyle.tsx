@@ -100,7 +100,7 @@ function LifestylePage() {
       }),
     onSuccess: () => {
       qc.invalidateQueries({ queryKey: ["lifestyle-logs"] });
-      showFlash("Saved");
+      showFlash("Your log has been saved");
     },
   });
 
@@ -115,13 +115,25 @@ function LifestylePage() {
     onSuccess: () => {
       qc.invalidateQueries({ queryKey: ["lifestyle-logs"] });
       setNlText("");
-      showFlash("Logged from your note");
+      setVoiceText("");
+      showFlash("Your log has been saved");
     },
   });
+
+  function logManual() {
+    const payload: Partial<Log> = {
+      sleep_hours: sleep !== "" ? Number(sleep) : null,
+      exercise_type: exType || null,
+      exercise_minutes: exMin !== "" ? Number(exMin) : null,
+      meals: meals || null,
+    };
+    save.mutate(payload);
+  }
 
   // ----- Voice recording -----
   const [recording, setRecording] = useState(false);
   const [transcribing, setTranscribing] = useState(false);
+  const [voiceText, setVoiceText] = useState<string>("");
   const recorderRef = useRef<MediaRecorder | null>(null);
   const chunksRef = useRef<Blob[]>([]);
 
@@ -150,8 +162,7 @@ function LifestylePage() {
             showFlash("Couldn't hear that — try again");
             return;
           }
-          setNlText(text);
-          parseMut.mutate(text);
+          setVoiceText(text);
         } catch (err: any) {
           showFlash(err?.message || "Transcription failed");
         } finally {
@@ -301,6 +312,19 @@ function LifestylePage() {
             </Field>
           </div>
 
+          {/* Explicit save for the manual form */}
+          <div className="mt-5 flex items-center justify-end gap-3">
+            {save.isPending && <span className="text-xs text-muted-foreground">Saving…</span>}
+            <button
+              type="button"
+              onClick={logManual}
+              disabled={save.isPending}
+              className="rounded-md bg-primary px-5 py-2 text-sm font-medium text-primary-foreground hover:bg-primary/90 disabled:opacity-50"
+            >
+              Log today's check-in
+            </button>
+          </div>
+
           {/* Quick log: text + voice */}
           <div className="mt-6 rounded-xl border border-dashed border-border bg-background/60 p-4">
             <div className="flex items-center justify-between">
@@ -341,7 +365,33 @@ function LifestylePage() {
                 Log it
               </button>
             </div>
+
+            {/* Voice transcript preview + explicit Log it */}
+            {voiceText && (
+              <div className="mt-3 rounded-lg border border-border bg-background p-3">
+                <div className="text-[11px] font-semibold uppercase tracking-wider text-muted-foreground">
+                  Voice transcript
+                </div>
+                <p className="mt-1 text-sm text-foreground/90">{voiceText}</p>
+                <div className="mt-2 flex items-center justify-end gap-2">
+                  <button
+                    onClick={() => setVoiceText("")}
+                    className="rounded-md border border-border bg-background px-3 py-1.5 text-xs hover:bg-accent"
+                  >
+                    Discard
+                  </button>
+                  <button
+                    onClick={() => parseMut.mutate(voiceText)}
+                    disabled={parseMut.isPending}
+                    className="rounded-md bg-primary px-3 py-1.5 text-xs font-medium text-primary-foreground hover:bg-primary/90 disabled:opacity-50"
+                  >
+                    Log voice note
+                  </button>
+                </div>
+              </div>
+            )}
           </div>
+
 
           {/* Recent days */}
           {recent.length > 0 && (

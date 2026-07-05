@@ -1,15 +1,17 @@
-import { createFileRoute } from "@tanstack/react-router";
+import { createFileRoute, Link } from "@tanstack/react-router";
 import { useChat } from "@ai-sdk/react";
 import { DefaultChatTransport, type UIMessage } from "ai";
 import { useEffect, useMemo, useRef, useState } from "react";
-import { useQuery } from "@tanstack/react-query";
+import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { useServerFn } from "@tanstack/react-start";
 import ReactMarkdown from "react-markdown";
-import { Send, Square, Stethoscope, User, Sparkles, Trash2 } from "lucide-react";
+import { Send, Square, Stethoscope, User, Sparkles, Trash2, Paperclip, Loader2, FileCheck2 } from "lucide-react";
 import { SiteLayout } from "@/components/SiteLayout";
 import { supabase } from "@/integrations/supabase/client";
 import { getOrCreateChatThread, getChatThreadMessages, clearChatThread } from "@/lib/chat.functions";
 import { useActiveMember } from "@/lib/active-member";
+import { extractClinicalDoc } from "@/lib/extract.functions";
+import { createMedicalDoc } from "@/lib/medsafe.functions";
 
 export const Route = createFileRoute("/_authenticated/chat")({
   head: () => ({
@@ -143,6 +145,71 @@ function ChatWindow({
     onCleared();
   }
 
+  // ---- Attach a report/prescription image or PDF from chat ----
+  const { active } = useActiveMember();
+  const qc = useQueryClient();
+  const extract = useServerFn(extractClinicalDoc);
+  const createDoc = useServerFn(createMedicalDoc);
+  const fileRef = useRef<HTMLInputElement>(null);
+  const [uploading, setUploading] = useState(false);
+  const [uploadError, setUploadError] = useState<string | null>(null);
+  const [savedDoc, setSavedDoc] = useState<{ title: string } | null>(null);
+
+  async function onAttach(file: File) {
+    setUploadError(null);
+    setSavedDoc(null);
+    setUploading(true);
+    try {
+      const { data: u } = await supabase.auth.getUser();
+      if (!u.user) throw new Error("Not signed in");
+      const dataUrl: string = await new Promise((res, rej) => {
+        const r = new FileReader();
+        r.onload = () => res(r.result as string);
+        r.onerror = () => rej(new Error("read failed"));
+        r.readAsDataURL(file);
+      });
+      const parsed: any = await extract({
+        data: { fileDataUrl: dataUrl, mimeType: file.type || "image/jpeg", hint: "auto" },
+      });
+      const ext = file.name.includes(".") ? file.name.slice(file.name.lastIndexOf(".")) : "";
+      const path = `${u.user.id}/${crypto.randomUUID()}${ext}`;
+      const { error: upErr } = await supabase.storage
+        .from("medical-documents")
+        .upload(path, file, { contentType: file.type || "application/octet-stream", upsert: false });
+      if (upErr) throw upErr;
+      await createDoc({
+        data: {
+          storagePath: path,
+          fileName: file.name,
+          mimeType: file.type || "application/octet-stream",
+          fileSize: file.size,
+          parsed,
+          memberId: active?.id,
+        },
+      });
+      qc.invalidateQueries({ queryKey: ["medsafe-docs"] });
+      setSavedDoc({ title: parsed?.title || file.name });
+      // Kick off a chat summary so the user gets an immediate readout
+      const bits: string[] = [];
+      if (parsed?.summary) bits.push(parsed.summary);
+      if (Array.isArray(parsed?.diagnoses) && parsed.diagnoses.length)
+        bits.push(`Diagnoses noted: ${parsed.diagnoses.join(", ")}.`);
+      if (Array.isArray(parsed?.labValues) && parsed.labValues.length) {
+        const flagged = parsed.labValues.filter((l: any) => l.flag && l.flag !== "normal");
+        if (flagged.length) bits.push(`Flagged values: ${flagged.map((l: any) => `${l.name} ${l.value}${l.unit ? " " + l.unit : ""} [${l.flag}]`).join("; ")}.`);
+      }
+      const context = bits.join(" ");
+      const prompt = context
+        ? `I just uploaded my report "${parsed?.title || file.name}" (${parsed?.date || "recent"}). Here is what was extracted: ${context}\n\nPlease summarise it in plain language and flag anything I should watch.`
+        : `I just uploaded a report "${file.name}". Please read it from my records and summarise it in plain language.`;
+      submit(prompt);
+    } catch (e: any) {
+      setUploadError(e?.message || "Couldn't process that file");
+    } finally {
+      setUploading(false);
+    }
+  }
+
   return (
     <div className="flex h-[calc(100vh-18rem)] min-h-[480px] flex-col">
       <div
@@ -168,6 +235,24 @@ function ChatWindow({
       </div>
 
       <div className="border-t border-border bg-background p-3">
+        {(uploading || uploadError || savedDoc) && (
+          <div className="mb-2 flex items-center gap-2 text-xs">
+            {uploading && (
+              <span className="inline-flex items-center gap-1.5 rounded-md bg-secondary px-2.5 py-1 text-muted-foreground">
+                <Loader2 className="h-3 w-3 animate-spin" /> Reading your document…
+              </span>
+            )}
+            {savedDoc && !uploading && (
+              <span className="inline-flex items-center gap-1.5 rounded-md bg-primary/10 px-2.5 py-1 text-primary">
+                <FileCheck2 className="h-3 w-3" /> Saved to your uploads: {savedDoc.title}
+                <Link to="/upload" className="ml-1 underline">View</Link>
+              </span>
+            )}
+            {uploadError && (
+              <span className="rounded-md bg-destructive/10 px-2.5 py-1 text-destructive">{uploadError}</span>
+            )}
+          </div>
+        )}
         <div className="flex items-end gap-2">
           {!empty && (
             <button
@@ -178,6 +263,22 @@ function ChatWindow({
               <Trash2 className="h-3.5 w-3.5" /> Clear
             </button>
           )}
+          <input
+            ref={fileRef}
+            type="file"
+            accept="image/*,application/pdf"
+            className="hidden"
+            onChange={(e) => { const f = e.target.files?.[0]; if (f) onAttach(f); e.target.value = ""; }}
+          />
+          <button
+            onClick={() => fileRef.current?.click()}
+            disabled={uploading || busy}
+            className="inline-flex h-11 w-11 items-center justify-center rounded-lg border border-border bg-card transition hover:bg-accent disabled:opacity-40"
+            aria-label="Attach a report or prescription"
+            title="Attach a report or prescription"
+          >
+            {uploading ? <Loader2 className="h-4 w-4 animate-spin" /> : <Paperclip className="h-4 w-4" />}
+          </button>
           <textarea
             ref={taRef}
             value={input}
@@ -189,7 +290,7 @@ function ChatWindow({
               }
             }}
             rows={1}
-            placeholder="Ask about your reports, medicines, lab trends…"
+            placeholder="Ask about your reports, medicines, lab trends… or attach a new one"
             className="chat-input max-h-40 min-h-[44px] flex-1 resize-none rounded-lg border border-border bg-background px-3 py-2.5 text-sm outline-none transition focus:border-primary/60 focus:ring-2 focus:ring-primary/20"
           />
           {busy ? (
@@ -215,6 +316,7 @@ function ChatWindow({
     </div>
   );
 }
+
 
 function EmptyState({ onPick }: { onPick: (text: string) => void }) {
   return (

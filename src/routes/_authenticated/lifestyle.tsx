@@ -115,9 +115,20 @@ function LifestylePage() {
     onSuccess: () => {
       qc.invalidateQueries({ queryKey: ["lifestyle-logs"] });
       setNlText("");
-      showFlash("Logged from your note");
+      setVoiceText("");
+      showFlash("Your log has been saved");
     },
   });
+
+  function logManual() {
+    const payload: Partial<Log> = {
+      sleep_hours: sleep !== "" ? Number(sleep) : null,
+      exercise_type: exType || null,
+      exercise_minutes: exMin !== "" ? Number(exMin) : null,
+      meals: meals || null,
+    };
+    save.mutate(payload);
+  }
 
   // ----- Voice recording -----
   const [recording, setRecording] = useState(false);

@@ -1,15 +1,17 @@
-import { createFileRoute } from "@tanstack/react-router";
+import { createFileRoute, Link } from "@tanstack/react-router";
 import { useChat } from "@ai-sdk/react";
 import { DefaultChatTransport, type UIMessage } from "ai";
 import { useEffect, useMemo, useRef, useState } from "react";
-import { useQuery } from "@tanstack/react-query";
+import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { useServerFn } from "@tanstack/react-start";
 import ReactMarkdown from "react-markdown";
-import { Send, Square, Stethoscope, User, Sparkles, Trash2 } from "lucide-react";
+import { Send, Square, Stethoscope, User, Sparkles, Trash2, Paperclip, Loader2, FileCheck2 } from "lucide-react";
 import { SiteLayout } from "@/components/SiteLayout";
 import { supabase } from "@/integrations/supabase/client";
 import { getOrCreateChatThread, getChatThreadMessages, clearChatThread } from "@/lib/chat.functions";
 import { useActiveMember } from "@/lib/active-member";
+import { extractClinicalDoc } from "@/lib/extract.functions";
+import { createMedicalDoc } from "@/lib/medsafe.functions";
 
 export const Route = createFileRoute("/_authenticated/chat")({
   head: () => ({

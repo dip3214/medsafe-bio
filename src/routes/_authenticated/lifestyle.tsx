@@ -122,6 +122,7 @@ function LifestylePage() {
   // ----- Voice recording -----
   const [recording, setRecording] = useState(false);
   const [transcribing, setTranscribing] = useState(false);
+  const [voiceText, setVoiceText] = useState<string>("");
   const recorderRef = useRef<MediaRecorder | null>(null);
   const chunksRef = useRef<Blob[]>([]);
 
@@ -150,8 +151,7 @@ function LifestylePage() {
             showFlash("Couldn't hear that — try again");
             return;
           }
-          setNlText(text);
-          parseMut.mutate(text);
+          setVoiceText(text);
         } catch (err: any) {
           showFlash(err?.message || "Transcription failed");
         } finally {

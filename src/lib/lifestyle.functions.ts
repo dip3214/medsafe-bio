@@ -8,7 +8,8 @@ const UpsertLog = z.object({
   exercise_type: z.string().max(40).nullable().optional(),
   exercise_minutes: z.number().int().min(0).max(1440).nullable().optional(),
   meals: z.string().max(2000).nullable().optional(),
-  source: z.enum(["form", "chat"]).default("form"),
+  mood: z.number().int().min(1).max(5).nullable().optional(),
+  source: z.enum(["form", "chat", "mood"]).default("form"),
 });
 
 export const upsertLifestyleLog = createServerFn({ method: "POST" })
@@ -18,7 +19,7 @@ export const upsertLifestyleLog = createServerFn({ method: "POST" })
     const log_date = data.log_date ?? new Date().toISOString().slice(0, 10);
     const { data: existing } = await context.supabase
       .from("lifestyle_logs")
-      .select("id, sleep_hours, exercise_type, exercise_minutes, meals")
+      .select("id, sleep_hours, exercise_type, exercise_minutes, meals, mood")
       .eq("user_id", context.userId)
       .eq("log_date", log_date)
       .maybeSingle();
@@ -30,6 +31,7 @@ export const upsertLifestyleLog = createServerFn({ method: "POST" })
       exercise_type: data.exercise_type ?? existing?.exercise_type ?? null,
       exercise_minutes: data.exercise_minutes ?? existing?.exercise_minutes ?? null,
       meals: data.meals ?? existing?.meals ?? null,
+      mood: data.mood ?? (existing as any)?.mood ?? null,
       source: data.source,
     };
     const { error } = await context.supabase

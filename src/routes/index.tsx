@@ -30,34 +30,47 @@ function Index() {
 
 function Hero() {
   return (
-    <section className="mx-auto grid max-w-7xl items-start gap-10 px-4 py-12 lg:grid-cols-[1.05fr_0.95fr] lg:py-20">
-      <div>
-        <span className="inline-flex items-center rounded-full bg-primary/10 px-3 py-1 text-xs font-semibold text-primary">
-          One family. One health record.
-        </span>
-        <h1 className="mt-5 font-display text-5xl leading-[1.05] text-foreground sm:text-6xl lg:text-7xl">
-          Your family's health, <span className="italic text-primary">finally</span> in one place.
-        </h1>
-        <p className="mt-6 max-w-xl text-lg leading-relaxed text-muted-foreground">
-          MedSafe organizes every prescription, lab report and medical image into a clean clinical
-          timeline — and lets you ask questions about it in plain language.
-        </p>
-        <div className="mt-8 flex flex-wrap gap-3">
-          <Link to="/auth" className="inline-flex items-center gap-2 rounded-lg bg-primary px-5 py-3 text-sm font-semibold text-primary-foreground hover:bg-primary/90">
-            Get started — it's free <ArrowRight className="h-4 w-4" />
-          </Link>
-          <Link to="/dashboard" className="inline-flex items-center gap-2 rounded-lg border border-border bg-card px-5 py-3 text-sm font-semibold hover:bg-accent">
-            See your timeline
-          </Link>
+    <section className="relative overflow-hidden">
+      {/* Lamp-glow accent tying back to the auth page */}
+      <div
+        aria-hidden
+        className="pointer-events-none absolute -top-24 right-[-10%] h-[420px] w-[420px] rounded-full opacity-70 blur-3xl"
+        style={{
+          background:
+            "radial-gradient(closest-side, color-mix(in oklab, var(--color-primary) 22%, transparent), transparent)",
+        }}
+      />
+      <div className="relative mx-auto grid max-w-7xl items-start gap-10 px-4 py-14 lg:grid-cols-[1.05fr_0.95fr] lg:py-24">
+        <div>
+          <span className="inline-flex items-center gap-1.5 rounded-full border border-primary/25 bg-primary/10 px-3 py-1 text-xs font-semibold text-primary">
+            <span className="h-1.5 w-1.5 animate-pulse rounded-full bg-primary" />
+            One family. One health record.
+          </span>
+          <h1 className="mt-5 font-display text-5xl leading-[1.05] text-foreground sm:text-6xl lg:text-7xl">
+            Shining light on your{" "}
+            <span className="italic text-primary">scattered</span> health data.
+          </h1>
+          <p className="mt-6 max-w-xl text-lg leading-relaxed text-muted-foreground">
+            MedSafe pulls every prescription, lab report and daily check-in into one clean clinical
+            timeline — then lets you ask questions about it in plain language.
+          </p>
+          <div className="mt-8 flex flex-wrap gap-3">
+            <Link to="/auth" className="inline-flex items-center gap-2 rounded-lg bg-primary px-5 py-3 text-sm font-semibold text-primary-foreground shadow-lg shadow-primary/20 hover:bg-primary/90">
+              Pull the string to begin <ArrowRight className="h-4 w-4" />
+            </Link>
+            <Link to="/dashboard" className="inline-flex items-center gap-2 rounded-lg border border-border bg-card px-5 py-3 text-sm font-semibold hover:bg-accent">
+              See your timeline
+            </Link>
+          </div>
+          <div className="mt-8 flex flex-wrap gap-2 text-xs text-muted-foreground">
+            <Badge icon={Lock}>End-to-end encrypted</Badge>
+            <Badge icon={FlaskConical}>Built with NABL-accredited labs</Badge>
+            <Badge icon={Stethoscope}>Reviewed by MD physicians</Badge>
+          </div>
         </div>
-        <div className="mt-8 flex flex-wrap gap-2 text-xs text-muted-foreground">
-          <Badge icon={Lock}>End-to-end encrypted</Badge>
-          <Badge icon={FlaskConical}>Built with NABL-accredited labs</Badge>
-          <Badge icon={Stethoscope}>Reviewed by MD physicians</Badge>
-        </div>
-      </div>
 
-      <LatestEventsCard />
+        <LatestEventsCard />
+      </div>
     </section>
   );
 }

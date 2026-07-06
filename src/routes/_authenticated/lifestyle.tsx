@@ -215,6 +215,7 @@ function LifestylePage() {
 
   return (
     <SiteLayout>
+      <DailyMoodPrompt memberId={active?.id ?? null} name={active?.name} />
       {/* Hero */}
       <section className="relative overflow-hidden">
         <LifestyleHeroBackground />

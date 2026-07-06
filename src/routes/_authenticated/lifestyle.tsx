@@ -5,6 +5,7 @@ import { useServerFn } from "@tanstack/react-start";
 import { Moon, Activity, UtensilsCrossed, Sparkles, Target, Flame, Mic, MicOff, Camera, Check, Loader2 } from "lucide-react";
 import { SiteLayout } from "@/components/SiteLayout";
 import { LifestyleHeroBackground } from "@/components/LifestyleHeroBackground";
+import { DailyMoodPrompt } from "@/components/DailyMoodPrompt";
 import { useActiveMember } from "@/lib/active-member";
 import {
   listLifestyleLogs,

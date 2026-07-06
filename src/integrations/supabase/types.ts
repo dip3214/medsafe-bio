@@ -530,6 +530,7 @@ export type Database = {
           id: string
           log_date: string
           meals: string | null
+          mood: number | null
           sleep_hours: number | null
           source: string
           updated_at: string
@@ -542,6 +543,7 @@ export type Database = {
           id?: string
           log_date?: string
           meals?: string | null
+          mood?: number | null
           sleep_hours?: number | null
           source?: string
           updated_at?: string
@@ -554,6 +556,7 @@ export type Database = {
           id?: string
           log_date?: string
           meals?: string | null
+          mood?: number | null
           sleep_hours?: number | null
           source?: string
           updated_at?: string

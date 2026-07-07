@@ -296,19 +296,34 @@ function LifestylePage() {
               />
               <div className="mt-2 flex flex-wrap items-center gap-2">
                 <input
-                  ref={photoInputRef}
+                  ref={cameraInputRef}
                   type="file" accept="image/*" capture="environment"
+                  className="hidden"
+                  onChange={(e) => { const f = e.target.files?.[0]; if (f) onPhoto(f); e.target.value = ""; }}
+                />
+                <input
+                  ref={galleryInputRef}
+                  type="file" accept="image/*"
                   className="hidden"
                   onChange={(e) => { const f = e.target.files?.[0]; if (f) onPhoto(f); e.target.value = ""; }}
                 />
                 <button
                   type="button"
-                  onClick={() => photoInputRef.current?.click()}
+                  onClick={() => cameraInputRef.current?.click()}
                   disabled={estimating}
                   className="inline-flex items-center gap-1.5 rounded-md border border-border bg-background px-2.5 py-1.5 text-xs font-medium hover:bg-accent disabled:opacity-50"
                 >
                   {estimating ? <Loader2 className="h-3 w-3 animate-spin" /> : <Camera className="h-3 w-3" />}
-                  {estimating ? "Reading photo…" : "Photo → calories"}
+                  {estimating ? "Reading photo…" : "Take photo"}
+                </button>
+                <button
+                  type="button"
+                  onClick={() => galleryInputRef.current?.click()}
+                  disabled={estimating}
+                  className="inline-flex items-center gap-1.5 rounded-md border border-border bg-background px-2.5 py-1.5 text-xs font-medium hover:bg-accent disabled:opacity-50"
+                >
+                  <UtensilsCrossed className="h-3 w-3" />
+                  Upload from gallery
                 </button>
                 {calorieResult && <span className="text-xs text-muted-foreground">{calorieResult}</span>}
               </div>

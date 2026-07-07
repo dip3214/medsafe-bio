@@ -185,7 +185,8 @@ function LifestylePage() {
 
   // ----- Photo → calories -----
   const [estimating, setEstimating] = useState(false);
-  const photoInputRef = useRef<HTMLInputElement>(null);
+  const cameraInputRef = useRef<HTMLInputElement>(null);
+  const galleryInputRef = useRef<HTMLInputElement>(null);
   async function onPhoto(file: File) {
     setEstimating(true);
     setCalorieResult(null);

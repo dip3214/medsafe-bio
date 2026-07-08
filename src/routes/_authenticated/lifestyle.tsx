@@ -7,6 +7,7 @@ import { SiteLayout } from "@/components/SiteLayout";
 import { LifestyleHeroBackground } from "@/components/LifestyleHeroBackground";
 import { DailyMoodPrompt } from "@/components/DailyMoodPrompt";
 import { useActiveMember } from "@/lib/active-member";
+import { getLifestyleContext } from "@/lib/lifestyle-context";
 import {
   listLifestyleLogs,
   upsertLifestyleLog,
@@ -34,13 +35,13 @@ type Log = {
   meals: string | null;
 };
 
-function greeting() {
-  const h = new Date().getHours();
-  if (h < 5) return "Still up";
-  if (h < 12) return "Good morning";
-  if (h < 17) return "Good afternoon";
-  if (h < 21) return "Good evening";
-  return "Good night";
+function useLifestyleContext() {
+  const [ctx, setCtx] = useState(() => getLifestyleContext());
+  useEffect(() => {
+    const t = setInterval(() => setCtx(getLifestyleContext()), 60_000);
+    return () => clearInterval(t);
+  }, []);
+  return ctx;
 }
 
 function LifestylePage() {
@@ -213,23 +214,26 @@ function LifestylePage() {
   const stats = useMemo(() => computeStats(logs), [logs]);
   const recent = useMemo(() => logs.slice(0, 7).filter((l) => l.log_date !== today), [logs, today]);
   const displayName = active?.name?.split(/\s+/)[0] || "there";
+  const ctx = useLifestyleContext();
 
   return (
     <SiteLayout>
       <DailyMoodPrompt memberId={active?.id ?? null} name={active?.name} />
       {/* Hero */}
       <section className="relative overflow-hidden">
-        <LifestyleHeroBackground />
+        <LifestyleHeroBackground phase={ctx.phase} />
         <div className="relative mx-auto max-w-5xl px-4 py-24 text-center sm:py-32">
-          <div className="inline-flex items-center gap-1.5 rounded-full bg-background/60 px-3 py-1 text-xs font-semibold text-primary backdrop-blur">
-            <Sparkles className="h-3 w-3" /> Lifestyle
+          <div className="mx-auto max-w-2xl rounded-3xl border border-border/40 bg-card/75 px-6 py-6 shadow-lg backdrop-blur-md sm:px-10 sm:py-8">
+            <div className="inline-flex items-center gap-1.5 rounded-full bg-primary/10 px-3 py-1 text-xs font-semibold text-primary">
+              <Sparkles className="h-3 w-3" /> {ctx.badge}
+            </div>
+            <h1 className="mt-3 font-display text-4xl leading-tight text-foreground sm:text-5xl">
+              {ctx.headline(displayName)}
+            </h1>
+            <p className="mx-auto mt-3 max-w-xl text-sm text-foreground/80">
+              {ctx.sub}
+            </p>
           </div>
-          <h1 className="mt-4 font-display text-4xl leading-tight text-foreground drop-shadow-sm sm:text-5xl">
-            {greeting()}, {displayName}.
-          </h1>
-          <p className="mx-auto mt-3 max-w-xl text-sm text-foreground/80">
-            A quiet check-in for sleep, movement and meals — small notes today become your story tomorrow.
-          </p>
         </div>
       </section>
 
@@ -291,7 +295,7 @@ function LifestylePage() {
                 onChange={(e) => setMeals(e.target.value)}
                 onBlur={() => save.mutate({ meals })}
                 rows={3}
-                placeholder="Breakfast: poha and tea · Lunch: dal, rice · Dinner: roti and sabzi"
+                placeholder={ctx.mealsPlaceholder}
                 className="w-full rounded-md border border-input bg-background px-3 py-2 text-sm"
               />
               <div className="mt-2 flex flex-wrap items-center gap-2">
@@ -358,7 +362,7 @@ function LifestylePage() {
               <input
                 value={nlText}
                 onChange={(e) => setNlText(e.target.value)}
-                placeholder="How was your morning?"
+                placeholder={ctx.quickPromptPlaceholder}
                 className="flex-1 rounded-md border border-input bg-background px-3 py-2 text-sm"
                 onKeyDown={(e) => {
                   if (e.key === "Enter" && nlText.trim()) parseMut.mutate(nlText.trim());

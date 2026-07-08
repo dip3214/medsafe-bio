@@ -295,7 +295,7 @@ function LifestylePage() {
                 onChange={(e) => setMeals(e.target.value)}
                 onBlur={() => save.mutate({ meals })}
                 rows={3}
-                placeholder="Breakfast: poha and tea · Lunch: dal, rice · Dinner: roti and sabzi"
+                placeholder={ctx.mealsPlaceholder}
                 className="w-full rounded-md border border-input bg-background px-3 py-2 text-sm"
               />
               <div className="mt-2 flex flex-wrap items-center gap-2">

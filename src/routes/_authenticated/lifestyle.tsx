@@ -35,13 +35,13 @@ type Log = {
   meals: string | null;
 };
 
-function greeting() {
-  const h = new Date().getHours();
-  if (h < 5) return "Still up";
-  if (h < 12) return "Good morning";
-  if (h < 17) return "Good afternoon";
-  if (h < 21) return "Good evening";
-  return "Good night";
+function useLifestyleContext() {
+  const [ctx, setCtx] = useState(() => getLifestyleContext());
+  useEffect(() => {
+    const t = setInterval(() => setCtx(getLifestyleContext()), 60_000);
+    return () => clearInterval(t);
+  }, []);
+  return ctx;
 }
 
 function LifestylePage() {

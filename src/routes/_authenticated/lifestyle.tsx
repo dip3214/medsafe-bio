@@ -362,7 +362,7 @@ function LifestylePage() {
               <input
                 value={nlText}
                 onChange={(e) => setNlText(e.target.value)}
-                placeholder="How was your morning?"
+                placeholder={ctx.quickPromptPlaceholder}
                 className="flex-1 rounded-md border border-input bg-background px-3 py-2 text-sm"
                 onKeyDown={(e) => {
                   if (e.key === "Enter" && nlText.trim()) parseMut.mutate(nlText.trim());

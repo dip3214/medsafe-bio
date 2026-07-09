@@ -214,3 +214,45 @@ function AuthPage() {
     </div>
   );
 }
+
+/** Animated ECG / heartbeat line — healthcare motif that matches site colors. */
+function HeartbeatAnimation() {
+  return (
+    <div className="relative w-full max-w-md">
+      <svg viewBox="0 0 400 140" className="w-full" aria-hidden>
+        <defs>
+          <linearGradient id="ecgFade" x1="0" x2="1" y1="0" y2="0">
+            <stop offset="0%" stopColor="var(--primary)" stopOpacity="0" />
+            <stop offset="20%" stopColor="var(--primary)" stopOpacity="0.9" />
+            <stop offset="100%" stopColor="var(--primary)" stopOpacity="0.9" />
+          </linearGradient>
+        </defs>
+        <g stroke="currentColor" strokeOpacity="0.06">
+          {Array.from({ length: 8 }).map((_, i) => (
+            <line key={`v${i}`} x1={i * 50} y1="0" x2={i * 50} y2="140" />
+          ))}
+          {Array.from({ length: 4 }).map((_, i) => (
+            <line key={`h${i}`} x1="0" y1={i * 35} x2="400" y2={i * 35} />
+          ))}
+        </g>
+        <path
+          d="M0,70 L80,70 L100,70 L110,60 L120,80 L130,20 L140,110 L150,70 L200,70 L220,70 L230,60 L240,80 L250,20 L260,110 L270,70 L320,70 L340,60 L350,70 L400,70"
+          fill="none"
+          stroke="url(#ecgFade)"
+          strokeWidth="2.5"
+          strokeLinecap="round"
+          strokeLinejoin="round"
+          strokeDasharray="600"
+          strokeDashoffset="600"
+        >
+          <animate attributeName="stroke-dashoffset" from="600" to="0" dur="3.2s" repeatCount="indefinite" />
+        </path>
+        <g transform="translate(360,70)">
+          <path d="M0,-6 C-8,-16 -22,-8 0,10 C22,-8 8,-16 0,-6 Z" fill="var(--primary)" opacity="0.9">
+            <animateTransform attributeName="transform" type="scale" values="1;1.18;1;1.1;1" keyTimes="0;0.15;0.4;0.55;1" dur="1.1s" repeatCount="indefinite" additive="sum" />
+          </path>
+        </g>
+      </svg>
+    </div>
+  );
+}

@@ -2,7 +2,7 @@ import { createFileRoute, useNavigate, useSearch, Link } from "@tanstack/react-r
 import { useEffect, useState } from "react";
 import { z } from "zod";
 import { supabase } from "@/integrations/supabase/client";
-import { Loader2, ShieldCheck } from "lucide-react";
+import { Loader2, ShieldCheck, HeartPulse, Sparkles } from "lucide-react";
 
 async function signInWithGoogle() {
   const { error } = await supabase.auth.signInWithOAuth({

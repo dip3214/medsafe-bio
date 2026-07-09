@@ -56,7 +56,7 @@ function Hero() {
           </p>
           <div className="mt-8 flex flex-wrap gap-3">
             <Link to="/auth" className="inline-flex items-center gap-2 rounded-lg bg-primary px-5 py-3 text-sm font-semibold text-primary-foreground shadow-lg shadow-primary/20 hover:bg-primary/90">
-              Pull the string to begin <ArrowRight className="h-4 w-4" />
+              Get started <ArrowRight className="h-4 w-4" />
             </Link>
             <Link to="/dashboard" className="inline-flex items-center gap-2 rounded-lg border border-border bg-card px-5 py-3 text-sm font-semibold hover:bg-accent">
               See your timeline

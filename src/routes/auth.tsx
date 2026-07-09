@@ -81,22 +81,30 @@ function AuthPage() {
         }}
       />
 
-      <div className="relative z-10 mx-auto flex min-h-screen max-w-md flex-col justify-center px-4 py-16">
-        <Link
-          to="/"
-          className="mb-8 inline-flex items-center gap-2 text-sm font-medium text-muted-foreground hover:text-foreground"
-        >
-          ← Back to home
-        </Link>
+      <div className="relative z-10 mx-auto grid min-h-screen max-w-6xl grid-cols-1 items-center gap-10 px-4 py-16 md:grid-cols-2">
+        {/* Brand + healthcare animation side */}
+        <div className="flex flex-col items-center justify-center text-center md:items-start md:text-left">
+          <Link to="/" className="mb-8 inline-flex items-center gap-2 text-sm font-medium text-muted-foreground hover:text-foreground">
+            ← Back to home
+          </Link>
 
-        <div className="mb-6 text-center">
-          <h1 className="font-serif text-4xl leading-tight text-foreground">
+          <HeartbeatAnimation />
+
+          <h1 className="mt-8 font-serif text-4xl leading-tight text-foreground sm:text-5xl">
             Med<span className="text-primary">Safe</span>
           </h1>
-          <p className="mt-2 text-sm text-muted-foreground">
-            One private home for every prescription, lab report and daily check-in.
+          <p className="mt-3 max-w-md text-base text-muted-foreground">
+            One private home for every prescription, lab report and daily check-in — kept safely for you and your family.
           </p>
+
+          <ul className="mt-6 grid gap-2 text-sm text-muted-foreground">
+            <li className="inline-flex items-center gap-2"><ShieldCheck className="h-4 w-4 text-primary" /> Encrypted, DPDP-compliant storage</li>
+            <li className="inline-flex items-center gap-2"><HeartPulse className="h-4 w-4 text-primary" /> Personalised health summaries</li>
+            <li className="inline-flex items-center gap-2"><Sparkles className="h-4 w-4 text-primary" /> Daily lifestyle coaching</li>
+          </ul>
         </div>
+
+        <div>
 
         <div className="w-full rounded-2xl border border-border bg-card p-6 shadow-lg sm:p-8">
           <div className="text-center">

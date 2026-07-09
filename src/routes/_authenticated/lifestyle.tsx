@@ -222,18 +222,39 @@ function LifestylePage() {
       {/* Hero */}
       <section className="relative overflow-hidden">
         <LifestyleHeroBackground phase={ctx.phase} />
-        <div className="relative mx-auto max-w-5xl px-4 py-24 text-center sm:py-32">
-          <div className="mx-auto max-w-2xl rounded-3xl border border-border/40 bg-card/75 px-6 py-6 shadow-lg backdrop-blur-md sm:px-10 sm:py-8">
-            <div className="inline-flex items-center gap-1.5 rounded-full bg-primary/10 px-3 py-1 text-xs font-semibold text-primary">
-              <Sparkles className="h-3 w-3" /> {ctx.badge}
-            </div>
-            <h1 className="mt-3 font-display text-4xl leading-tight text-foreground sm:text-5xl">
-              {ctx.headline(displayName)}
-            </h1>
-            <p className="mx-auto mt-3 max-w-xl text-sm text-foreground/80">
-              {ctx.sub}
-            </p>
+        {/* Bottom scrim keeps text readable on any scene without covering the animation */}
+        <div
+          aria-hidden
+          className={`pointer-events-none absolute inset-x-0 bottom-0 h-2/3 ${
+            ctx.ambient === "night"
+              ? "bg-gradient-to-t from-black/70 via-black/30 to-transparent"
+              : ctx.ambient === "dusk"
+                ? "bg-gradient-to-t from-black/45 via-black/15 to-transparent"
+                : "bg-gradient-to-t from-black/25 via-black/5 to-transparent"
+          }`}
+        />
+        <div className="relative mx-auto max-w-5xl px-4 pt-28 pb-16 text-left sm:pt-40 sm:pb-24">
+          <div
+            className={`inline-flex items-center gap-1.5 rounded-full px-3 py-1 text-xs font-semibold backdrop-blur-sm ${
+              ctx.ambient === "day"
+                ? "bg-black/20 text-white ring-1 ring-white/30"
+                : "bg-white/15 text-white ring-1 ring-white/25"
+            }`}
+          >
+            <Sparkles className="h-3 w-3" /> {ctx.badge}
           </div>
+          <h1
+            className="mt-4 max-w-2xl font-display text-4xl leading-tight text-white sm:text-6xl"
+            style={{ textShadow: "0 2px 24px rgba(0,0,0,0.55), 0 1px 2px rgba(0,0,0,0.4)" }}
+          >
+            {ctx.headline(displayName)}
+          </h1>
+          <p
+            className="mt-3 max-w-xl text-base text-white/95 sm:text-lg"
+            style={{ textShadow: "0 1px 12px rgba(0,0,0,0.55)" }}
+          >
+            {ctx.sub}
+          </p>
         </div>
       </section>
 

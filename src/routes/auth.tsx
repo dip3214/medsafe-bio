@@ -2,7 +2,7 @@ import { createFileRoute, useNavigate, useSearch, Link } from "@tanstack/react-r
 import { useEffect, useState } from "react";
 import { z } from "zod";
 import { supabase } from "@/integrations/supabase/client";
-import { Loader2, ShieldCheck } from "lucide-react";
+import { Loader2, ShieldCheck, HeartPulse, Sparkles } from "lucide-react";
 
 async function signInWithGoogle() {
   const { error } = await supabase.auth.signInWithOAuth({
@@ -81,22 +81,30 @@ function AuthPage() {
         }}
       />
 
-      <div className="relative z-10 mx-auto flex min-h-screen max-w-md flex-col justify-center px-4 py-16">
-        <Link
-          to="/"
-          className="mb-8 inline-flex items-center gap-2 text-sm font-medium text-muted-foreground hover:text-foreground"
-        >
-          ← Back to home
-        </Link>
+      <div className="relative z-10 mx-auto grid min-h-screen max-w-6xl grid-cols-1 items-center gap-10 px-4 py-16 md:grid-cols-2">
+        {/* Brand + healthcare animation side */}
+        <div className="flex flex-col items-center justify-center text-center md:items-start md:text-left">
+          <Link to="/" className="mb-8 inline-flex items-center gap-2 text-sm font-medium text-muted-foreground hover:text-foreground">
+            ← Back to home
+          </Link>
 
-        <div className="mb-6 text-center">
-          <h1 className="font-serif text-4xl leading-tight text-foreground">
+          <HeartbeatAnimation />
+
+          <h1 className="mt-8 font-serif text-4xl leading-tight text-foreground sm:text-5xl">
             Med<span className="text-primary">Safe</span>
           </h1>
-          <p className="mt-2 text-sm text-muted-foreground">
-            One private home for every prescription, lab report and daily check-in.
+          <p className="mt-3 max-w-md text-base text-muted-foreground">
+            One private home for every prescription, lab report and daily check-in — kept safely for you and your family.
           </p>
+
+          <ul className="mt-6 grid gap-2 text-sm text-muted-foreground">
+            <li className="inline-flex items-center gap-2"><ShieldCheck className="h-4 w-4 text-primary" /> Encrypted, DPDP-compliant storage</li>
+            <li className="inline-flex items-center gap-2"><HeartPulse className="h-4 w-4 text-primary" /> Personalised health summaries</li>
+            <li className="inline-flex items-center gap-2"><Sparkles className="h-4 w-4 text-primary" /> Daily lifestyle coaching</li>
+          </ul>
         </div>
+
+        <div>
 
         <div className="w-full rounded-2xl border border-border bg-card p-6 shadow-lg sm:p-8">
           <div className="text-center">
@@ -200,13 +208,51 @@ function AuthPage() {
                 : "Already have an account? Sign in"}
             </button>
           </form>
+          </div>
         </div>
-
-        <p className="mt-6 inline-flex items-center justify-center gap-1.5 text-center text-[11px] text-muted-foreground">
-          <ShieldCheck className="h-3 w-3 text-primary" />
-          Encrypted & DPDP-compliant. Your family's records stay private.
-        </p>
       </div>
+    </div>
+  );
+}
+
+/** Animated ECG / heartbeat line — healthcare motif that matches site colors. */
+function HeartbeatAnimation() {
+  return (
+    <div className="relative w-full max-w-md">
+      <svg viewBox="0 0 400 140" className="w-full" aria-hidden>
+        <defs>
+          <linearGradient id="ecgFade" x1="0" x2="1" y1="0" y2="0">
+            <stop offset="0%" stopColor="var(--primary)" stopOpacity="0" />
+            <stop offset="20%" stopColor="var(--primary)" stopOpacity="0.9" />
+            <stop offset="100%" stopColor="var(--primary)" stopOpacity="0.9" />
+          </linearGradient>
+        </defs>
+        <g stroke="currentColor" strokeOpacity="0.06">
+          {Array.from({ length: 8 }).map((_, i) => (
+            <line key={`v${i}`} x1={i * 50} y1="0" x2={i * 50} y2="140" />
+          ))}
+          {Array.from({ length: 4 }).map((_, i) => (
+            <line key={`h${i}`} x1="0" y1={i * 35} x2="400" y2={i * 35} />
+          ))}
+        </g>
+        <path
+          d="M0,70 L80,70 L100,70 L110,60 L120,80 L130,20 L140,110 L150,70 L200,70 L220,70 L230,60 L240,80 L250,20 L260,110 L270,70 L320,70 L340,60 L350,70 L400,70"
+          fill="none"
+          stroke="url(#ecgFade)"
+          strokeWidth="2.5"
+          strokeLinecap="round"
+          strokeLinejoin="round"
+          strokeDasharray="600"
+          strokeDashoffset="600"
+        >
+          <animate attributeName="stroke-dashoffset" from="600" to="0" dur="3.2s" repeatCount="indefinite" />
+        </path>
+        <g transform="translate(360,70)">
+          <path d="M0,-6 C-8,-16 -22,-8 0,10 C22,-8 8,-16 0,-6 Z" fill="var(--primary)" opacity="0.9">
+            <animateTransform attributeName="transform" type="scale" values="1;1.18;1;1.1;1" keyTimes="0;0.15;0.4;0.55;1" dur="1.1s" repeatCount="indefinite" additive="sum" />
+          </path>
+        </g>
+      </svg>
     </div>
   );
 }

@@ -440,6 +440,9 @@ export function LifestyleHeroBackground({ phase: phaseProp }: { phase?: Lifestyl
       {/* Office windows — late morning */}
       <div className="windows" />
 
+      <div className="mountains" />
+      <div className="skyline" />
+      <div className="trees" />
       <div className="ground" />
       <div className="path" />
 

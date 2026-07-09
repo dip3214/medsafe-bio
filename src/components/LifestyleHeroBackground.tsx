@@ -204,17 +204,93 @@ export function LifestyleHeroBackground({ phase: phaseProp }: { phase?: Lifestyl
         }
         .lifestyle-hero[data-phase="lateMorning"] .windows { opacity:.55; }
 
+        /* Distant mountains */
+        .lifestyle-hero .mountains {
+          position:absolute; left:0; right:0; bottom:32%; height:22%;
+          background:
+            radial-gradient(60% 100% at 20% 100%, rgba(70,60,80,.55) 0 60%, transparent 61%),
+            radial-gradient(55% 100% at 55% 100%, rgba(55,45,70,.65) 0 60%, transparent 61%),
+            radial-gradient(65% 100% at 88% 100%, rgba(60,50,80,.55) 0 60%, transparent 61%);
+          filter: blur(.3px);
+        }
+        .lifestyle-hero[data-phase="earlyMorning"] .mountains,
+        .lifestyle-hero[data-phase="afternoon"] .mountains { filter: blur(.3px) hue-rotate(-8deg); }
+        .lifestyle-hero[data-phase="dinner"] .mountains,
+        .lifestyle-hero[data-phase="night"] .mountains {
+          background:
+            radial-gradient(60% 100% at 20% 100%, rgba(10,15,30,.85) 0 60%, transparent 61%),
+            radial-gradient(55% 100% at 55% 100%, rgba(5,10,25,.9) 0 60%, transparent 61%),
+            radial-gradient(65% 100% at 88% 100%, rgba(10,15,30,.85) 0 60%, transparent 61%);
+        }
+
+        /* City skyline — subtle backdrop */
+        .lifestyle-hero .skyline {
+          position:absolute; left:0; right:0; bottom:28%; height:14%;
+          background:
+            linear-gradient(180deg, transparent 0, transparent 20%, rgba(30,25,45,.55) 20%, rgba(30,25,45,.55) 100%);
+          -webkit-mask: repeating-linear-gradient(90deg,
+            #000 0 22px, transparent 22px 30px,
+            #000 30px 66px, transparent 66px 74px,
+            #000 74px 102px, transparent 102px 112px,
+            #000 112px 158px, transparent 158px 168px);
+                  mask: repeating-linear-gradient(90deg,
+            #000 0 22px, transparent 22px 30px,
+            #000 30px 66px, transparent 66px 74px,
+            #000 74px 102px, transparent 102px 112px,
+            #000 112px 158px, transparent 158px 168px);
+          opacity:.7;
+        }
+        .lifestyle-hero[data-phase="dinner"] .skyline,
+        .lifestyle-hero[data-phase="night"] .skyline {
+          background: linear-gradient(180deg, transparent 0, transparent 20%, rgba(5,8,20,.95) 20%, rgba(5,8,20,.95) 100%);
+        }
+        /* Lit windows at night */
+        .lifestyle-hero .skyline::after {
+          content:""; position:absolute; inset:20% 0 0 0; opacity:0; transition: opacity 1s ease;
+          background:
+            radial-gradient(2px 2px at 12% 40%, #ffd27a 60%, transparent 61%),
+            radial-gradient(2px 2px at 18% 60%, #ffd27a 60%, transparent 61%),
+            radial-gradient(2px 2px at 36% 30%, #ffd27a 60%, transparent 61%),
+            radial-gradient(2px 2px at 42% 70%, #ffd27a 60%, transparent 61%),
+            radial-gradient(2px 2px at 58% 45%, #ffd27a 60%, transparent 61%),
+            radial-gradient(2px 2px at 72% 35%, #ffd27a 60%, transparent 61%),
+            radial-gradient(2px 2px at 78% 65%, #ffd27a 60%, transparent 61%),
+            radial-gradient(2px 2px at 90% 50%, #ffd27a 60%, transparent 61%);
+        }
+        .lifestyle-hero[data-phase="evening"] .skyline::after { opacity:.6; }
+        .lifestyle-hero[data-phase="dinner"] .skyline::after,
+        .lifestyle-hero[data-phase="night"] .skyline::after { opacity:1; }
+
+        /* Tree line */
+        .lifestyle-hero .trees {
+          position:absolute; left:0; right:0; bottom:22%; height:16%;
+          background:
+            radial-gradient(28px 40px at 6% 100%, rgba(40,60,40,.85) 60%, transparent 62%),
+            radial-gradient(20px 32px at 12% 100%, rgba(50,70,50,.8) 60%, transparent 62%),
+            radial-gradient(34px 46px at 22% 100%, rgba(35,55,40,.85) 60%, transparent 62%),
+            radial-gradient(22px 34px at 32% 100%, rgba(45,65,45,.8) 60%, transparent 62%),
+            radial-gradient(30px 44px at 78% 100%, rgba(35,55,40,.85) 60%, transparent 62%),
+            radial-gradient(24px 36px at 88% 100%, rgba(50,70,50,.8) 60%, transparent 62%),
+            radial-gradient(32px 44px at 96% 100%, rgba(40,60,40,.85) 60%, transparent 62%);
+        }
+        .lifestyle-hero[data-phase="dinner"] .trees,
+        .lifestyle-hero[data-phase="night"] .trees { filter: brightness(.35); }
+
         /* Ground + path */
         .lifestyle-hero .ground {
-          position:absolute; left:0; right:0; bottom:0; height:38%;
-          background: linear-gradient(180deg, transparent 0%, var(--ground) 40%, var(--ground) 100%);
+          position:absolute; left:0; right:0; bottom:0; height:24%;
+          background:
+            linear-gradient(180deg, transparent 0%, var(--ground) 30%, var(--ground) 100%),
+            repeating-linear-gradient(90deg, rgba(0,0,0,.03) 0 6px, transparent 6px 12px);
         }
         .lifestyle-hero .path {
-          position:absolute; left:-5%; right:-5%; bottom:8%; height:2px; background: rgba(120,60,40,.25);
+          position:absolute; left:-5%; right:-5%; bottom:8%; height:8px;
+          background: linear-gradient(180deg, rgba(120,80,55,.35), rgba(90,55,35,.4));
+          border-radius: 40%;
           transform: rotate(-1.2deg);
         }
         .lifestyle-hero[data-phase="dinner"] .path,
-        .lifestyle-hero[data-phase="night"] .path { background: rgba(200,215,255,.15); }
+        .lifestyle-hero[data-phase="night"] .path { background: linear-gradient(180deg, rgba(200,215,255,.18), rgba(160,180,220,.22)); }
 
         /* Street lamps — dusk/night */
         .lifestyle-hero .lamp {

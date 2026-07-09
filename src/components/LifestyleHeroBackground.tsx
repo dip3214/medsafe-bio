@@ -463,63 +463,95 @@ export function LifestyleHeroBackground({ phase: phaseProp }: { phase?: Lifestyl
       <div className="fly f3" style={{ left: "66%", bottom: "22%" }} />
       <div className="fly f4" style={{ left: "80%", bottom: "30%" }} />
 
-      {/* Figures */}
+      {/* Figures — clothed silhouettes with skin, hair & limbs */}
       <div className="fig fig-yoga">
-        <svg viewBox="0 0 60 110">
-          <circle className="head" cx="30" cy="14" r="7" />
-          <path className="body" d="M30 22 L30 60" />
-          <path className="body" d="M30 30 L14 46" />
-          <path className="body" d="M30 30 L46 46" />
-          <path className="body" d="M30 60 L30 96" />
-          <path className="body" d="M30 60 L42 82 L38 96" />
+        <svg viewBox="0 0 60 120">
+          {/* head + hair */}
+          <circle className="head" cx="30" cy="16" r="8" />
+          <path className="hair" d="M22 12 Q30 4 38 12 Q38 8 30 6 Q22 8 22 12 Z" />
+          {/* torso (tank top) */}
+          <path className="shirt-alt" d="M22 26 L38 26 L40 54 L20 54 Z" />
+          {/* arms raised in prayer / stretch */}
+          <path className="body" d="M24 28 L18 50" strokeWidth="4" />
+          <path className="body" d="M36 28 L42 50" strokeWidth="4" />
+          {/* legs — seated lotus */}
+          <path className="pants" d="M20 54 L14 84 L46 84 L40 54 Z" />
+          <ellipse className="shoe" cx="18" cy="86" rx="8" ry="3" />
+          <ellipse className="shoe" cx="42" cy="86" rx="8" ry="3" />
+          {/* yoga mat */}
+          <rect x="4" y="90" width="52" height="4" rx="2" fill="#8b5a3c" opacity=".7" />
         </svg>
       </div>
 
       <div className="fig fig-walk">
-        <svg viewBox="0 0 60 110">
-          <circle className="head" cx="30" cy="14" r="7" />
-          <path className="body" d="M30 22 L30 58" />
-          <path className="body arm-l" d="M30 30 L20 50" />
-          <path className="body arm-r" d="M30 30 L40 48" />
-          <path className="body leg-l" d="M30 58 L22 96" />
-          <path className="body leg-r" d="M30 58 L38 96" />
+        <svg viewBox="0 0 60 120">
+          <circle className="head" cx="30" cy="16" r="8" />
+          <path className="hair" d="M22 14 Q22 6 30 6 Q38 6 38 14 L38 10 Q30 4 22 10 Z" />
+          <path className="shirt" d="M22 26 L38 26 L40 56 L20 56 Z" />
+          <path className="body arm-l" d="M22 30 L16 52" strokeWidth="4.5" stroke="#c4654a" />
+          <path className="body arm-r" d="M38 30 L44 52" strokeWidth="4.5" stroke="#c4654a" />
+          <path className="pants" d="M20 56 L22 96 L28 96 L30 56 Z" />
+          <path className="pants" d="M30 56 L32 96 L38 96 L40 56 Z" />
+          <ellipse className="shoe" cx="25" cy="98" rx="5" ry="2.5" />
+          <ellipse className="shoe" cx="35" cy="98" rx="5" ry="2.5" />
         </svg>
       </div>
 
       <div className="fig fig-jog">
-        <svg viewBox="0 0 60 110">
-          <circle className="head" cx="30" cy="12" r="7" />
-          <path className="body" d="M30 20 L32 56" />
-          <path className="body arm-l" d="M31 28 L18 44" />
-          <path className="body arm-r" d="M31 28 L44 42" />
-          <path className="body leg-l" d="M32 56 L20 92" />
-          <path className="body leg-r" d="M32 56 L44 88" />
+        <svg viewBox="0 0 60 120">
+          <circle className="head" cx="30" cy="16" r="8" />
+          <path className="hair" d="M22 14 Q22 6 30 6 Q38 6 38 14 Q34 8 30 8 Q26 8 22 14 Z" />
+          <path className="shirt-alt" d="M22 26 L38 26 L40 54 L20 54 Z" />
+          <path className="body arm-l" d="M22 30 L14 44" strokeWidth="4.5" stroke="#3f6b9c" />
+          <path className="body arm-r" d="M38 30 L46 44" strokeWidth="4.5" stroke="#3f6b9c" />
+          <path className="pants" fill="#111827" d="M20 54 L16 92 L28 92 L30 54 Z" />
+          <path className="pants" fill="#111827" d="M30 54 L32 92 L44 92 L40 54 Z" />
+          <ellipse className="shoe" fill="#e11d48" cx="22" cy="94" rx="6" ry="3" />
+          <ellipse className="shoe" fill="#e11d48" cx="38" cy="94" rx="6" ry="3" />
         </svg>
       </div>
 
-      {/* Eating (seated at plate) */}
+      {/* Eating (seated at table) */}
       <div className="fig fig-eat">
-        <svg viewBox="0 0 60 110">
-          <circle className="head" cx="24" cy="18" r="7" />
-          <path className="body" d="M24 26 L24 60" />
-          <path className="body arm-l" d="M24 34 L10 46" />
-          <path className="body arm-r" d="M24 34 L38 30" />
-          <path className="body" d="M24 60 L14 88" />
-          <path className="body" d="M24 60 L36 88" />
-          {/* table + plate */}
-          <path className="body" d="M6 78 L54 78" />
-          <ellipse className="body" cx="40" cy="72" rx="10" ry="3" />
+        <svg viewBox="0 0 80 120">
+          {/* table */}
+          <rect x="0" y="82" width="80" height="4" fill="#7a4a2b" />
+          <rect x="6" y="86" width="4" height="24" fill="#5a3620" />
+          <rect x="70" y="86" width="4" height="24" fill="#5a3620" />
+          {/* plate + food */}
+          <ellipse cx="52" cy="80" rx="14" ry="3" fill="#f5f0e8" />
+          <ellipse cx="52" cy="79" rx="10" ry="2" fill="#e07a5f" />
+          {/* body */}
+          <circle className="head" cx="24" cy="30" r="8" />
+          <path className="hair" d="M16 28 Q16 20 24 20 Q32 20 32 28 Q28 22 24 22 Q20 22 16 28 Z" />
+          <path className="shirt" d="M16 40 L32 40 L34 72 L14 72 Z" />
+          <path className="body arm-l" d="M16 46 L10 62" strokeWidth="4.5" stroke="#c4654a" />
+          <path className="body arm-r" d="M32 46 L46 66" strokeWidth="4.5" stroke="#c4654a" />
+          <path className="pants" d="M14 72 L14 96 L34 96 L34 72 Z" />
         </svg>
       </div>
 
-      {/* Sleeping figure — pillow + blanket */}
+      {/* Sleeping figure — bed with pillow, blanket, moonlit */}
       <div className="fig fig-sleep">
-        <svg viewBox="0 0 100 70">
-          <path className="body" d="M6 60 L94 60" />
-          <path className="body" d="M18 60 Q22 46 34 46 L78 46 Q86 46 86 60" />
-          <circle className="head" cx="30" cy="42" r="8" />
-          <text x="60" y="24" fontSize="14" fill="var(--ink)" opacity=".7">z</text>
-          <text x="72" y="14" fontSize="10" fill="var(--ink)" opacity=".7">z</text>
+        <svg viewBox="0 0 120 80">
+          {/* bed frame */}
+          <rect x="4" y="58" width="112" height="14" rx="3" fill="#5a3620" />
+          <rect x="4" y="70" width="6" height="8" fill="#3a2210" />
+          <rect x="110" y="70" width="6" height="8" fill="#3a2210" />
+          {/* mattress */}
+          <rect x="8" y="52" width="104" height="10" rx="4" fill="#f5f0e8" />
+          {/* pillow */}
+          <rect x="14" y="46" width="26" height="10" rx="5" fill="#ffffff" />
+          {/* blanket */}
+          <path d="M40 52 Q46 44 60 44 L100 44 Q108 44 108 56 L108 62 L40 62 Z" fill="#3f6b9c" />
+          <path d="M40 60 L108 60" stroke="#2a4a6c" strokeWidth="1" opacity=".5" />
+          {/* head */}
+          <circle className="head" cx="30" cy="46" r="7" />
+          <path className="hair" d="M23 46 Q23 39 30 39 Q37 39 37 46 Q33 41 30 41 Q27 41 23 46 Z" />
+          {/* Zzz */}
+          <text x="70" y="30" fontSize="14" fill="#e6e6ff" opacity=".8" fontFamily="serif">z</text>
+          <text x="82" y="20" fontSize="10" fill="#e6e6ff" opacity=".7" fontFamily="serif">z</text>
+          <text x="90" y="12" fontSize="8"  fill="#e6e6ff" opacity=".6" fontFamily="serif">z</text>
         </svg>
       </div>
 

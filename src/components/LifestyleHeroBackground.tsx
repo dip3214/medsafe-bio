@@ -342,10 +342,17 @@ export function LifestyleHeroBackground({ phase: phaseProp }: { phase?: Lifestyl
         }
 
         /* Human figures — contextual by phase */
-        .lifestyle-hero .fig { position:absolute; bottom:12%; width:60px; height:110px; opacity:0; transition: opacity 1s ease; }
+        .lifestyle-hero .fig { position:absolute; bottom:12%; width:70px; height:120px; opacity:0; transition: opacity 1s ease; filter: drop-shadow(0 6px 6px rgba(0,0,0,.25)); }
         .lifestyle-hero .fig svg { width:100%; height:100%; overflow:visible; }
         .lifestyle-hero .fig .body { fill:none; stroke: var(--ink); stroke-width:2.5; stroke-linecap:round; stroke-linejoin:round; }
-        .lifestyle-hero .fig .head { fill: var(--ink); }
+        .lifestyle-hero .fig .head { fill: #e8b58a; stroke: rgba(0,0,0,.35); stroke-width:1; }
+        .lifestyle-hero .fig .hair { fill: #2b1e15; }
+        .lifestyle-hero .fig .shirt { fill: #c4654a; }
+        .lifestyle-hero .fig .shirt-alt { fill: #3f6b9c; }
+        .lifestyle-hero .fig .pants { fill: #2d3748; }
+        .lifestyle-hero .fig .shoe { fill: #1a1a1a; }
+        .lifestyle-hero[data-phase="dinner"] .fig,
+        .lifestyle-hero[data-phase="night"] .fig { filter: drop-shadow(0 4px 6px rgba(0,0,0,.5)) brightness(.7); }
 
         /* Show figures per phase */
         .lifestyle-hero[data-phase="earlyMorning"] .fig-jog,

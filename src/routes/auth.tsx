@@ -208,12 +208,8 @@ function AuthPage() {
                 : "Already have an account? Sign in"}
             </button>
           </form>
+          </div>
         </div>
-
-        <p className="mt-6 inline-flex items-center justify-center gap-1.5 text-center text-[11px] text-muted-foreground">
-          <ShieldCheck className="h-3 w-3 text-primary" />
-          Encrypted & DPDP-compliant. Your family's records stay private.
-        </p>
       </div>
     </div>
   );

@@ -220,42 +220,58 @@ function LifestylePage() {
     <SiteLayout>
       <DailyMoodPrompt memberId={active?.id ?? null} name={active?.name} />
       {/* Hero */}
-      <section className="relative overflow-hidden">
+      <section className="relative overflow-hidden min-h-[520px] sm:min-h-[600px]">
         <LifestyleHeroBackground phase={ctx.phase} />
-        {/* Bottom scrim keeps text readable on any scene without covering the animation */}
-        <div
-          aria-hidden
-          className={`pointer-events-none absolute inset-x-0 bottom-0 h-2/3 ${
-            ctx.ambient === "night"
-              ? "bg-gradient-to-t from-black/70 via-black/30 to-transparent"
-              : ctx.ambient === "dusk"
-                ? "bg-gradient-to-t from-black/45 via-black/15 to-transparent"
-                : "bg-gradient-to-t from-black/25 via-black/5 to-transparent"
-          }`}
-        />
-        <div className="relative mx-auto max-w-5xl px-4 pt-28 pb-16 text-left sm:pt-40 sm:pb-24">
-          <div
-            className={`inline-flex items-center gap-1.5 rounded-full px-3 py-1 text-xs font-semibold backdrop-blur-sm ${
-              ctx.ambient === "day"
-                ? "bg-black/20 text-white ring-1 ring-white/30"
-                : "bg-white/15 text-white ring-1 ring-white/25"
-            }`}
-          >
-            <Sparkles className="h-3 w-3" /> {ctx.badge}
-          </div>
-          <h1
-            className="mt-4 max-w-2xl font-display text-4xl leading-tight text-white sm:text-6xl"
-            style={{ textShadow: "0 2px 24px rgba(0,0,0,0.55), 0 1px 2px rgba(0,0,0,0.4)" }}
-          >
-            {ctx.headline(displayName)}
-          </h1>
-          <p
-            className="mt-3 max-w-xl text-base text-white/95 sm:text-lg"
-            style={{ textShadow: "0 1px 12px rgba(0,0,0,0.55)" }}
-          >
-            {ctx.sub}
-          </p>
-        </div>
+        {(() => {
+          const isDay = ctx.ambient === "day";
+          const isDusk = ctx.ambient === "dusk";
+          // Adaptive text tokens per ambient — dark ink on bright skies, warm white on dusk/night
+          const inkColor = isDay ? "#1a1410" : "#fdf6ec";
+          const inkShadow = isDay
+            ? "0 1px 0 rgba(255,255,255,0.5), 0 2px 12px rgba(255,240,220,0.7)"
+            : isDusk
+              ? "0 2px 18px rgba(30,10,40,0.55), 0 1px 2px rgba(0,0,0,0.4)"
+              : "0 2px 24px rgba(0,0,0,0.65), 0 1px 2px rgba(0,0,0,0.5)";
+          const subColor = isDay ? "#2a1f18" : "rgba(253,246,236,0.96)";
+          const badgeClass = isDay
+            ? "bg-white/60 text-[#3a1f10] ring-1 ring-black/10"
+            : isDusk
+              ? "bg-white/20 text-white ring-1 ring-white/30"
+              : "bg-white/15 text-white ring-1 ring-white/25";
+          // Only add a scrim on dusk/night; day stays open so animation reads clearly
+          const scrim = isDay
+            ? null
+            : isDusk
+              ? "bg-gradient-to-t from-black/50 via-black/15 to-transparent"
+              : "bg-gradient-to-t from-black/70 via-black/25 to-transparent";
+          return (
+            <>
+              {scrim && (
+                <div
+                  aria-hidden
+                  className={`pointer-events-none absolute inset-x-0 bottom-0 h-2/3 ${scrim}`}
+                />
+              )}
+              <div className="relative mx-auto max-w-5xl px-4 pt-28 pb-16 text-left sm:pt-40 sm:pb-24">
+                <div className={`inline-flex items-center gap-1.5 rounded-full px-3 py-1 text-xs font-semibold backdrop-blur-md ${badgeClass}`}>
+                  <Sparkles className="h-3 w-3" /> {ctx.badge}
+                </div>
+                <h1
+                  className="mt-4 max-w-2xl font-display text-4xl leading-tight sm:text-6xl transition-colors duration-1000"
+                  style={{ color: inkColor, textShadow: inkShadow }}
+                >
+                  {ctx.headline(displayName)}
+                </h1>
+                <p
+                  className="mt-3 max-w-xl text-base sm:text-lg transition-colors duration-1000"
+                  style={{ color: subColor, textShadow: inkShadow }}
+                >
+                  {ctx.sub}
+                </p>
+              </div>
+            </>
+          );
+        })()}
       </section>
 
       <section className="mx-auto grid max-w-5xl gap-6 px-4 py-10 lg:grid-cols-[1.1fr_0.9fr]">

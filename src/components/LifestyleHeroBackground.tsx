@@ -1,14 +1,37 @@
-import { useEffect, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import { phaseForHour, type LifestylePhase } from "@/lib/lifestyle-context";
 
 export function LifestyleHeroBackground({ phase: phaseProp }: { phase?: LifestylePhase } = {}) {
   const [autoPhase, setAutoPhase] = useState<LifestylePhase>(() => phaseForHour(new Date().getHours()));
+  const rootRef = useRef<HTMLDivElement>(null);
 
   useEffect(() => {
     if (phaseProp) return;
     const t = setInterval(() => setAutoPhase(phaseForHour(new Date().getHours())), 60_000);
     return () => clearInterval(t);
   }, [phaseProp]);
+
+  // Parallax — subtle mouse drift on sky elements
+  useEffect(() => {
+    const el = rootRef.current;
+    if (!el) return;
+    let raf = 0;
+    const onMove = (e: MouseEvent) => {
+      const rect = el.getBoundingClientRect();
+      const nx = (e.clientX - rect.left) / rect.width - 0.5;
+      const ny = (e.clientY - rect.top) / rect.height - 0.5;
+      cancelAnimationFrame(raf);
+      raf = requestAnimationFrame(() => {
+        el.style.setProperty("--mx", nx.toFixed(3));
+        el.style.setProperty("--my", ny.toFixed(3));
+      });
+    };
+    window.addEventListener("mousemove", onMove, { passive: true });
+    return () => {
+      window.removeEventListener("mousemove", onMove);
+      cancelAnimationFrame(raf);
+    };
+  }, []);
 
   const phase = phaseProp ?? autoPhase;
   const isDusk = phase === "evening";
@@ -17,77 +40,142 @@ export function LifestyleHeroBackground({ phase: phaseProp }: { phase?: Lifestyl
 
   return (
     <div
+      ref={rootRef}
       aria-hidden
       data-phase={phase}
       className="lifestyle-hero pointer-events-none absolute inset-0 overflow-hidden"
+      style={{ ["--mx" as any]: 0, ["--my" as any]: 0 }}
     >
       <style>{`
         .lifestyle-hero { transition: background 1.2s ease; }
 
         /* Palettes */
-        .lifestyle-hero[data-phase="earlyMorning"] { --sky-1:#ffd7b4; --sky-2:#ffb197; --sky-3:#f0d9c2; --ink:rgba(60,25,20,.6); --ground:rgba(30,15,10,.18); }
-        .lifestyle-hero[data-phase="lateMorning"]  { --sky-1:#e6f4ff; --sky-2:#f6faff; --sky-3:#f0ebe0; --ink:rgba(30,40,55,.55); --ground:rgba(30,40,60,.14); }
-        .lifestyle-hero[data-phase="midday"]       { --sky-1:#cfe8ff; --sky-2:#e9f4ff; --sky-3:#f6efdd; --ink:rgba(25,40,60,.5); --ground:rgba(20,35,55,.12); }
-        .lifestyle-hero[data-phase="afternoon"]    { --sky-1:#ffe3c1; --sky-2:#ffcf9e; --sky-3:#efdcc0; --ink:rgba(80,40,20,.55); --ground:rgba(70,35,20,.16); }
-        .lifestyle-hero[data-phase="evening"]      { --sky-1:#ff9c6a; --sky-2:#b56078; --sky-3:#2f2547; --ink:rgba(255,225,200,.85); --ground:rgba(20,10,25,.55); }
-        .lifestyle-hero[data-phase="dinner"]       { --sky-1:#1a1f3f; --sky-2:#151732; --sky-3:#0a0d1e; --ink:rgba(230,220,255,.9); --ground:rgba(0,0,0,.65); }
-        .lifestyle-hero[data-phase="night"]        { --sky-1:#0a1128; --sky-2:#070c1c; --sky-3:#03060f; --ink:rgba(220,230,255,.9); --ground:rgba(0,0,0,.8); }
+        .lifestyle-hero[data-phase="earlyMorning"] { --sky-1:#ffd7b4; --sky-2:#ffb197; --sky-3:#f0d9c2; --ink:rgba(60,25,20,.6); --ground:rgba(30,15,10,.18); --aurora:transparent; }
+        .lifestyle-hero[data-phase="lateMorning"]  { --sky-1:#c9e6ff; --sky-2:#e6f3ff; --sky-3:#f0ebe0; --ink:rgba(30,40,55,.55); --ground:rgba(30,40,60,.14); --aurora:transparent; }
+        .lifestyle-hero[data-phase="midday"]       { --sky-1:#9ed2ff; --sky-2:#cfe8ff; --sky-3:#f4ecd6; --ink:rgba(25,40,60,.5); --ground:rgba(20,35,55,.12); --aurora:transparent; }
+        .lifestyle-hero[data-phase="afternoon"]    { --sky-1:#ffd39c; --sky-2:#ffb877; --sky-3:#e9c9a0; --ink:rgba(80,40,20,.55); --ground:rgba(70,35,20,.16); --aurora:transparent; }
+        .lifestyle-hero[data-phase="evening"]      { --sky-1:#ff7a5a; --sky-2:#a04a72; --sky-3:#2a1f42; --ink:rgba(255,225,200,.85); --ground:rgba(20,10,25,.55); --aurora:rgba(255,140,120,.15); }
+        .lifestyle-hero[data-phase="dinner"]       { --sky-1:#1a1f3f; --sky-2:#141530; --sky-3:#08091b; --ink:rgba(230,220,255,.9); --ground:rgba(0,0,0,.65); --aurora:rgba(120,180,255,.16); }
+        .lifestyle-hero[data-phase="night"]        { --sky-1:#0a1128; --sky-2:#050a1c; --sky-3:#02040c; --ink:rgba(220,230,255,.9); --ground:rgba(0,0,0,.8); --aurora:rgba(140,220,200,.14); }
 
         .lifestyle-hero .sky {
-          position:absolute; inset:0;
+          position:absolute; inset:-4%;
           background: linear-gradient(180deg, var(--sky-1) 0%, var(--sky-2) 55%, var(--sky-3) 100%);
           transition: background 1.2s ease;
+          transform: translate3d(calc(var(--mx) * -8px), calc(var(--my) * -6px), 0);
         }
 
-        /* Sun — positioned by phase */
-        .lifestyle-hero .sun {
-          position:absolute; width:130px; height:130px; border-radius:50%;
-          background: radial-gradient(circle, rgba(255,240,215,.98), rgba(255,190,140,.6) 55%, transparent 72%);
-          filter: blur(2px); opacity: 0;
-          transition: opacity 1.2s ease, left 1.5s ease, top 1.5s ease, background 1.2s ease;
+        /* Animated aurora band for evening/night */
+        .lifestyle-hero .aurora {
+          position:absolute; inset:0; pointer-events:none; mix-blend-mode: screen;
+          background:
+            radial-gradient(60% 40% at 20% 30%, var(--aurora), transparent 60%),
+            radial-gradient(50% 35% at 75% 25%, var(--aurora), transparent 60%);
+          filter: blur(20px); opacity:.9;
+          animation: ls-aurora 18s ease-in-out infinite;
         }
-        .lifestyle-hero[data-phase="earlyMorning"] .sun { left:10%; top:38%; opacity:1;
-          background: radial-gradient(circle, rgba(255,220,170,.98), rgba(255,150,110,.6) 55%, transparent 72%); }
-        .lifestyle-hero[data-phase="lateMorning"] .sun { left:35%; top:16%; opacity:1; }
-        .lifestyle-hero[data-phase="midday"] .sun { left:52%; top:8%; opacity:1;
-          background: radial-gradient(circle, rgba(255,252,230,1), rgba(255,225,150,.6) 55%, transparent 72%); }
-        .lifestyle-hero[data-phase="afternoon"] .sun { left:70%; top:22%; opacity:.95;
-          background: radial-gradient(circle, rgba(255,205,150,.98), rgba(230,120,80,.55) 55%, transparent 72%); }
-        .lifestyle-hero[data-phase="evening"] .sun { left:10%; top:62%; opacity:.9;
-          background: radial-gradient(circle, rgba(255,170,100,.95), rgba(220,90,70,.55) 55%, transparent 72%); }
+        @keyframes ls-aurora {
+          0%,100% { transform: translateX(-3%) scale(1); opacity:.7; }
+          50%     { transform: translateX(3%)  scale(1.1); opacity:1; }
+        }
+
+        /* Sun — positioned by phase, with breathing halo */
+        .lifestyle-hero .sun-wrap {
+          position:absolute; width:150px; height:150px; opacity:0; pointer-events:none;
+          transition: opacity 1.2s ease, left 1.8s cubic-bezier(.4,0,.2,1), top 1.8s cubic-bezier(.4,0,.2,1);
+          transform: translate3d(calc(var(--mx) * -14px), calc(var(--my) * -10px), 0);
+        }
+        .lifestyle-hero .sun {
+          position:absolute; inset:10px; border-radius:50%;
+          background: radial-gradient(circle, rgba(255,240,215,.98), rgba(255,190,140,.6) 55%, transparent 72%);
+          filter: blur(2px);
+          animation: ls-sun-pulse 6s ease-in-out infinite;
+        }
+        .lifestyle-hero .sun-halo {
+          position:absolute; inset:-20px; border-radius:50%;
+          background: radial-gradient(circle, rgba(255,220,170,.35), transparent 65%);
+          animation: ls-sun-halo 8s ease-in-out infinite;
+        }
+        @keyframes ls-sun-pulse { 0%,100% { transform: scale(1);} 50% { transform: scale(1.05);} }
+        @keyframes ls-sun-halo  { 0%,100% { transform: scale(1); opacity:.7;} 50% { transform: scale(1.15); opacity:1;} }
+
+        .lifestyle-hero[data-phase="earlyMorning"] .sun-wrap { left:8%;  top:34%; opacity:1; }
+        .lifestyle-hero[data-phase="lateMorning"]  .sun-wrap { left:32%; top:12%; opacity:1; }
+        .lifestyle-hero[data-phase="midday"]       .sun-wrap { left:50%; top:4%;  opacity:1; }
+        .lifestyle-hero[data-phase="afternoon"]    .sun-wrap { left:70%; top:20%; opacity:.95; }
+        .lifestyle-hero[data-phase="midday"] .sun {
+          background: radial-gradient(circle, rgba(255,252,230,1), rgba(255,225,150,.6) 55%, transparent 72%);
+        }
+        .lifestyle-hero[data-phase="afternoon"] .sun {
+          background: radial-gradient(circle, rgba(255,205,150,.98), rgba(230,120,80,.55) 55%, transparent 72%);
+        }
 
         /* Sun rays for midday */
         .lifestyle-hero .rays {
-          position:absolute; left:47%; top:2%; width:180px; height:180px;
+          position:absolute; left:47%; top:-2%; width:200px; height:200px;
           opacity: 0; transition: opacity 1.2s ease;
-          background: conic-gradient(from 0deg, rgba(255,240,180,0) 0deg, rgba(255,240,180,.35) 6deg, rgba(255,240,180,0) 12deg,
-            rgba(255,240,180,0) 40deg, rgba(255,240,180,.28) 46deg, rgba(255,240,180,0) 52deg,
-            rgba(255,240,180,0) 80deg, rgba(255,240,180,.28) 86deg, rgba(255,240,180,0) 92deg,
-            rgba(255,240,180,0) 120deg, rgba(255,240,180,.28) 126deg, rgba(255,240,180,0) 132deg,
-            rgba(255,240,180,0) 160deg, rgba(255,240,180,.28) 166deg, rgba(255,240,180,0) 172deg,
-            rgba(255,240,180,0) 200deg, rgba(255,240,180,.28) 206deg, rgba(255,240,180,0) 212deg,
-            rgba(255,240,180,0) 240deg, rgba(255,240,180,.28) 246deg, rgba(255,240,180,0) 252deg,
-            rgba(255,240,180,0) 280deg, rgba(255,240,180,.28) 286deg, rgba(255,240,180,0) 292deg,
-            rgba(255,240,180,0) 320deg, rgba(255,240,180,.28) 326deg, rgba(255,240,180,0) 332deg,
+          background: conic-gradient(from 0deg,
+            rgba(255,240,180,0) 0deg, rgba(255,240,180,.4) 6deg, rgba(255,240,180,0) 12deg,
+            rgba(255,240,180,0) 40deg, rgba(255,240,180,.3) 46deg, rgba(255,240,180,0) 52deg,
+            rgba(255,240,180,0) 80deg, rgba(255,240,180,.3) 86deg, rgba(255,240,180,0) 92deg,
+            rgba(255,240,180,0) 120deg, rgba(255,240,180,.3) 126deg, rgba(255,240,180,0) 132deg,
+            rgba(255,240,180,0) 160deg, rgba(255,240,180,.3) 166deg, rgba(255,240,180,0) 172deg,
+            rgba(255,240,180,0) 200deg, rgba(255,240,180,.3) 206deg, rgba(255,240,180,0) 212deg,
+            rgba(255,240,180,0) 240deg, rgba(255,240,180,.3) 246deg, rgba(255,240,180,0) 252deg,
+            rgba(255,240,180,0) 280deg, rgba(255,240,180,.3) 286deg, rgba(255,240,180,0) 292deg,
+            rgba(255,240,180,0) 320deg, rgba(255,240,180,.3) 326deg, rgba(255,240,180,0) 332deg,
             rgba(255,240,180,0) 360deg);
           border-radius:50%;
           animation: ls-spin 60s linear infinite;
+          mix-blend-mode: screen;
         }
-        .lifestyle-hero[data-phase="midday"] .rays { opacity:.7; }
+        .lifestyle-hero[data-phase="midday"] .rays { opacity:.75; }
         @keyframes ls-spin { to { transform: rotate(360deg); } }
 
-        /* Moon */
-        .lifestyle-hero .moon {
-          position:absolute; left:78%; top:14%; width:78px; height:78px; border-radius:50%;
-          background: radial-gradient(circle at 35% 35%, #f6f2df, #cfd5e1 60%, #909aae 100%);
-          box-shadow: 0 0 40px rgba(230,235,255,.35);
-          opacity:0; transition: opacity 1.2s ease;
+        /* Floating dust motes — day only, drifting slowly */
+        .lifestyle-hero .mote {
+          position:absolute; width:4px; height:4px; border-radius:50%;
+          background: rgba(255,250,220,.85); box-shadow: 0 0 8px rgba(255,240,190,.7);
+          opacity:0; animation: ls-mote 12s linear infinite;
         }
+        .lifestyle-hero[data-phase="lateMorning"] .mote,
+        .lifestyle-hero[data-phase="midday"] .mote,
+        .lifestyle-hero[data-phase="afternoon"] .mote { opacity:.85; }
+        @keyframes ls-mote {
+          0%   { transform: translate(0,0) scale(.6); opacity:0; }
+          20%  { opacity:.9; }
+          100% { transform: translate(60px, -180px) scale(1); opacity:0; }
+        }
+
+        /* Moon with crater detail */
+        .lifestyle-hero .moon {
+          position:absolute; left:78%; top:12%; width:92px; height:92px; border-radius:50%;
+          background: radial-gradient(circle at 35% 35%, #f8f4e0, #d4d9e4 60%, #8e98ac 100%);
+          box-shadow: 0 0 60px rgba(230,235,255,.4), inset -8px -12px 20px rgba(0,0,0,.2);
+          opacity:0; transition: opacity 1.2s ease;
+          transform: translate3d(calc(var(--mx) * -14px), calc(var(--my) * -10px), 0);
+        }
+        .lifestyle-hero .moon::before,
+        .lifestyle-hero .moon::after {
+          content:""; position:absolute; border-radius:50%; background: rgba(120,130,150,.3);
+        }
+        .lifestyle-hero .moon::before { width:14px; height:14px; top:30%; left:30%; }
+        .lifestyle-hero .moon::after  { width:8px;  height:8px;  top:55%; left:55%; }
         .lifestyle-hero[data-phase="dinner"] .moon,
         .lifestyle-hero[data-phase="night"] .moon { opacity:1; }
+        /* Moon glow ring */
+        .lifestyle-hero .moon-glow {
+          position:absolute; left:74%; top:8%; width:140px; height:140px; border-radius:50%;
+          background: radial-gradient(circle, rgba(220,230,255,.25), transparent 65%);
+          opacity:0; transition: opacity 1.2s ease;
+          animation: ls-sun-halo 10s ease-in-out infinite;
+        }
+        .lifestyle-hero[data-phase="dinner"] .moon-glow,
+        .lifestyle-hero[data-phase="night"] .moon-glow { opacity:1; }
 
         /* Stars */
-        .lifestyle-hero .stars { position:absolute; inset:0; opacity:0; transition: opacity 1.2s ease; }
+        .lifestyle-hero .stars { position:absolute; inset:0; opacity:0; transition: opacity 1.2s ease;
+          transform: translate3d(calc(var(--mx) * -6px), calc(var(--my) * -4px), 0); }
         .lifestyle-hero[data-phase="evening"] .stars { opacity:.5; }
         .lifestyle-hero[data-phase="dinner"] .stars,
         .lifestyle-hero[data-phase="night"] .stars { opacity:1; }
@@ -96,31 +184,39 @@ export function LifestyleHeroBackground({ phase: phaseProp }: { phase?: Lifestyl
           background:#fff; box-shadow:0 0 4px rgba(255,255,255,.9);
           animation: ls-twinkle 3s ease-in-out infinite;
         }
+        .lifestyle-hero .star.big { width:3px; height:3px; box-shadow:0 0 8px #fff, 0 0 16px rgba(200,220,255,.7); }
         @keyframes ls-twinkle {
           0%,100% { opacity:.3; transform:scale(1); }
-          50% { opacity:1; transform:scale(1.5); }
+          50% { opacity:1; transform:scale(1.6); }
         }
-        /* Shooting star — deep night only */
+        /* Shooting star */
         .lifestyle-hero .shoot {
-          position:absolute; top:18%; left:-10%; width:120px; height:2px;
+          position:absolute; top:18%; left:-10%; width:140px; height:2px;
           background: linear-gradient(90deg, transparent, #fff, transparent);
+          filter: drop-shadow(0 0 4px #fff);
           opacity:0; transform: rotate(-18deg);
         }
         .lifestyle-hero[data-phase="night"] .shoot { animation: ls-shoot 9s linear infinite; }
+        .lifestyle-hero[data-phase="dinner"] .shoot { animation: ls-shoot 14s linear infinite; }
         @keyframes ls-shoot {
           0%   { transform: translate(0,0) rotate(-18deg); opacity:0; }
-          8%   { opacity:1; }
-          20%  { transform: translate(70vw, 22vh) rotate(-18deg); opacity:0; }
+          6%   { opacity:1; }
+          22%  { transform: translate(90vw, 28vh) rotate(-18deg); opacity:0; }
           100% { opacity:0; }
         }
 
-        /* Clouds — day only */
+        /* Clouds */
         .lifestyle-hero .cloud {
           position:absolute; top:12%; width:180px; height:44px; border-radius:999px;
-          background: rgba(255,255,255,.65); filter: blur(1px);
+          background: rgba(255,255,255,.72); filter: blur(1px);
           animation: ls-drift 60s linear infinite;
           opacity: 0; transition: opacity 1.2s ease;
         }
+        .lifestyle-hero .cloud::before, .lifestyle-hero .cloud::after {
+          content:""; position:absolute; background: inherit; border-radius:50%;
+        }
+        .lifestyle-hero .cloud::before { width:70px; height:70px; top:-30px; left:30px; }
+        .lifestyle-hero .cloud::after  { width:90px; height:90px; top:-50px; left:80px; }
         .lifestyle-hero[data-phase="earlyMorning"] .cloud,
         .lifestyle-hero[data-phase="lateMorning"] .cloud,
         .lifestyle-hero[data-phase="midday"] .cloud,
@@ -142,7 +238,7 @@ export function LifestyleHeroBackground({ phase: phaseProp }: { phase?: Lifestyl
 
         /* Birds — early morning */
         .lifestyle-hero .bird {
-          position:absolute; font-size: 18px; color: rgba(50,25,20,.55);
+          position:absolute; font-size: 18px; color: rgba(50,25,20,.6); letter-spacing: -2px;
           opacity:0; animation: ls-bird 22s linear infinite;
         }
         .lifestyle-hero[data-phase="earlyMorning"] .bird { opacity:1; }
@@ -157,22 +253,23 @@ export function LifestyleHeroBackground({ phase: phaseProp }: { phase?: Lifestyl
         /* Falling leaves — afternoon */
         .lifestyle-hero .leaf {
           position:absolute; top:-4%; width:10px; height:14px; border-radius: 60% 20% 60% 20%;
-          background: rgba(180,80,40,.6);
+          background: rgba(180,80,40,.7);
           opacity:0; animation: ls-leaf 14s linear infinite;
         }
         .lifestyle-hero[data-phase="afternoon"] .leaf { opacity:1; }
-        .lifestyle-hero .leaf.l2 { animation-delay:-4s; background: rgba(200,120,50,.55); }
-        .lifestyle-hero .leaf.l3 { animation-delay:-8s; background: rgba(160,70,40,.55); }
-        .lifestyle-hero .leaf.l4 { animation-delay:-11s; background: rgba(220,150,70,.55); }
+        .lifestyle-hero .leaf.l2 { animation-delay:-4s; background: rgba(200,120,50,.65); }
+        .lifestyle-hero .leaf.l3 { animation-delay:-8s; background: rgba(160,70,40,.65); }
+        .lifestyle-hero .leaf.l4 { animation-delay:-11s; background: rgba(220,150,70,.65); }
         @keyframes ls-leaf {
           0%   { transform: translate(0, 0) rotate(0deg); }
+          50%  { transform: translate(3vw, 40vh) rotate(180deg); }
           100% { transform: translate(6vw, 80vh) rotate(360deg); }
         }
 
-        /* Steam curls — midday & dinner (food/tea) */
+        /* Steam */
         .lifestyle-hero .steam {
           position:absolute; bottom:22%; width:6px; height:40px; border-radius:6px;
-          background: linear-gradient(180deg, rgba(255,255,255,.7), rgba(255,255,255,0));
+          background: linear-gradient(180deg, rgba(255,255,255,.8), rgba(255,255,255,0));
           filter: blur(4px); opacity:0;
           animation: ls-steam 4s ease-in-out infinite;
         }
@@ -186,7 +283,7 @@ export function LifestyleHeroBackground({ phase: phaseProp }: { phase?: Lifestyl
           100% { transform: translateY(-70px) scale(1.4); opacity:0; }
         }
 
-        /* Window lights (offices) — late morning */
+        /* Window lights */
         .lifestyle-hero .windows {
           position:absolute; right:6%; bottom:14%; width:120px; height:180px;
           background:
@@ -212,9 +309,8 @@ export function LifestyleHeroBackground({ phase: phaseProp }: { phase?: Lifestyl
             radial-gradient(55% 100% at 55% 100%, rgba(55,45,70,.65) 0 60%, transparent 61%),
             radial-gradient(65% 100% at 88% 100%, rgba(60,50,80,.55) 0 60%, transparent 61%);
           filter: blur(.3px);
+          transform: translate3d(calc(var(--mx) * 4px), 0, 0);
         }
-        .lifestyle-hero[data-phase="earlyMorning"] .mountains,
-        .lifestyle-hero[data-phase="afternoon"] .mountains { filter: blur(.3px) hue-rotate(-8deg); }
         .lifestyle-hero[data-phase="dinner"] .mountains,
         .lifestyle-hero[data-phase="night"] .mountains {
           background:
@@ -223,28 +319,24 @@ export function LifestyleHeroBackground({ phase: phaseProp }: { phase?: Lifestyl
             radial-gradient(65% 100% at 88% 100%, rgba(10,15,30,.85) 0 60%, transparent 61%);
         }
 
-        /* City skyline — subtle backdrop */
+        /* City skyline */
         .lifestyle-hero .skyline {
           position:absolute; left:0; right:0; bottom:28%; height:14%;
           background:
             linear-gradient(180deg, transparent 0, transparent 20%, rgba(30,25,45,.55) 20%, rgba(30,25,45,.55) 100%);
           -webkit-mask: repeating-linear-gradient(90deg,
-            #000 0 22px, transparent 22px 30px,
-            #000 30px 66px, transparent 66px 74px,
-            #000 74px 102px, transparent 102px 112px,
-            #000 112px 158px, transparent 158px 168px);
+            #000 0 22px, transparent 22px 30px, #000 30px 66px, transparent 66px 74px,
+            #000 74px 102px, transparent 102px 112px, #000 112px 158px, transparent 158px 168px);
                   mask: repeating-linear-gradient(90deg,
-            #000 0 22px, transparent 22px 30px,
-            #000 30px 66px, transparent 66px 74px,
-            #000 74px 102px, transparent 102px 112px,
-            #000 112px 158px, transparent 158px 168px);
+            #000 0 22px, transparent 22px 30px, #000 30px 66px, transparent 66px 74px,
+            #000 74px 102px, transparent 102px 112px, #000 112px 158px, transparent 158px 168px);
           opacity:.7;
+          transform: translate3d(calc(var(--mx) * 6px), 0, 0);
         }
         .lifestyle-hero[data-phase="dinner"] .skyline,
         .lifestyle-hero[data-phase="night"] .skyline {
           background: linear-gradient(180deg, transparent 0, transparent 20%, rgba(5,8,20,.95) 20%, rgba(5,8,20,.95) 100%);
         }
-        /* Lit windows at night */
         .lifestyle-hero .skyline::after {
           content:""; position:absolute; inset:20% 0 0 0; opacity:0; transition: opacity 1s ease;
           background:
@@ -256,7 +348,9 @@ export function LifestyleHeroBackground({ phase: phaseProp }: { phase?: Lifestyl
             radial-gradient(2px 2px at 72% 35%, #ffd27a 60%, transparent 61%),
             radial-gradient(2px 2px at 78% 65%, #ffd27a 60%, transparent 61%),
             radial-gradient(2px 2px at 90% 50%, #ffd27a 60%, transparent 61%);
+          animation: ls-flicker-windows 6s ease-in-out infinite;
         }
+        @keyframes ls-flicker-windows { 0%,100% { filter:brightness(1);} 50% { filter:brightness(1.3);} }
         .lifestyle-hero[data-phase="evening"] .skyline::after { opacity:.6; }
         .lifestyle-hero[data-phase="dinner"] .skyline::after,
         .lifestyle-hero[data-phase="night"] .skyline::after { opacity:1; }
@@ -272,9 +366,29 @@ export function LifestyleHeroBackground({ phase: phaseProp }: { phase?: Lifestyl
             radial-gradient(30px 44px at 78% 100%, rgba(35,55,40,.85) 60%, transparent 62%),
             radial-gradient(24px 36px at 88% 100%, rgba(50,70,50,.8) 60%, transparent 62%),
             radial-gradient(32px 44px at 96% 100%, rgba(40,60,40,.85) 60%, transparent 62%);
+          animation: ls-sway 8s ease-in-out infinite;
+          transform-origin: bottom center;
         }
+        @keyframes ls-sway { 0%,100% { transform: skewX(-1deg);} 50% { transform: skewX(1deg);} }
         .lifestyle-hero[data-phase="dinner"] .trees,
         .lifestyle-hero[data-phase="night"] .trees { filter: brightness(.35); }
+
+        /* Grass blades swaying */
+        .lifestyle-hero .grass {
+          position:absolute; left:0; right:0; bottom:0; height:24%; pointer-events:none;
+          background:
+            repeating-linear-gradient(90deg,
+              transparent 0 8px,
+              rgba(60,90,50,.35) 8px 9px,
+              transparent 9px 16px);
+          -webkit-mask: linear-gradient(180deg, transparent 40%, #000 60%);
+                  mask: linear-gradient(180deg, transparent 40%, #000 60%);
+          animation: ls-grass 4s ease-in-out infinite;
+          transform-origin: bottom;
+        }
+        @keyframes ls-grass { 0%,100% { transform: skewX(-2deg);} 50% { transform: skewX(2deg);} }
+        .lifestyle-hero[data-phase="dinner"] .grass,
+        .lifestyle-hero[data-phase="night"] .grass { filter: brightness(.4); }
 
         /* Ground + path */
         .lifestyle-hero .ground {
@@ -292,7 +406,7 @@ export function LifestyleHeroBackground({ phase: phaseProp }: { phase?: Lifestyl
         .lifestyle-hero[data-phase="dinner"] .path,
         .lifestyle-hero[data-phase="night"] .path { background: linear-gradient(180deg, rgba(200,215,255,.18), rgba(160,180,220,.22)); }
 
-        /* Street lamps — dusk/night */
+        /* Street lamps */
         .lifestyle-hero .lamp {
           position:absolute; bottom:6%; width:6px; height:170px;
           background: linear-gradient(180deg, #2a3040 0%, #1a1e2a 100%);
@@ -322,26 +436,29 @@ export function LifestyleHeroBackground({ phase: phaseProp }: { phase?: Lifestyl
         .lifestyle-hero .lamp-2 { left: 60%; height:140px; }
         .lifestyle-hero .lamp-3 { left: 86%; height:180px; }
 
-        /* Fireflies — dinner/night */
+        /* Fireflies */
         .lifestyle-hero .fly {
           position:absolute; width:5px; height:5px; border-radius:50%;
-          background: #ffe089; box-shadow: 0 0 10px #ffcf5a, 0 0 22px rgba(255,207,90,.5);
+          background: #ffe089; box-shadow: 0 0 12px #ffcf5a, 0 0 26px rgba(255,207,90,.55);
           opacity:0; animation: ls-fly 9s ease-in-out infinite;
         }
+        .lifestyle-hero[data-phase="evening"] .fly { opacity:.6; }
         .lifestyle-hero[data-phase="dinner"] .fly,
         .lifestyle-hero[data-phase="night"] .fly { opacity:1; }
         .lifestyle-hero .fly.f2 { animation-delay:-2s; animation-duration:11s; }
         .lifestyle-hero .fly.f3 { animation-delay:-5s; animation-duration:8s; }
         .lifestyle-hero .fly.f4 { animation-delay:-7s; animation-duration:12s; }
+        .lifestyle-hero .fly.f5 { animation-delay:-3s; animation-duration:14s; }
+        .lifestyle-hero .fly.f6 { animation-delay:-9s; animation-duration:10s; }
         @keyframes ls-fly {
           0%   { transform: translate(0,0); }
-          25%  { transform: translate(30px, -20px); }
-          50%  { transform: translate(-10px, -40px); }
-          75%  { transform: translate(20px, -15px); }
+          25%  { transform: translate(40px, -30px); }
+          50%  { transform: translate(-20px, -55px); }
+          75%  { transform: translate(30px, -20px); }
           100% { transform: translate(0,0); }
         }
 
-        /* Human figures — contextual by phase */
+        /* Figures */
         .lifestyle-hero .fig { position:absolute; bottom:12%; width:70px; height:120px; opacity:0; transition: opacity 1s ease; filter: drop-shadow(0 6px 6px rgba(0,0,0,.25)); }
         .lifestyle-hero .fig svg { width:100%; height:100%; overflow:visible; }
         .lifestyle-hero .fig .body { fill:none; stroke: var(--ink); stroke-width:2.5; stroke-linecap:round; stroke-linejoin:round; }
@@ -354,7 +471,6 @@ export function LifestyleHeroBackground({ phase: phaseProp }: { phase?: Lifestyl
         .lifestyle-hero[data-phase="dinner"] .fig,
         .lifestyle-hero[data-phase="night"] .fig { filter: drop-shadow(0 4px 6px rgba(0,0,0,.5)) brightness(.7); }
 
-        /* Show figures per phase */
         .lifestyle-hero[data-phase="earlyMorning"] .fig-jog,
         .lifestyle-hero[data-phase="earlyMorning"] .fig-yoga,
         .lifestyle-hero[data-phase="lateMorning"] .fig-walk,
@@ -394,30 +510,42 @@ export function LifestyleHeroBackground({ phase: phaseProp }: { phase?: Lifestyl
         .lifestyle-hero .fig-eat .arm-r,
         .lifestyle-hero .fig-sleep * { animation: none; }
         .lifestyle-hero .fig-eat .arm-r { animation: ls-eat 2.4s ease-in-out infinite; transform-origin: 30px 30px; }
-        @keyframes ls-eat {
-          0%,100% { transform: rotate(0deg); }
-          50% { transform: rotate(-40deg); }
-        }
+        @keyframes ls-eat { 0%,100% { transform: rotate(0deg);} 50% { transform: rotate(-40deg);} }
         @keyframes ls-limb { from { transform: rotate(-14deg);} to { transform: rotate(14deg);} }
+
+        /* Soft vignette to add depth */
+        .lifestyle-hero .vignette {
+          position:absolute; inset:0; pointer-events:none;
+          background: radial-gradient(120% 80% at 50% 40%, transparent 55%, rgba(0,0,0,.35) 100%);
+        }
 
         @media (prefers-reduced-motion: reduce) {
           .lifestyle-hero .cloud, .lifestyle-hero .fig, .lifestyle-hero .fig *,
           .lifestyle-hero .fig-yoga, .lifestyle-hero .star, .lifestyle-hero .lamp::after,
           .lifestyle-hero .bird, .lifestyle-hero .leaf, .lifestyle-hero .steam,
-          .lifestyle-hero .fly, .lifestyle-hero .shoot, .lifestyle-hero .rays { animation: none !important; }
+          .lifestyle-hero .fly, .lifestyle-hero .shoot, .lifestyle-hero .rays,
+          .lifestyle-hero .aurora, .lifestyle-hero .sun, .lifestyle-hero .sun-halo,
+          .lifestyle-hero .mote, .lifestyle-hero .grass, .lifestyle-hero .trees { animation: none !important; }
         }
       `}</style>
 
       <div className="sky" />
-      {showSun && <div className="sun" />}
+      <div className="aurora" />
+      {showSun && (
+        <div className="sun-wrap">
+          <div className="sun-halo" />
+          <div className="sun" />
+        </div>
+      )}
       <div className="rays" />
+      <div className="moon-glow" />
       <div className="moon" />
 
       <div className="stars">
         {STAR_POSITIONS.map((s, i) => (
           <span
             key={i}
-            className="star"
+            className={`star ${i % 4 === 0 ? "big" : ""}`}
             style={{ left: `${s.x}%`, top: `${s.y}%`, animationDelay: `${s.d}s` }}
           />
         ))}
@@ -428,28 +556,37 @@ export function LifestyleHeroBackground({ phase: phaseProp }: { phase?: Lifestyl
       <div className="cloud c2" style={{ left: "45%" }} />
       <div className="cloud c3" style={{ left: "60%" }} />
 
-      {/* Birds — early morning */}
+      {/* Floating dust motes — sun-lit day */}
+      {MOTE_POSITIONS.map((m, i) => (
+        <span
+          key={`mote-${i}`}
+          className="mote"
+          style={{ left: `${m.x}%`, top: `${m.y}%`, animationDelay: `${m.d}s` }}
+        />
+      ))}
+
+      {/* Birds */}
       <div className="bird" style={{ top: "22%" }}>~^~</div>
       <div className="bird b2" style={{ top: "26%" }}>~^~</div>
       <div className="bird b3" style={{ top: "30%" }}>~^~</div>
 
-      {/* Falling leaves — afternoon */}
+      {/* Falling leaves */}
       <div className="leaf" style={{ left: "20%" }} />
       <div className="leaf l2" style={{ left: "45%" }} />
       <div className="leaf l3" style={{ left: "68%" }} />
       <div className="leaf l4" style={{ left: "82%" }} />
 
-      {/* Steam curls — midday / dinner */}
+      {/* Steam */}
       <div className="steam" style={{ left: "48%" }} />
       <div className="steam s2" style={{ left: "51%" }} />
       <div className="steam s3" style={{ left: "54%" }} />
 
-      {/* Office windows — late morning */}
       <div className="windows" />
 
       <div className="mountains" />
       <div className="skyline" />
       <div className="trees" />
+      <div className="grass" />
       <div className="ground" />
       <div className="path" />
 
@@ -457,28 +594,25 @@ export function LifestyleHeroBackground({ phase: phaseProp }: { phase?: Lifestyl
       <div className="lamp lamp-2" />
       <div className="lamp lamp-3" />
 
-      {/* Fireflies — dinner/night */}
+      {/* Fireflies */}
       <div className="fly" style={{ left: "22%", bottom: "26%" }} />
       <div className="fly f2" style={{ left: "38%", bottom: "34%" }} />
       <div className="fly f3" style={{ left: "66%", bottom: "22%" }} />
       <div className="fly f4" style={{ left: "80%", bottom: "30%" }} />
+      <div className="fly f5" style={{ left: "50%", bottom: "40%" }} />
+      <div className="fly f6" style={{ left: "12%", bottom: "36%" }} />
 
-      {/* Figures — clothed silhouettes with skin, hair & limbs */}
+      {/* Figures */}
       <div className="fig fig-yoga">
         <svg viewBox="0 0 60 120">
-          {/* head + hair */}
           <circle className="head" cx="30" cy="16" r="8" />
           <path className="hair" d="M22 12 Q30 4 38 12 Q38 8 30 6 Q22 8 22 12 Z" />
-          {/* torso (tank top) */}
           <path className="shirt-alt" d="M22 26 L38 26 L40 54 L20 54 Z" />
-          {/* arms raised in prayer / stretch */}
           <path className="body" d="M24 28 L18 50" strokeWidth="4" />
           <path className="body" d="M36 28 L42 50" strokeWidth="4" />
-          {/* legs — seated lotus */}
           <path className="pants" d="M20 54 L14 84 L46 84 L40 54 Z" />
           <ellipse className="shoe" cx="18" cy="86" rx="8" ry="3" />
           <ellipse className="shoe" cx="42" cy="86" rx="8" ry="3" />
-          {/* yoga mat */}
           <rect x="4" y="90" width="52" height="4" rx="2" fill="#8b5a3c" opacity=".7" />
         </svg>
       </div>
@@ -511,17 +645,13 @@ export function LifestyleHeroBackground({ phase: phaseProp }: { phase?: Lifestyl
         </svg>
       </div>
 
-      {/* Eating (seated at table) */}
       <div className="fig fig-eat">
         <svg viewBox="0 0 80 120">
-          {/* table */}
           <rect x="0" y="82" width="80" height="4" fill="#7a4a2b" />
           <rect x="6" y="86" width="4" height="24" fill="#5a3620" />
           <rect x="70" y="86" width="4" height="24" fill="#5a3620" />
-          {/* plate + food */}
           <ellipse cx="52" cy="80" rx="14" ry="3" fill="#f5f0e8" />
           <ellipse cx="52" cy="79" rx="10" ry="2" fill="#e07a5f" />
-          {/* body */}
           <circle className="head" cx="24" cy="30" r="8" />
           <path className="hair" d="M16 28 Q16 20 24 20 Q32 20 32 28 Q28 22 24 22 Q20 22 16 28 Z" />
           <path className="shirt" d="M16 40 L32 40 L34 72 L14 72 Z" />
@@ -531,29 +661,24 @@ export function LifestyleHeroBackground({ phase: phaseProp }: { phase?: Lifestyl
         </svg>
       </div>
 
-      {/* Sleeping figure — bed with pillow, blanket, moonlit */}
       <div className="fig fig-sleep">
         <svg viewBox="0 0 120 80">
-          {/* bed frame */}
           <rect x="4" y="58" width="112" height="14" rx="3" fill="#5a3620" />
           <rect x="4" y="70" width="6" height="8" fill="#3a2210" />
           <rect x="110" y="70" width="6" height="8" fill="#3a2210" />
-          {/* mattress */}
           <rect x="8" y="52" width="104" height="10" rx="4" fill="#f5f0e8" />
-          {/* pillow */}
           <rect x="14" y="46" width="26" height="10" rx="5" fill="#ffffff" />
-          {/* blanket */}
           <path d="M40 52 Q46 44 60 44 L100 44 Q108 44 108 56 L108 62 L40 62 Z" fill="#3f6b9c" />
           <path d="M40 60 L108 60" stroke="#2a4a6c" strokeWidth="1" opacity=".5" />
-          {/* head */}
           <circle className="head" cx="30" cy="46" r="7" />
           <path className="hair" d="M23 46 Q23 39 30 39 Q37 39 37 46 Q33 41 30 41 Q27 41 23 46 Z" />
-          {/* Zzz */}
           <text x="70" y="30" fontSize="14" fill="#e6e6ff" opacity=".8" fontFamily="serif">z</text>
           <text x="82" y="20" fontSize="10" fill="#e6e6ff" opacity=".7" fontFamily="serif">z</text>
           <text x="90" y="12" fontSize="8"  fill="#e6e6ff" opacity=".6" fontFamily="serif">z</text>
         </svg>
       </div>
+
+      <div className="vignette" />
 
       <span className="sr-only">{isNight ? "night" : isDusk ? "dusk" : "day"}</span>
     </div>
@@ -566,4 +691,13 @@ const STAR_POSITIONS = [
   { x: 74, y: 6, d: 2.4 }, { x: 88, y: 18, d: 1.1 }, { x: 92, y: 28, d: 0.9 },
   { x: 14, y: 30, d: 1.5 }, { x: 38, y: 26, d: 2.6 }, { x: 50, y: 34, d: 0.2 },
   { x: 60, y: 30, d: 1.7 }, { x: 80, y: 34, d: 2.3 }, { x: 5, y: 22, d: 2.9 },
+  { x: 18, y: 42, d: 1.3 }, { x: 33, y: 40, d: 2.0 }, { x: 66, y: 42, d: 0.8 },
+  { x: 84, y: 44, d: 1.9 }, { x: 96, y: 12, d: 0.5 },
+];
+
+const MOTE_POSITIONS = [
+  { x: 15, y: 55, d: 0 },   { x: 30, y: 70, d: 2 },
+  { x: 48, y: 60, d: 4 },   { x: 62, y: 75, d: 1 },
+  { x: 78, y: 55, d: 3 },   { x: 88, y: 68, d: 5 },
+  { x: 22, y: 78, d: 6 },   { x: 55, y: 82, d: 7 },
 ];

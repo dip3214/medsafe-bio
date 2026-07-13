@@ -1,7 +1,11 @@
-import { useEffect, useRef, useState } from "react";
+import { useEffect, useMemo, useRef, useState } from "react";
 import { phaseForHour, type LifestylePhase } from "@/lib/lifestyle-context";
+import type { Weather } from "@/lib/use-weather";
 
-export function LifestyleHeroBackground({ phase: phaseProp }: { phase?: LifestylePhase } = {}) {
+export function LifestyleHeroBackground({
+  phase: phaseProp,
+  weather,
+}: { phase?: LifestylePhase; weather?: Weather | null } = {}) {
   const [autoPhase, setAutoPhase] = useState<LifestylePhase>(() => phaseForHour(new Date().getHours()));
   const rootRef = useRef<HTMLDivElement>(null);
 

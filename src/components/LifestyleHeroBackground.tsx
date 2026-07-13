@@ -1,7 +1,11 @@
-import { useEffect, useRef, useState } from "react";
+import { useEffect, useMemo, useRef, useState } from "react";
 import { phaseForHour, type LifestylePhase } from "@/lib/lifestyle-context";
+import type { Weather } from "@/lib/use-weather";
 
-export function LifestyleHeroBackground({ phase: phaseProp }: { phase?: LifestylePhase } = {}) {
+export function LifestyleHeroBackground({
+  phase: phaseProp,
+  weather,
+}: { phase?: LifestylePhase; weather?: Weather | null } = {}) {
   const [autoPhase, setAutoPhase] = useState<LifestylePhase>(() => phaseForHour(new Date().getHours()));
   const rootRef = useRef<HTMLDivElement>(null);
 
@@ -38,11 +42,38 @@ export function LifestyleHeroBackground({ phase: phaseProp }: { phase?: Lifestyl
   const isNight = phase === "dinner" || phase === "night";
   const showSun = phase === "earlyMorning" || phase === "lateMorning" || phase === "midday" || phase === "afternoon";
 
+  // Weather-driven flags. `overcast` = extra clouds when raining/thunder/very cloudy.
+  const weatherKind: "clear" | "clouds" | "rain" | "snow" | "thunder" | "fog" =
+    weather?.condition ?? "clear";
+  const showRain = weatherKind === "rain" || weatherKind === "thunder";
+  const showSnow = weatherKind === "snow";
+  const overcast = weatherKind !== "clear" && weatherKind !== "fog";
+  const extraClouds = weather?.willRainSoon || weather?.isCloudy || false;
+
+  const raindrops = useMemo(
+    () => Array.from({ length: 60 }, (_, i) => ({
+      left: (i * 97) % 100,
+      delay: ((i * 173) % 100) / 100,
+      dur: 0.6 + ((i * 53) % 40) / 100,
+    })),
+    [],
+  );
+  const snowflakes = useMemo(
+    () => Array.from({ length: 40 }, (_, i) => ({
+      left: (i * 61) % 100,
+      delay: ((i * 137) % 100) / 20,
+      dur: 6 + ((i * 41) % 50) / 10,
+      drift: ((i * 29) % 40) - 20,
+    })),
+    [],
+  );
+
   return (
     <div
       ref={rootRef}
       aria-hidden
       data-phase={phase}
+      data-weather={weatherKind}
       className="lifestyle-hero pointer-events-none absolute inset-0 overflow-hidden"
       style={{ ["--mx" as any]: 0, ["--my" as any]: 0 }}
     >
@@ -527,6 +558,85 @@ export function LifestyleHeroBackground({ phase: phaseProp }: { phase?: Lifestyl
           .lifestyle-hero .aurora, .lifestyle-hero .sun, .lifestyle-hero .sun-halo,
           .lifestyle-hero .mote, .lifestyle-hero .grass, .lifestyle-hero .trees { animation: none !important; }
         }
+
+        /* ===== Weather layers ===== */
+        /* Overcast: darken the sky a touch when clouds/rain roll in */
+        .lifestyle-hero[data-weather="clouds"] .sky,
+        .lifestyle-hero[data-weather="fog"] .sky { filter: brightness(.92) saturate(.9); }
+        .lifestyle-hero[data-weather="rain"] .sky,
+        .lifestyle-hero[data-weather="thunder"] .sky { filter: brightness(.72) saturate(.85) hue-rotate(-8deg); }
+        .lifestyle-hero[data-weather="snow"] .sky { filter: brightness(1.02) saturate(.7); }
+        /* Fade the sun when it's not visible in reality */
+        .lifestyle-hero[data-weather="rain"] .sun-wrap,
+        .lifestyle-hero[data-weather="thunder"] .sun-wrap,
+        .lifestyle-hero[data-weather="clouds"] .sun-wrap { opacity: .35 !important; filter: blur(2px); }
+        .lifestyle-hero[data-weather="rain"] .rays,
+        .lifestyle-hero[data-weather="thunder"] .rays,
+        .lifestyle-hero[data-weather="clouds"] .rays { opacity: 0 !important; }
+
+        /* Extra low, wide storm clouds */
+        .lifestyle-hero .wx-cloud {
+          position:absolute; top:6%; width:260px; height:70px; border-radius:60px;
+          background: radial-gradient(ellipse at 30% 40%, rgba(240,240,245,.95), rgba(180,185,195,.85) 55%, rgba(120,125,140,.55) 100%);
+          filter: blur(1px);
+          opacity:0; transition: opacity 1.2s ease;
+          animation: ls-cloud-drift 90s linear infinite;
+        }
+        .lifestyle-hero .wx-cloud.b { top:14%; width:320px; height:80px; animation-duration: 130s; opacity:.9; }
+        .lifestyle-hero .wx-cloud.c { top:2%;  width:200px; height:55px; animation-duration: 110s; }
+        .lifestyle-hero[data-weather="clouds"] .wx-cloud,
+        .lifestyle-hero[data-weather="fog"] .wx-cloud { opacity:.85; }
+        .lifestyle-hero[data-weather="rain"] .wx-cloud,
+        .lifestyle-hero[data-weather="thunder"] .wx-cloud { opacity:1; filter: blur(1px) brightness(.7); }
+        .lifestyle-hero[data-weather="snow"] .wx-cloud { opacity:.9; filter: blur(1px) brightness(1.05); }
+        @keyframes ls-cloud-drift {
+          0% { transform: translateX(-30vw); }
+          100% { transform: translateX(120vw); }
+        }
+
+        /* Rain */
+        .lifestyle-hero .rain { position:absolute; inset:0; pointer-events:none; overflow:hidden; }
+        .lifestyle-hero .drop {
+          position:absolute; top:-10%; width:1.5px; height:22px; border-radius:1px;
+          background: linear-gradient(180deg, rgba(180,210,240,0), rgba(200,220,245,.85));
+          animation: ls-rain linear infinite;
+        }
+        @keyframes ls-rain {
+          0%   { transform: translateY(-10vh); opacity:0; }
+          10%  { opacity:1; }
+          100% { transform: translateY(120vh); opacity:0; }
+        }
+
+        /* Lightning flash on thunder */
+        .lifestyle-hero[data-weather="thunder"] .flash {
+          position:absolute; inset:0; background: rgba(255,255,255,.85); opacity:0;
+          animation: ls-flash 7s ease-out infinite;
+        }
+        @keyframes ls-flash {
+          0%, 92%, 100% { opacity:0; }
+          93% { opacity:.7; }
+          94% { opacity:.1; }
+          95% { opacity:.55; }
+          97% { opacity:0; }
+        }
+
+        /* Snow */
+        .lifestyle-hero .snow { position:absolute; inset:0; pointer-events:none; overflow:hidden; }
+        .lifestyle-hero .flake {
+          position:absolute; top:-5%; width:6px; height:6px; border-radius:50%;
+          background: rgba(255,255,255,.9); box-shadow: 0 0 4px rgba(255,255,255,.7);
+          animation: ls-snow linear infinite;
+        }
+        @keyframes ls-snow {
+          0%   { transform: translate(0, -5vh) rotate(0deg); opacity:0; }
+          10%  { opacity:1; }
+          100% { transform: translate(var(--drift, 0px), 120vh) rotate(360deg); opacity:.4; }
+        }
+
+        @media (prefers-reduced-motion: reduce) {
+          .lifestyle-hero .drop, .lifestyle-hero .flake,
+          .lifestyle-hero .wx-cloud, .lifestyle-hero .flash { animation: none !important; }
+        }
       `}</style>
 
       <div className="sky" />
@@ -582,6 +692,52 @@ export function LifestyleHeroBackground({ phase: phaseProp }: { phase?: Lifestyl
       <div className="steam s3" style={{ left: "54%" }} />
 
       <div className="windows" />
+
+      {/* Weather: extra clouds when cloudy / rain forecast */}
+      {(extraClouds || overcast) && (
+        <>
+          <div className="wx-cloud"   style={{ left: "-20%", animationDelay: "0s" }} />
+          <div className="wx-cloud b" style={{ left: "-40%", animationDelay: "-40s" }} />
+          <div className="wx-cloud c" style={{ left: "-10%", animationDelay: "-70s" }} />
+          <div className="wx-cloud b" style={{ left: "-60%", animationDelay: "-90s" }} />
+        </>
+      )}
+
+      {/* Rain */}
+      {showRain && (
+        <div className="rain">
+          {raindrops.map((d, i) => (
+            <span
+              key={`drop-${i}`}
+              className="drop"
+              style={{
+                left: `${d.left}%`,
+                animationDelay: `${d.delay}s`,
+                animationDuration: `${d.dur}s`,
+              }}
+            />
+          ))}
+          {weatherKind === "thunder" && <div className="flash" />}
+        </div>
+      )}
+
+      {/* Snow */}
+      {showSnow && (
+        <div className="snow">
+          {snowflakes.map((f, i) => (
+            <span
+              key={`flake-${i}`}
+              className="flake"
+              style={{
+                left: `${f.left}%`,
+                animationDelay: `${f.delay}s`,
+                animationDuration: `${f.dur}s`,
+                ["--drift" as any]: `${f.drift}px`,
+              }}
+            />
+          ))}
+        </div>
+      )}
 
       <div className="mountains" />
       <div className="skyline" />

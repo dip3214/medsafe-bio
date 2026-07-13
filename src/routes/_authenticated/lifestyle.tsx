@@ -8,6 +8,7 @@ import { LifestyleHeroBackground } from "@/components/LifestyleHeroBackground";
 import { DailyMoodPrompt } from "@/components/DailyMoodPrompt";
 import { useActiveMember } from "@/lib/active-member";
 import { getLifestyleContext } from "@/lib/lifestyle-context";
+import { useWeather } from "@/lib/use-weather";
 import {
   listLifestyleLogs,
   upsertLifestyleLog,
@@ -215,13 +216,14 @@ function LifestylePage() {
   const recent = useMemo(() => logs.slice(0, 7).filter((l) => l.log_date !== today), [logs, today]);
   const displayName = active?.name?.split(/\s+/)[0] || "there";
   const ctx = useLifestyleContext();
+  const weather = useWeather();
 
   return (
     <SiteLayout>
       <DailyMoodPrompt memberId={active?.id ?? null} name={active?.name} />
       {/* Hero */}
       <section className="relative overflow-hidden min-h-[520px] sm:min-h-[600px]">
-        <LifestyleHeroBackground phase={ctx.phase} />
+        <LifestyleHeroBackground phase={ctx.phase} weather={weather} />
         {(() => {
           const isDay = ctx.ambient === "day";
           const isDusk = ctx.ambient === "dusk";
@@ -261,6 +263,12 @@ function LifestylePage() {
                 <span>{ctx.dayLabel}</span>
                 <span className="opacity-60">·</span>
                 <span className="tabular-nums">{ctx.timeLabel}</span>
+                {weather && (
+                  <>
+                    <span className="opacity-60">·</span>
+                    <span>{weather.label}</span>
+                  </>
+                )}
               </div>
               <div className="relative mx-auto max-w-5xl px-4 pt-28 pb-16 text-left sm:pt-40 sm:pb-24">
                 <div className={`inline-flex items-center gap-1.5 rounded-full px-3 py-1 text-xs font-semibold backdrop-blur-md ${badgeClass}`}>

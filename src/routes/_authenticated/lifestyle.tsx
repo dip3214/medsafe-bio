@@ -263,6 +263,12 @@ function LifestylePage() {
                 <span>{ctx.dayLabel}</span>
                 <span className="opacity-60">·</span>
                 <span className="tabular-nums">{ctx.timeLabel}</span>
+                {weather && (
+                  <>
+                    <span className="opacity-60">·</span>
+                    <span>{weather.label}</span>
+                  </>
+                )}
               </div>
               <div className="relative mx-auto max-w-5xl px-4 pt-28 pb-16 text-left sm:pt-40 sm:pb-24">
                 <div className={`inline-flex items-center gap-1.5 rounded-full px-3 py-1 text-xs font-semibold backdrop-blur-md ${badgeClass}`}>

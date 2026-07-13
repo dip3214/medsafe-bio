@@ -693,6 +693,52 @@ export function LifestyleHeroBackground({
 
       <div className="windows" />
 
+      {/* Weather: extra clouds when cloudy / rain forecast */}
+      {(extraClouds || overcast) && (
+        <>
+          <div className="wx-cloud"   style={{ left: "-20%", animationDelay: "0s" }} />
+          <div className="wx-cloud b" style={{ left: "-40%", animationDelay: "-40s" }} />
+          <div className="wx-cloud c" style={{ left: "-10%", animationDelay: "-70s" }} />
+          <div className="wx-cloud b" style={{ left: "-60%", animationDelay: "-90s" }} />
+        </>
+      )}
+
+      {/* Rain */}
+      {showRain && (
+        <div className="rain">
+          {raindrops.map((d, i) => (
+            <span
+              key={`drop-${i}`}
+              className="drop"
+              style={{
+                left: `${d.left}%`,
+                animationDelay: `${d.delay}s`,
+                animationDuration: `${d.dur}s`,
+              }}
+            />
+          ))}
+          {weatherKind === "thunder" && <div className="flash" />}
+        </div>
+      )}
+
+      {/* Snow */}
+      {showSnow && (
+        <div className="snow">
+          {snowflakes.map((f, i) => (
+            <span
+              key={`flake-${i}`}
+              className="flake"
+              style={{
+                left: `${f.left}%`,
+                animationDelay: `${f.delay}s`,
+                animationDuration: `${f.dur}s`,
+                ["--drift" as any]: `${f.drift}px`,
+              }}
+            />
+          ))}
+        </div>
+      )}
+
       <div className="mountains" />
       <div className="skyline" />
       <div className="trees" />

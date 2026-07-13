@@ -223,7 +223,7 @@ function LifestylePage() {
       <DailyMoodPrompt memberId={active?.id ?? null} name={active?.name} />
       {/* Hero */}
       <section className="relative overflow-hidden min-h-[520px] sm:min-h-[600px]">
-        <LifestyleHeroBackground phase={ctx.phase} />
+        <LifestyleHeroBackground phase={ctx.phase} weather={weather} />
         {(() => {
           const isDay = ctx.ambient === "day";
           const isDusk = ctx.ambient === "dusk";

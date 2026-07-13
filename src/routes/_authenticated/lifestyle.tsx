@@ -252,6 +252,16 @@ function LifestylePage() {
                   className={`pointer-events-none absolute inset-x-0 bottom-0 h-2/3 ${scrim}`}
                 />
               )}
+              {/* Date + time pill — top-right, subtle so background stays visible */}
+              <div
+                className={`pointer-events-none absolute right-4 top-4 z-10 inline-flex items-center gap-2 rounded-full px-3 py-1 text-[11px] font-medium backdrop-blur-md sm:right-8 sm:top-6 sm:text-xs ${badgeClass}`}
+                style={{ textShadow: inkShadow }}
+                aria-label={`${ctx.dayLabel} · ${ctx.timeLabel}`}
+              >
+                <span>{ctx.dayLabel}</span>
+                <span className="opacity-60">·</span>
+                <span className="tabular-nums">{ctx.timeLabel}</span>
+              </div>
               <div className="relative mx-auto max-w-5xl px-4 pt-28 pb-16 text-left sm:pt-40 sm:pb-24">
                 <div className={`inline-flex items-center gap-1.5 rounded-full px-3 py-1 text-xs font-semibold backdrop-blur-md ${badgeClass}`}>
                   <Sparkles className="h-3 w-3" /> {ctx.badge}

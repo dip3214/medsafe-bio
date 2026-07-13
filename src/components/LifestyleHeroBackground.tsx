@@ -42,11 +42,38 @@ export function LifestyleHeroBackground({
   const isNight = phase === "dinner" || phase === "night";
   const showSun = phase === "earlyMorning" || phase === "lateMorning" || phase === "midday" || phase === "afternoon";
 
+  // Weather-driven flags. `overcast` = extra clouds when raining/thunder/very cloudy.
+  const weatherKind: "clear" | "clouds" | "rain" | "snow" | "thunder" | "fog" =
+    weather?.condition ?? "clear";
+  const showRain = weatherKind === "rain" || weatherKind === "thunder";
+  const showSnow = weatherKind === "snow";
+  const overcast = weatherKind !== "clear" && weatherKind !== "fog";
+  const extraClouds = weather?.willRainSoon || weather?.isCloudy || false;
+
+  const raindrops = useMemo(
+    () => Array.from({ length: 60 }, (_, i) => ({
+      left: (i * 97) % 100,
+      delay: ((i * 173) % 100) / 100,
+      dur: 0.6 + ((i * 53) % 40) / 100,
+    })),
+    [],
+  );
+  const snowflakes = useMemo(
+    () => Array.from({ length: 40 }, (_, i) => ({
+      left: (i * 61) % 100,
+      delay: ((i * 137) % 100) / 20,
+      dur: 6 + ((i * 41) % 50) / 10,
+      drift: ((i * 29) % 40) - 20,
+    })),
+    [],
+  );
+
   return (
     <div
       ref={rootRef}
       aria-hidden
       data-phase={phase}
+      data-weather={weatherKind}
       className="lifestyle-hero pointer-events-none absolute inset-0 overflow-hidden"
       style={{ ["--mx" as any]: 0, ["--my" as any]: 0 }}
     >

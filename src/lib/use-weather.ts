@@ -98,7 +98,15 @@ export function useWeather(): Weather | null {
     const ctrl = new AbortController();
     (async () => {
       try {
-        const loc = await fetchLatLon(ctrl.signal);
+        // Prefer precise browser geolocation, fall back to IP-based.
+        const browserLoc = await getBrowserLatLon(ctrl.signal);
+        let loc: { lat: number; lon: number; city: string | null } | null = null;
+        if (browserLoc) {
+          const city = await reverseCity(browserLoc.lat, browserLoc.lon, ctrl.signal);
+          loc = { ...browserLoc, city };
+        } else {
+          loc = await fetchLatLonIp(ctrl.signal);
+        }
         if (!loc) return;
         const data = await fetchWeather(loc.lat, loc.lon, ctrl.signal);
         const code = data?.current?.weather_code ?? 0;

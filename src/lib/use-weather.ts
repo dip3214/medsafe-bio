@@ -45,7 +45,7 @@ function conditionLabel(c: WeatherCondition): string {
   }
 }
 
-async function fetchLatLon(signal: AbortSignal): Promise<{ lat: number; lon: number; city: string | null } | null> {
+async function fetchLatLonIp(signal: AbortSignal): Promise<{ lat: number; lon: number; city: string | null } | null> {
   try {
     const r = await fetch("https://ipapi.co/json/", { signal });
     if (!r.ok) return null;
@@ -55,6 +55,33 @@ async function fetchLatLon(signal: AbortSignal): Promise<{ lat: number; lon: num
     }
   } catch { /* ignore */ }
   return null;
+}
+
+function getBrowserLatLon(signal: AbortSignal): Promise<{ lat: number; lon: number } | null> {
+  return new Promise((resolve) => {
+    if (typeof navigator === "undefined" || !navigator.geolocation) return resolve(null);
+    let done = false;
+    const timer = setTimeout(() => { if (!done) { done = true; resolve(null); } }, 6000);
+    signal.addEventListener("abort", () => { if (!done) { done = true; clearTimeout(timer); resolve(null); } });
+    navigator.geolocation.getCurrentPosition(
+      (pos) => { if (!done) { done = true; clearTimeout(timer); resolve({ lat: pos.coords.latitude, lon: pos.coords.longitude }); } },
+      () => { if (!done) { done = true; clearTimeout(timer); resolve(null); } },
+      { enableHighAccuracy: false, maximumAge: 10 * 60 * 1000, timeout: 5000 },
+    );
+  });
+}
+
+async function reverseCity(lat: number, lon: number, signal: AbortSignal): Promise<string | null> {
+  try {
+    const r = await fetch(
+      `https://geocoding-api.open-meteo.com/v1/reverse?latitude=${lat}&longitude=${lon}&count=1&language=en&format=json`,
+      { signal },
+    );
+    if (!r.ok) return null;
+    const j = await r.json();
+    const first = j?.results?.[0];
+    return first?.name ?? first?.admin1 ?? null;
+  } catch { return null; }
 }
 
 async function fetchWeather(lat: number, lon: number, signal: AbortSignal) {

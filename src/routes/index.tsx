@@ -1,9 +1,10 @@
 import { createFileRoute, Link, useNavigate } from "@tanstack/react-router";
 import { useEffect, useState } from "react";
-import { ArrowRight, ShieldCheck, HeartPulse, Menu, X } from "lucide-react";
+import { ArrowRight, HeartPulse, ShieldCheck, Sparkles, Activity, Users } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 import { useActiveMember } from "@/lib/active-member";
 import { Reveal } from "@/components/Reveal";
+import { SiteLayout } from "@/components/SiteLayout";
 
 import heroFamily from "@/assets/hero-family.jpg";
 import bubbleDad from "@/assets/bubble-dad.jpg";
@@ -11,490 +12,57 @@ import bubbleMom from "@/assets/bubble-mom.jpg";
 import bubbleGrandma from "@/assets/bubble-grandma.jpg";
 import bubbleGrandpa from "@/assets/bubble-grandpa.jpg";
 import bubbleSon from "@/assets/bubble-son.jpg";
-import bubbleDog from "@/assets/bubble-dog.jpg";
+import refAsk from "@/assets/ref-ask.png.asset.json";
+import refLifestyle from "@/assets/ref-lifestyle.png.asset.json";
+import refCheckin from "@/assets/ref-checkin.png.asset.json";
+import refFounders from "@/assets/ref-founders.png.asset.json";
 
 export const Route = createFileRoute("/")({
   head: () => ({
     meta: [
-      { title: "MedSafe — When your whole family relies on you, rely on MedSafe." },
+      { title: "MedSafe — AI-powered health record for the whole family." },
       {
         name: "description",
         content:
-          "MedSafe quietly watches over your family's health — every prescription, lab report and daily rhythm in one clean clinical timeline, with AI that answers in plain language.",
+          "MedSafe unifies every prescription, lab report and daily rhythm for your whole family — with clinical-grade AI that answers in plain language.",
       },
-      { property: "og:title", content: "MedSafe — Your family's health, quietly organized." },
+      { property: "og:title", content: "MedSafe — AI-powered family healthcare." },
       {
         property: "og:description",
         content:
-          "Every prescription, lab report and daily check-in for your whole family — grounded, private, and ready when you need it.",
+          "One private timeline for your family's prescriptions, labs and lifestyle — grounded in your own reports.",
       },
     ],
   }),
   component: Index,
 });
 
-/* ─────────────────────────  data  ───────────────────────── */
+function Index() {
+  return (
+    <SiteLayout>
+      <div className="bg-background text-foreground">
+        <Hero />
+        <Marquee />
+        <FeatureBreakdown />
+        <FamilySection />
+        <FoundersSection />
+        <FinalCTA />
+      </div>
+    </SiteLayout>
+  );
+}
+
+/* ─────────────────────  hero  ───────────────────── */
 
 const HERO_CLIPS = [
   { img: bubbleGrandma, caption: "Is Grandma recovering from her surgery OK?" },
-  { img: bubbleGrandpa, caption: "What happened at Grandpa's last doctor's visit?" },
-  { img: bubbleDad, caption: "Is Dad's new meal plan affecting his blood pressure?" },
-  { img: bubbleMom, caption: "Am I eating the right foods to manage PCOS?" },
+  { img: bubbleGrandpa, caption: "What happened at Grandpa's last visit?" },
+  { img: bubbleDad, caption: "Is Dad's meal plan affecting his BP?" },
+  { img: bubbleMom, caption: "Am I eating the right foods for PCOS?" },
   { img: bubbleSon, caption: "Is my son's vaccination schedule up to date?" },
-  { img: bubbleDog, caption: "Did anyone give Bruno his morning medication?" },
 ];
 
-const FEATURES = [
-  {
-    eyebrow: "Clinical Timeline",
-    title: "Every visit, in one clean thread.",
-    body: "Prescriptions, labs and imaging within a 10-day window are linked to the same visit, with the right doctor attached. No more folders, no more guessing.",
-    accent: "kids",
-  },
-  {
-    eyebrow: "Ask, in plain language",
-    title: "Answers grounded in your own reports.",
-    body: "Ask about a lab trend or a diet, and MedSafe cites the exact report and value — so every answer is auditable, not a guess.",
-    accent: "parents",
-  },
-  {
-    eyebrow: "Lifestyle, quietly logged",
-    title: "20 seconds a day. Zero friction.",
-    body: "Type or hold the mic. Photos of a meal turn into a rough calorie estimate. Your rhythm builds itself — sleep, movement, meals, mood.",
-    accent: "me",
-  },
-  {
-    eyebrow: "Whole-family view",
-    title: "Kids. Parents. You. One shared record.",
-    body: "Switch between profiles in a tap. Flagged values, upcoming follow-ups and consent trails stay where each person can see them.",
-    accent: "kids",
-  },
-] as const;
-
-/* ─────────────────────────  page  ───────────────────────── */
-
-function Index() {
-  return (
-    <div className="min-h-screen bg-[#f5f1ea] text-[#1a1613]">
-      <Hero />
-      <CaregiversSection />
-      <FeatureBreakdown />
-      <FounderStory />
-      <FinalCTA />
-      <Footer />
-    </div>
-  );
-}
-
-/* ─────────────────────────  hero  ───────────────────────── */
-
-function Nav() {
-  const [open, setOpen] = useState(false);
-  return (
-    <header className="pointer-events-none absolute inset-x-0 top-0 z-30">
-      <div className="mx-auto flex max-w-[1400px] items-center justify-between px-5 pt-5 sm:px-8 sm:pt-7">
-        <Link
-          to="/"
-          className="pointer-events-auto grid h-11 w-11 place-items-center rounded-2xl bg-white/95 text-[#1a1613] shadow-sm backdrop-blur"
-          aria-label="MedSafe home"
-        >
-          <HeartPulse className="h-5 w-5" strokeWidth={2.2} />
-        </Link>
-
-        <div className="pointer-events-auto hidden items-center gap-2 rounded-full bg-white/95 p-1 pl-2 shadow-sm backdrop-blur sm:flex">
-          <Link to="/care" className="rounded-full px-4 py-2 text-sm font-medium text-[#1a1613] hover:bg-black/5">
-            About
-          </Link>
-          <Link to="/services" className="rounded-full px-4 py-2 text-sm font-medium text-[#1a1613] hover:bg-black/5">
-            How it works
-          </Link>
-          <Link
-            to="/auth"
-            className="inline-flex items-center gap-1.5 rounded-full bg-[#1a1613] px-4 py-2 text-sm font-semibold text-white transition hover:scale-[1.02]"
-          >
-            Join the Waitlist
-          </Link>
-        </div>
-
-        <button
-          className="pointer-events-auto grid h-11 w-11 place-items-center rounded-2xl bg-white/95 text-[#1a1613] shadow-sm backdrop-blur sm:hidden"
-          onClick={() => setOpen((v) => !v)}
-          aria-label="Menu"
-        >
-          {open ? <X className="h-5 w-5" /> : <Menu className="h-5 w-5" />}
-        </button>
-      </div>
-
-      {open && (
-        <div className="pointer-events-auto mx-5 mt-2 rounded-2xl bg-white/95 p-3 shadow-lg backdrop-blur sm:hidden">
-          <Link to="/care" className="block rounded-lg px-3 py-2 text-sm">About</Link>
-          <Link to="/services" className="block rounded-lg px-3 py-2 text-sm">How it works</Link>
-          <Link to="/auth" className="mt-1 block rounded-lg bg-[#1a1613] px-3 py-2 text-center text-sm font-semibold text-white">
-            Join the Waitlist
-          </Link>
-        </div>
-      )}
-    </header>
-  );
-}
-
-function Hero() {
-  const [idx, setIdx] = useState(0);
-  useEffect(() => {
-    const t = setInterval(() => setIdx((i) => (i + 1) % HERO_CLIPS.length), 4200);
-    return () => clearInterval(t);
-  }, []);
-
-  return (
-    <section className="relative isolate min-h-[92vh] w-full overflow-hidden bg-[#1a1613]">
-      <img
-        src={heroFamily}
-        alt="A multi-generational family in the garden at golden hour"
-        className="absolute inset-0 h-full w-full object-cover"
-        width={1920}
-        height={1200}
-      />
-      {/* subtle darken so headline reads */}
-      <div
-        aria-hidden
-        className="absolute inset-0"
-        style={{
-          background:
-            "linear-gradient(180deg, rgba(0,0,0,0.35) 0%, rgba(0,0,0,0.10) 30%, rgba(0,0,0,0.05) 55%, rgba(245,241,234,0.15) 82%, rgba(245,241,234,0.55) 100%)",
-        }}
-      />
-
-      <Nav />
-
-      <div className="relative z-10 mx-auto flex max-w-[1400px] flex-col justify-between px-5 pb-[16vh] pt-32 sm:px-8 sm:pt-36 lg:min-h-[92vh]">
-        {/* Headline block */}
-        <div className="max-w-2xl">
-          <h1
-            className="font-display text-white"
-            style={{
-              fontSize: "clamp(2.6rem, 6.2vw, 5.5rem)",
-              lineHeight: 1.02,
-              letterSpacing: "-0.02em",
-              textShadow: "0 2px 20px rgba(0,0,0,0.25)",
-            }}
-          >
-            When the whole family relies on you,
-            <br />
-            <span className="italic text-white/95">rely on MedSafe.</span>
-          </h1>
-          <p className="mt-6 max-w-md text-base leading-relaxed text-white/90 sm:text-lg" style={{ textShadow: "0 1px 12px rgba(0,0,0,0.35)" }}>
-            MedSafe ("med-safe") is the quiet companion that watches over your family's health records
-            and daily rhythms — so every recommendation is grounded in what's actually happening.
-          </p>
-          <div className="mt-8">
-            <Link
-              to="/auth"
-              className="group inline-flex items-center gap-3 rounded-full bg-white pl-4 pr-5 py-3 text-sm font-semibold text-[#1a1613] shadow-lg transition hover:scale-[1.02]"
-            >
-              <span className="h-1.5 w-1.5 rounded-full bg-[#8b2a1a]" />
-              Join the waitlist
-              <ArrowRight className="h-4 w-4 transition-transform group-hover:translate-x-0.5" />
-            </Link>
-          </div>
-        </div>
-
-        {/* Right side: cycling thumbnails with captions */}
-        <div className="pointer-events-none absolute right-4 top-1/2 z-20 hidden -translate-y-1/2 flex-col items-end gap-4 sm:right-8 md:flex">
-          {HERO_CLIPS.map((c, i) => {
-            const active = i === idx;
-            const size = 56 + ((i * 7) % 24); // 56 – 78
-            return (
-              <div key={i} className="flex items-center gap-3">
-                <div
-                  className={`rounded-full bg-white/90 px-3 py-1.5 text-xs font-medium text-[#1a1613] shadow-md backdrop-blur transition-all duration-700 ${
-                    active ? "opacity-100 translate-x-0" : "opacity-0 translate-x-4"
-                  }`}
-                  style={{ maxWidth: 240 }}
-                >
-                  {c.caption}
-                </div>
-                <div
-                  className="relative overflow-hidden rounded-full ring-2 ring-white/70 shadow-lg transition-all duration-700"
-                  style={{
-                    width: size,
-                    height: size,
-                    transform: active ? "scale(1.08)" : "scale(1)",
-                  }}
-                >
-                  <img
-                    src={c.img}
-                    alt=""
-                    className="h-full w-full object-cover"
-                    loading="lazy"
-                    width={640}
-                    height={640}
-                  />
-                </div>
-              </div>
-            );
-          })}
-        </div>
-
-        {/* Oversized wordmark bleeding off bottom */}
-        <div className="pointer-events-none absolute inset-x-0 bottom-0 z-0 select-none overflow-hidden">
-          <div
-            className="font-display leading-[0.82] text-white/85 mix-blend-overlay"
-            style={{
-              fontSize: "clamp(9rem, 26vw, 26rem)",
-              letterSpacing: "-0.04em",
-              transform: "translateY(28%)",
-              textAlign: "center",
-            }}
-          >
-            MedSafe
-          </div>
-        </div>
-      </div>
-
-      {/* Trust strip */}
-      <div className="relative z-10 mx-auto flex max-w-[1400px] flex-wrap items-center gap-2 px-5 pb-6 sm:px-8">
-        <TrustPill>End-to-end encrypted</TrustPill>
-        <TrustPill>NABL-accredited labs</TrustPill>
-        <TrustPill>Reviewed by MD physicians</TrustPill>
-        <TrustPill>DPDP-aligned</TrustPill>
-      </div>
-    </section>
-  );
-}
-
-function TrustPill({ children }: { children: React.ReactNode }) {
-  return (
-    <span className="inline-flex items-center gap-1.5 rounded-full border border-white/40 bg-white/15 px-3 py-1 text-[11px] font-medium text-white backdrop-blur">
-      <ShieldCheck className="h-3 w-3" /> {children}
-    </span>
-  );
-}
-
-/* ─────────────────────  caregivers section  ───────────────────── */
-
-type Bubble = {
-  img: string;
-  caption: string;
-  x: string; // left %
-  y: string; // top %
-  size: number; // px
-  side: "left" | "right";
-};
-
-const BUBBLES: Bubble[] = [
-  { img: bubbleDad,     caption: "Is Dad's new meal plan affecting his BP?",       x: "34%", y: "6%",  size: 96,  side: "left"  },
-  { img: bubbleMom,     caption: "Am I eating the right foods to manage PCOS?",    x: "62%", y: "10%", size: 108, side: "right" },
-  { img: bubbleGrandpa, caption: "What happened at Grandpa's last visit?",         x: "22%", y: "24%", size: 84,  side: "left"  },
-  { img: bubbleSon,     caption: "Did Rohan take his morning medication?",         x: "76%", y: "30%", size: 92,  side: "right" },
-  { img: bubbleGrandma, caption: "Is Grandma recovering from her surgery OK?",     x: "12%", y: "58%", size: 112, side: "left"  },
-  { img: bubbleDog,     caption: "Bruno's tick medicine is due next week.",        x: "82%", y: "60%", size: 100, side: "right" },
-];
-
-function CaregiversSection() {
-  return (
-    <section className="relative bg-[#f5f1ea] py-24 sm:py-32">
-      <div className="pointer-events-none absolute inset-0">
-        {BUBBLES.map((b, i) => (
-          <FloatingBubble key={i} bubble={b} delay={i * 120} />
-        ))}
-      </div>
-
-      <div className="relative mx-auto max-w-2xl px-6 text-center">
-        <Reveal>
-          <h2
-            className="font-display text-[#1a1613]"
-            style={{ fontSize: "clamp(2.2rem, 4.4vw, 3.75rem)", lineHeight: 1.06, letterSpacing: "-0.02em" }}
-          >
-            For the caregivers
-            <br />
-            who do it all
-          </h2>
-        </Reveal>
-        <Reveal delay={120}>
-          <p className="mx-auto mt-6 max-w-lg text-base leading-relaxed text-[#4a423d]">
-            Your mind's brimming with questions, concerns, and an ever-changing list of
-            who-needs-what-when. MedSafe learns your family's rhythms and stays on top of it all,
-            so you can focus on caring.
-          </p>
-        </Reveal>
-      </div>
-    </section>
-  );
-}
-
-function FloatingBubble({ bubble, delay }: { bubble: Bubble; delay: number }) {
-  return (
-    <div
-      className="pointer-events-auto absolute hidden md:block"
-      style={{ left: bubble.x, top: bubble.y }}
-    >
-      <Reveal delay={delay}>
-        <div className={`flex items-center gap-3 ${bubble.side === "right" ? "flex-row-reverse" : ""}`}>
-          <div
-            className="overflow-hidden rounded-full ring-1 ring-black/5 shadow-xl"
-            style={{
-              width: bubble.size,
-              height: bubble.size,
-              animation: `bubble-drift ${8 + (bubble.size % 5)}s ease-in-out ${delay}ms infinite alternate`,
-            }}
-          >
-            <img src={bubble.img} alt="" className="h-full w-full object-cover" loading="lazy" width={640} height={640} />
-          </div>
-          <div className="max-w-[220px] rounded-2xl bg-white/95 px-3 py-1.5 text-xs font-medium text-[#1a1613] shadow-md">
-            {bubble.caption}
-          </div>
-        </div>
-      </Reveal>
-      <style>{`
-        @keyframes bubble-drift {
-          0%   { transform: translate(0, 0); }
-          100% { transform: translate(0, -14px); }
-        }
-      `}</style>
-    </div>
-  );
-}
-
-/* ─────────────────────  feature breakdown  ───────────────────── */
-
-function FeatureBreakdown() {
-  return (
-    <section className="bg-[#efe9df] py-24 sm:py-32">
-      <div className="mx-auto max-w-6xl px-6">
-        <div className="space-y-24 sm:space-y-32">
-          {FEATURES.map((f, i) => (
-            <Reveal key={f.title}>
-              <div
-                className={`grid items-center gap-12 md:grid-cols-2 ${
-                  i % 2 === 1 ? "md:[&>div:first-child]:order-2" : ""
-                }`}
-              >
-                <div>
-                  <div
-                    className="text-xs font-semibold uppercase tracking-[0.18em] text-[#8b2a1a]"
-                  >
-                    {f.eyebrow}
-                  </div>
-                  <h3
-                    className="mt-3 font-display text-[#1a1613]"
-                    style={{ fontSize: "clamp(1.9rem, 3.4vw, 2.75rem)", lineHeight: 1.1, letterSpacing: "-0.02em" }}
-                  >
-                    {f.title}
-                  </h3>
-                  <p className="mt-4 max-w-md text-base leading-relaxed text-[#4a423d]">{f.body}</p>
-                </div>
-                <FeatureMockup index={i} accent={f.accent} />
-              </div>
-            </Reveal>
-          ))}
-        </div>
-      </div>
-    </section>
-  );
-}
-
-function FeatureMockup({ index, accent }: { index: number; accent: "kids" | "parents" | "me" }) {
-  const accentBg =
-    accent === "kids" ? "#f0e5c8" : accent === "parents" ? "#f0d4c1" : "#d9dfec";
-  return (
-    <div
-      className="relative aspect-[4/3] w-full overflow-hidden rounded-3xl shadow-2xl shadow-black/10"
-      style={{ background: accentBg }}
-    >
-      {/* Simulated app UI card */}
-      <div className="absolute inset-6 rounded-2xl bg-white p-5 shadow-lg">
-        <div className="flex items-center justify-between">
-          <div className="flex items-center gap-2">
-            <div className="grid h-8 w-8 place-items-center rounded-full bg-[#8b2a1a] text-white">
-              <HeartPulse className="h-4 w-4" />
-            </div>
-            <div className="text-sm font-semibold text-[#1a1613]">MedSafe · Timeline</div>
-          </div>
-          <div className="rounded-full bg-black/5 px-2 py-0.5 text-[10px] font-semibold uppercase tracking-wider text-[#4a423d]">
-            Preview
-          </div>
-        </div>
-        <div className="mt-4 space-y-2.5">
-          {[
-            { name: "HbA1c", value: "6.4%", tone: "bad", ref: "Ref 4.0–5.6%" },
-            { name: "LDL Cholesterol", value: "118", tone: "warn", ref: "Ref <100 mg/dL" },
-            { name: "Vitamin D", value: "42", tone: "good", ref: "Ref 30–100 ng/mL" },
-            { name: "TSH", value: "2.1", tone: "good", ref: "Ref 0.4–4.0 mIU/L" },
-          ].slice(0, 3 + (index % 2)).map((r) => (
-            <div key={r.name} className="grid grid-cols-[1fr_auto_auto] items-center gap-3 rounded-xl bg-[#faf7f2] px-3 py-2.5">
-              <div className="min-w-0">
-                <div className="truncate text-sm font-medium">{r.name}</div>
-                <div className="truncate text-[11px] text-[#7a6f68]">{r.ref}</div>
-              </div>
-              <div className="text-right text-sm font-semibold tabular-nums">{r.value}</div>
-              <span
-                className={
-                  "rounded-full px-2 py-0.5 text-[10px] font-semibold " +
-                  (r.tone === "bad"
-                    ? "bg-[#8b2a1a]/15 text-[#8b2a1a]"
-                    : r.tone === "warn"
-                    ? "bg-amber-500/15 text-amber-700"
-                    : "bg-emerald-500/15 text-emerald-700")
-                }
-              >
-                {r.tone === "bad" ? "out" : r.tone === "warn" ? "watch" : "ok"}
-              </span>
-            </div>
-          ))}
-        </div>
-      </div>
-    </div>
-  );
-}
-
-/* ─────────────────────  founder story  ───────────────────── */
-
-function FounderStory() {
-  return (
-    <section className="bg-[#1a1613] py-24 text-[#f5f1ea] sm:py-32">
-      <div className="mx-auto max-w-2xl px-6 text-center">
-        <Reveal>
-          <div className="mx-auto flex w-fit items-center gap-2">
-            <div className="grid h-12 w-12 place-items-center rounded-full bg-[#8b2a1a] shadow-lg">
-              <HeartPulse className="h-5 w-5 text-white" />
-            </div>
-          </div>
-        </Reveal>
-        <Reveal delay={100}>
-          <h2
-            className="mt-6 font-display"
-            style={{ fontSize: "clamp(1.8rem, 3vw, 2.5rem)", lineHeight: 1.15, letterSpacing: "-0.02em" }}
-          >
-            We built MedSafe for our own families first.
-          </h2>
-        </Reveal>
-        <Reveal delay={180}>
-          <p className="mx-auto mt-6 max-w-lg text-[15px] leading-relaxed text-[#d6cec6]">
-            After watching our parents juggle five different clinics, a folder of scans and a
-            WhatsApp group of prescriptions, we knew there had to be a calmer way. MedSafe is the
-            record we wished existed — one that quietly does the remembering, so families can just
-            be together.
-          </p>
-        </Reveal>
-        <Reveal delay={240}>
-          <p className="mx-auto mt-6 max-w-lg text-[15px] leading-relaxed text-[#d6cec6]">
-            Every recommendation is grounded in your own reports and lifestyle logs. Nothing is
-            invented. Nothing leaves your family's circle without your consent.
-          </p>
-        </Reveal>
-        <Reveal delay={300}>
-          <p className="mt-8 font-display text-lg text-[#f5f1ea]">
-            — The MedSafe team, Kolkata
-          </p>
-        </Reveal>
-      </div>
-    </section>
-  );
-}
-
-/* ─────────────────────  final cta  ───────────────────── */
-
-function FinalCTA() {
+function PrimaryCTA({ className = "" }: { className?: string }) {
   const navigate = useNavigate();
   const { members, setActiveId } = useActiveMember();
   const [authed, setAuthed] = useState(false);
@@ -503,51 +71,309 @@ function FinalCTA() {
     const { data: sub } = supabase.auth.onAuthStateChange((_e, s) => setAuthed(!!s?.user));
     return () => sub.subscription.unsubscribe();
   }, []);
-
-  function onCta() {
+  function onClick() {
     if (!authed) return navigate({ to: "/auth" });
     const def = members.find((m) => m.is_default) || members[0];
     if (def) setActiveId(def.id);
     navigate({ to: "/dashboard" });
   }
+  return (
+    <button
+      onClick={onClick}
+      className={`group inline-flex items-center gap-2.5 rounded-full bg-primary px-5 py-3 text-sm font-semibold text-primary-foreground shadow-lg shadow-primary/25 transition hover:scale-[1.02] ${className}`}
+    >
+      <Sparkles className="h-4 w-4" />
+      {authed ? "Open your timeline" : "Get started — it's free"}
+      <ArrowRight className="h-4 w-4 transition-transform group-hover:translate-x-0.5" />
+    </button>
+  );
+}
+
+function Hero() {
+  const [idx, setIdx] = useState(0);
+  useEffect(() => {
+    const t = setInterval(() => setIdx((i) => (i + 1) % HERO_CLIPS.length), 3800);
+    return () => clearInterval(t);
+  }, []);
+
+  const active = HERO_CLIPS[idx];
 
   return (
-    <section className="bg-[#f5f1ea] py-24 sm:py-32">
-      <div className="mx-auto max-w-2xl px-6 text-center">
-        <Reveal>
-          <h2
-            className="font-display text-[#1a1613]"
-            style={{ fontSize: "clamp(2.2rem, 4.4vw, 3.5rem)", lineHeight: 1.08, letterSpacing: "-0.02em" }}
+    <section className="relative isolate overflow-hidden">
+      {/* background image */}
+      <div className="absolute inset-0 -z-10">
+        <img
+          src={heroFamily}
+          alt=""
+          className="h-full w-full object-cover"
+          width={1920}
+          height={1200}
+        />
+        <div
+          aria-hidden
+          className="absolute inset-0"
+          style={{
+            background:
+              "linear-gradient(180deg, color-mix(in oklch, var(--primary) 55%, transparent) 0%, color-mix(in oklch, var(--primary) 20%, transparent) 45%, color-mix(in oklch, var(--background) 40%, transparent) 78%, var(--background) 100%)",
+          }}
+        />
+      </div>
+
+      <div className="mx-auto grid max-w-7xl grid-cols-1 items-center gap-10 px-4 pb-24 pt-16 sm:pt-20 md:grid-cols-[1.15fr_1fr] md:pb-32 md:pt-24">
+        <div>
+          <div className="inline-flex items-center gap-2 rounded-full border border-white/25 bg-white/15 px-3 py-1 text-[11px] font-medium uppercase tracking-[0.18em] text-white backdrop-blur">
+            <Sparkles className="h-3 w-3" /> AI-powered · Whole-family healthcare
+          </div>
+          <h1
+            className="mt-5 font-serif text-white"
+            style={{
+              fontSize: "clamp(2.4rem, 5.6vw, 4.8rem)",
+              lineHeight: 1.03,
+              letterSpacing: "-0.02em",
+              textShadow: "0 2px 24px rgba(0,0,0,0.35)",
+            }}
           >
-            Your family's health,
-            <br /> <span className="italic">quietly organized.</span>
+            When your whole family relies on you,
+            <br />
+            <span className="italic">rely on MedSafe.</span>
+          </h1>
+          <p
+            className="mt-5 max-w-xl text-base leading-relaxed text-white/95 sm:text-lg"
+            style={{ textShadow: "0 1px 12px rgba(0,0,0,0.4)" }}
+          >
+            One private, AI-powered health record for every prescription, lab report and daily
+            rhythm — grounded in what's actually happening with your family.
+          </p>
+          <div className="mt-8 flex flex-wrap items-center gap-3">
+            <PrimaryCTA />
+            <Link
+              to="/auth"
+              className="inline-flex items-center gap-2 rounded-full border border-white/40 bg-white/15 px-5 py-3 text-sm font-semibold text-white backdrop-blur transition hover:bg-white/25"
+            >
+              Log in
+            </Link>
+          </div>
+        </div>
+
+        {/* right: single active persona card that cross-fades (no dog, no cluttered stack) */}
+        <div className="relative h-[320px] sm:h-[380px]">
+          {HERO_CLIPS.map((c, i) => {
+            const isActive = i === idx;
+            return (
+              <div
+                key={i}
+                className="absolute inset-0 flex items-center justify-center transition-all duration-700 ease-out"
+                style={{
+                  opacity: isActive ? 1 : 0,
+                  transform: isActive ? "translateY(0) scale(1)" : "translateY(20px) scale(0.96)",
+                }}
+                aria-hidden={!isActive}
+              >
+                <div className="flex flex-col items-center gap-4">
+                  <div className="h-40 w-40 overflow-hidden rounded-full ring-4 ring-white/70 shadow-2xl sm:h-52 sm:w-52">
+                    <img src={c.img} alt="" className="h-full w-full object-cover" />
+                  </div>
+                  <div className="max-w-xs rounded-2xl bg-white/95 px-4 py-2.5 text-center text-sm font-medium text-foreground shadow-xl">
+                    {c.caption}
+                  </div>
+                </div>
+              </div>
+            );
+          })}
+          {/* dots */}
+          <div className="absolute inset-x-0 bottom-0 flex justify-center gap-1.5">
+            {HERO_CLIPS.map((_, i) => (
+              <span
+                key={i}
+                className="h-1.5 rounded-full transition-all"
+                style={{
+                  width: i === idx ? 20 : 6,
+                  background: i === idx ? "white" : "rgba(255,255,255,0.5)",
+                }}
+              />
+            ))}
+          </div>
+        </div>
+      </div>
+      <p className="sr-only">{active.caption}</p>
+    </section>
+  );
+}
+
+/* ─────────────────────  luffu-style marquee  ───────────────────── */
+
+function Marquee() {
+  const items = [
+    "AI-powered family healthcare",
+    "Grounded in your own reports",
+    "Clinical-grade timeline",
+    "20-second daily check-in",
+    "End-to-end encrypted",
+    "DPDP-aligned",
+    "Kids · Parents · You",
+  ];
+  return (
+    <div className="border-y border-border bg-secondary/40 py-4 overflow-hidden">
+      <div
+        className="flex gap-10 whitespace-nowrap font-serif text-2xl italic text-primary sm:text-3xl"
+        style={{ animation: "marquee 30s linear infinite" }}
+      >
+        {[...items, ...items, ...items].map((t, i) => (
+          <span key={i} className="inline-flex items-center gap-10">
+            {t}
+            <span className="text-muted-foreground">✦</span>
+          </span>
+        ))}
+      </div>
+      <style>{`@keyframes marquee { from { transform: translateX(0) } to { transform: translateX(-33.333%) } }`}</style>
+    </div>
+  );
+}
+
+/* ─────────────────────  feature breakdown  ───────────────────── */
+
+const FEATURES = [
+  {
+    eyebrow: "Ask, in plain language",
+    title: "Answers grounded in your own records.",
+    body: "Ask about a lab trend, a diet, or which meds you're on. MedSafe cites the exact report and value — so every answer is auditable, never a guess.",
+    icon: Sparkles,
+    image: refAsk.url,
+  },
+  {
+    eyebrow: "Lifestyle, quietly logged",
+    title: "20 seconds a day. Zero friction.",
+    body: "Type or hold the mic. A photo of a meal turns into a rough calorie estimate. Your rhythm builds itself — sleep, movement, meals, mood.",
+    icon: Activity,
+    image: refLifestyle.url,
+    imageSecondary: refCheckin.url,
+  },
+  {
+    eyebrow: "Kids · Parents · You",
+    title: "One shared record for the whole family.",
+    body: "Switch between profiles in a tap. Vaccination schedules, follow-ups and flagged values stay where the right caregiver can see them.",
+    icon: Users,
+    image: bubbleSon,
+    imageSecondary: bubbleGrandma,
+  },
+  {
+    eyebrow: "Clinical Timeline",
+    title: "Every visit, in one clean thread.",
+    body: "Prescriptions, labs and imaging within a 10-day window are linked to the same visit with the right doctor attached. No more folders.",
+    icon: HeartPulse,
+    image: bubbleDad,
+  },
+] as const;
+
+function FeatureBreakdown() {
+  return (
+    <section className="bg-background py-24 sm:py-32">
+      <div className="mx-auto max-w-6xl px-4">
+        <Reveal>
+          <div className="mx-auto max-w-2xl text-center">
+            <div className="text-xs font-semibold uppercase tracking-[0.2em] text-primary">
+              What MedSafe does
+            </div>
+            <h2
+              className="mt-3 font-serif text-foreground"
+              style={{ fontSize: "clamp(2rem, 4vw, 3rem)", lineHeight: 1.06, letterSpacing: "-0.02em" }}
+            >
+              Clinical AI. Personalized care. One timeline.
+            </h2>
+          </div>
+        </Reveal>
+
+        <div className="mt-16 space-y-24 sm:space-y-28">
+          {FEATURES.map((f, i) => {
+            const Icon = f.icon;
+            return (
+              <Reveal key={f.title}>
+                <div
+                  className={`grid items-center gap-10 md:grid-cols-2 md:gap-16 ${
+                    i % 2 === 1 ? "md:[&>div:first-child]:order-2" : ""
+                  }`}
+                >
+                  <div>
+                    <div className="inline-flex items-center gap-2 rounded-full bg-primary/10 px-3 py-1 text-xs font-semibold uppercase tracking-[0.14em] text-primary">
+                      <Icon className="h-3.5 w-3.5" /> {f.eyebrow}
+                    </div>
+                    <h3
+                      className="mt-4 font-serif text-foreground"
+                      style={{ fontSize: "clamp(1.7rem, 3vw, 2.4rem)", lineHeight: 1.1, letterSpacing: "-0.02em" }}
+                    >
+                      {f.title}
+                    </h3>
+                    <p className="mt-4 max-w-md text-base leading-relaxed text-muted-foreground">
+                      {f.body}
+                    </p>
+                  </div>
+                  <FeatureVisual image={f.image} secondary={(f as any).imageSecondary} />
+                </div>
+              </Reveal>
+            );
+          })}
+        </div>
+      </div>
+    </section>
+  );
+}
+
+function FeatureVisual({ image, secondary }: { image: string; secondary?: string }) {
+  return (
+    <div className="relative aspect-[4/3] w-full">
+      <div
+        className="absolute inset-0 rounded-3xl bg-accent/60"
+        style={{
+          background:
+            "linear-gradient(135deg, color-mix(in oklch, var(--primary) 8%, var(--background)), color-mix(in oklch, var(--accent) 60%, var(--background)))",
+        }}
+      />
+      <div className="absolute inset-4 overflow-hidden rounded-2xl bg-white shadow-2xl shadow-primary/15">
+        <img src={image} alt="" className="h-full w-full object-cover" loading="lazy" />
+      </div>
+      {secondary && (
+        <div className="absolute -bottom-6 -right-4 h-40 w-32 overflow-hidden rounded-2xl bg-white shadow-2xl shadow-primary/20 ring-4 ring-background sm:h-52 sm:w-40">
+          <img src={secondary} alt="" className="h-full w-full object-cover" loading="lazy" />
+        </div>
+      )}
+    </div>
+  );
+}
+
+/* ─────────────────────  family band  ───────────────────── */
+
+function FamilySection() {
+  return (
+    <section className="bg-secondary/50 py-24 sm:py-32">
+      <div className="mx-auto max-w-3xl px-4 text-center">
+        <Reveal>
+          <div className="text-xs font-semibold uppercase tracking-[0.2em] text-primary">
+            For the caregivers who do it all
+          </div>
+          <h2
+            className="mt-3 font-serif text-foreground"
+            style={{ fontSize: "clamp(2rem, 4vw, 3rem)", lineHeight: 1.06, letterSpacing: "-0.02em" }}
+          >
+            Kids. Parents. You.
+            <br />
+            <span className="italic">One shared record.</span>
           </h2>
+          <p className="mx-auto mt-5 max-w-lg text-base leading-relaxed text-muted-foreground">
+            MedSafe learns your family's rhythms and stays on top of who-needs-what-when, so you
+            can focus on caring.
+          </p>
         </Reveal>
         <Reveal delay={120}>
-          <button
-            onClick={onCta}
-            className="group mt-8 inline-flex items-center gap-3 rounded-full bg-[#1a1613] pl-4 pr-5 py-3 text-sm font-semibold text-white shadow-lg transition hover:scale-[1.02]"
-          >
-            <span className="h-1.5 w-1.5 rounded-full bg-[#e8b84a]" />
-            {authed ? "Open your timeline" : "Join the waitlist"}
-            <ArrowRight className="h-4 w-4 transition-transform group-hover:translate-x-0.5" />
-          </button>
-        </Reveal>
-        <Reveal delay={200}>
           <div className="mt-10 flex items-center justify-center -space-x-3">
-            {[bubbleDad, bubbleMom, bubbleGrandpa, bubbleGrandma, bubbleSon, bubbleDog].map((src, i) => (
+            {[bubbleGrandpa, bubbleGrandma, bubbleDad, bubbleMom, bubbleSon].map((src, i) => (
               <img
                 key={i}
                 src={src}
                 alt=""
-                className="h-11 w-11 rounded-full object-cover ring-3 ring-[#f5f1ea]"
-                style={{ borderWidth: 3 }}
+                className="h-14 w-14 rounded-full object-cover ring-4 ring-background shadow-md"
                 loading="lazy"
-                width={640}
-                height={640}
               />
             ))}
-            <div className="ml-4 text-sm text-[#4a423d]">Families already on the list</div>
           </div>
         </Reveal>
       </div>
@@ -555,25 +381,131 @@ function FinalCTA() {
   );
 }
 
-/* ─────────────────────  footer  ───────────────────── */
+/* ─────────────────────  founders  ───────────────────── */
 
-function Footer() {
+const FOUNDERS = [
+  {
+    name: "Dr. Jit Sarkar",
+    role: "Co-founder · R&D",
+    creds: "MBBS, PhD",
+    quote:
+      "I've watched families juggle five different clinics and a folder of scans. MedSafe is the record we wished existed — one that quietly does the remembering, so clinicians can see the full picture.",
+  },
+  {
+    name: "Dipankar Mandal",
+    role: "Co-founder · Strategy & Ops",
+    creds: "Eng. Mgmt., Uni. of York · MS Financial Engg., WorldQuant Univ.",
+    quote:
+      "We built MedSafe for our own parents first. Every recommendation is grounded in your own reports and lifestyle logs. Nothing is invented, nothing leaves your family's circle without your consent.",
+  },
+];
+
+function FoundersSection() {
   return (
-    <footer className="border-t border-black/10 bg-[#f5f1ea] py-10">
-      <div className="mx-auto flex max-w-[1400px] flex-wrap items-center justify-between gap-4 px-6 text-sm text-[#4a423d]">
-        <div className="flex items-center gap-2">
-          <div className="grid h-8 w-8 place-items-center rounded-full bg-[#1a1613] text-white">
-            <HeartPulse className="h-4 w-4" />
+    <section className="bg-primary text-primary-foreground py-24 sm:py-32">
+      <div className="mx-auto max-w-5xl px-4">
+        <Reveal>
+          <div className="mx-auto max-w-2xl text-center">
+            <div className="text-xs font-semibold uppercase tracking-[0.2em] text-primary-foreground/70">
+              Founders
+            </div>
+            <h2
+              className="mt-3 font-serif"
+              style={{ fontSize: "clamp(1.9rem, 3.6vw, 2.75rem)", lineHeight: 1.1, letterSpacing: "-0.02em" }}
+            >
+              Science-backed. Clinician-led.
+            </h2>
+            <p className="mx-auto mt-4 max-w-xl text-primary-foreground/80">
+              Not a generic health app — built by a physician-scientist and a healthtech operator
+              with academic ties to King's College London.
+            </p>
           </div>
-          <span className="font-display text-lg text-[#1a1613]">MedSafe</span>
+        </Reveal>
+
+        <div className="mt-14 grid gap-6 md:grid-cols-2">
+          {FOUNDERS.map((f, i) => (
+            <Reveal key={f.name} delay={i * 120}>
+              <div className="h-full rounded-3xl bg-primary-foreground/5 p-8 ring-1 ring-primary-foreground/15 backdrop-blur">
+                <div className="flex items-center gap-4">
+                  <div className="grid h-12 w-12 place-items-center rounded-full bg-primary-foreground/10 font-serif text-lg">
+                    {f.name.split(" ").map((w) => w[0]).slice(0, 2).join("")}
+                  </div>
+                  <div>
+                    <div className="font-serif text-xl">{f.name}</div>
+                    <div className="text-xs uppercase tracking-wider text-primary-foreground/70">
+                      {f.role}
+                    </div>
+                  </div>
+                </div>
+                <div className="mt-2 text-xs text-primary-foreground/60">{f.creds}</div>
+                <p className="mt-5 text-[15px] leading-relaxed text-primary-foreground/90">
+                  “{f.quote}”
+                </p>
+              </div>
+            </Reveal>
+          ))}
         </div>
-        <div className="flex items-center gap-5 text-xs">
-          <Link to="/privacy" className="hover:text-[#1a1613]">Privacy</Link>
-          <Link to="/dpdp-notice" className="hover:text-[#1a1613]">DPDP Notice</Link>
-          <Link to="/care" className="hover:text-[#1a1613]">Contact</Link>
+
+        <Reveal delay={200}>
+          <div className="mt-10 flex flex-wrap items-center justify-center gap-3 text-xs text-primary-foreground/80">
+            <TrustChip>King's College London</TrustChip>
+            <TrustChip>Royal Marsden NHS Trust</TrustChip>
+            <TrustChip>ISO 27001</TrustChip>
+            <TrustChip>DPDP · HIPAA aligned</TrustChip>
+            <TrustChip>MEDAIQ Integrated Healthcare Pvt. Ltd.</TrustChip>
+          </div>
+        </Reveal>
+
+        {/* subtle inspiration image, low profile */}
+        <div className="mt-10 hidden justify-center md:flex">
+          <img
+            src={refFounders.url}
+            alt=""
+            className="h-40 rounded-xl opacity-30"
+            loading="lazy"
+          />
         </div>
-        <div className="text-xs">© {new Date().getFullYear()} MedSafe · A DeRiskBio initiative</div>
       </div>
-    </footer>
+    </section>
+  );
+}
+
+function TrustChip({ children }: { children: React.ReactNode }) {
+  return (
+    <span className="inline-flex items-center gap-1.5 rounded-full border border-primary-foreground/25 bg-primary-foreground/5 px-3 py-1">
+      <ShieldCheck className="h-3 w-3" /> {children}
+    </span>
+  );
+}
+
+/* ─────────────────────  final CTA  ───────────────────── */
+
+function FinalCTA() {
+  return (
+    <section className="bg-background py-24 sm:py-32">
+      <div className="mx-auto max-w-2xl px-4 text-center">
+        <Reveal>
+          <h2
+            className="font-serif text-foreground"
+            style={{ fontSize: "clamp(2rem, 4.2vw, 3.25rem)", lineHeight: 1.08, letterSpacing: "-0.02em" }}
+          >
+            Your family's health,
+            <br />
+            <span className="italic text-primary">quietly organized.</span>
+          </h2>
+        </Reveal>
+        <Reveal delay={120}>
+          <div className="mt-8 flex flex-wrap items-center justify-center gap-3">
+            <PrimaryCTA />
+            <Link
+              to="/auth"
+              className="inline-flex items-center gap-2 rounded-full border border-border bg-card px-5 py-3 text-sm font-semibold text-foreground hover:bg-accent"
+            >
+              Log in
+            </Link>
+          </div>
+        </Reveal>
+      </div>
+    </section>
   );
 }

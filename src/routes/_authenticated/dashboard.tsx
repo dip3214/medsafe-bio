@@ -69,10 +69,37 @@ function DashboardPage() {
   return (
     <SiteLayout>
       <section className="mx-auto max-w-7xl px-4 py-10">
+        {/* Segment quick-switcher */}
+        <div className="mb-8 grid gap-3 sm:grid-cols-3">
+          {segmentCards.map((s) => {
+            const m = firstOf(s.key);
+            const isActive = active?.segment === s.key;
+            const tone =
+              s.key === "me"
+                ? "bg-me text-me-foreground"
+                : s.key === "parents"
+                  ? "bg-parents text-parents-foreground"
+                  : "bg-kids text-kids-foreground";
+            return (
+              <button
+                key={s.key}
+                disabled={!m}
+                onClick={() => m && setActiveId(m.id)}
+                className={`group rounded-2xl border p-4 text-left transition hover:scale-[1.01] ${tone} ${
+                  isActive ? "ring-2 ring-primary shadow-lg" : "border-border/50"
+                } disabled:opacity-50 disabled:cursor-not-allowed`}
+              >
+                <div className="font-serif text-xl">{s.label}</div>
+                <div className="mt-1 text-xs opacity-80">{m ? s.sub : "Add a family member"}</div>
+              </button>
+            );
+          })}
+        </div>
+
         <div className="flex flex-wrap items-end justify-between gap-3">
           <div>
             <div className="text-xs uppercase tracking-wider text-primary">Health overview</div>
-            <h1 className="mt-1 text-3xl font-semibold tracking-tight">
+            <h1 className="mt-1 font-serif text-3xl tracking-tight sm:text-4xl">
               {patient?.patientName ? `${patient.patientName.split(" ")[0]}'s health story` : "Your health story"}
             </h1>
             <p className="mt-1 text-sm text-muted-foreground">
@@ -98,6 +125,7 @@ function DashboardPage() {
             )}
           </div>
         )}
+
 
         {visitDelta && (
           <div className="mt-8 overflow-hidden rounded-2xl border border-border bg-gradient-to-br from-card via-card to-accent/30 p-6 shadow-sm">

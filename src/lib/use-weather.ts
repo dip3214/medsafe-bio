@@ -61,14 +61,31 @@ function getBrowserLatLon(signal: AbortSignal): Promise<{ lat: number; lon: numb
   return new Promise((resolve) => {
     if (typeof navigator === "undefined" || !navigator.geolocation) return resolve(null);
     let done = false;
-    const timer = setTimeout(() => { if (!done) { done = true; resolve(null); } }, 6000);
-    signal.addEventListener("abort", () => { if (!done) { done = true; clearTimeout(timer); resolve(null); } });
+    const finish = (v: { lat: number; lon: number } | null) => { if (!done) { done = true; clearTimeout(timer); resolve(v); } };
+    const timer = setTimeout(() => finish(null), 9000);
+    signal.addEventListener("abort", () => finish(null));
     navigator.geolocation.getCurrentPosition(
-      (pos) => { if (!done) { done = true; clearTimeout(timer); resolve({ lat: pos.coords.latitude, lon: pos.coords.longitude }); } },
-      () => { if (!done) { done = true; clearTimeout(timer); resolve(null); } },
-      { enableHighAccuracy: false, maximumAge: 10 * 60 * 1000, timeout: 5000 },
+      (pos) => {
+        const coords = { lat: pos.coords.latitude, lon: pos.coords.longitude };
+        try { localStorage.setItem("medsafe:geo", JSON.stringify({ ...coords, t: Date.now() })); } catch {}
+        finish(coords);
+      },
+      () => finish(null),
+      { enableHighAccuracy: true, maximumAge: 30 * 60 * 1000, timeout: 8000 },
     );
   });
+}
+
+function getCachedLatLon(): { lat: number; lon: number } | null {
+  try {
+    const raw = localStorage.getItem("medsafe:geo");
+    if (!raw) return null;
+    const j = JSON.parse(raw);
+    if (typeof j?.lat !== "number" || typeof j?.lon !== "number") return null;
+    // 24h freshness
+    if (Date.now() - (j.t ?? 0) > 24 * 60 * 60 * 1000) return null;
+    return { lat: j.lat, lon: j.lon };
+  } catch { return null; }
 }
 
 async function reverseCity(lat: number, lon: number, signal: AbortSignal): Promise<string | null> {

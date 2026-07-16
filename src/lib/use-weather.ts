@@ -115,8 +115,9 @@ export function useWeather(): Weather | null {
     const ctrl = new AbortController();
     (async () => {
       try {
-        // Prefer precise browser geolocation, fall back to IP-based.
-        const browserLoc = await getBrowserLatLon(ctrl.signal);
+        // Prefer cached precise location, then live browser geolocation, then IP.
+        const cached = getCachedLatLon();
+        const browserLoc = cached ?? await getBrowserLatLon(ctrl.signal);
         let loc: { lat: number; lon: number; city: string | null } | null = null;
         if (browserLoc) {
           const city = await reverseCity(browserLoc.lat, browserLoc.lon, ctrl.signal);

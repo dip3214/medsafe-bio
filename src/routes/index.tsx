@@ -13,9 +13,8 @@ import bubbleGrandma from "@/assets/bubble-grandma.jpg";
 import bubbleGrandpa from "@/assets/bubble-grandpa.jpg";
 import bubbleSon from "@/assets/bubble-son.jpg";
 import refAsk from "@/assets/ref-ask.png.asset.json";
-import refLifestyle from "@/assets/ref-lifestyle.png.asset.json";
+import refLifestyle from "@/assets/lifestyle-value.png.asset.json";
 import refCheckin from "@/assets/ref-checkin.png.asset.json";
-import refFounders from "@/assets/ref-founders.png.asset.json";
 
 export const Route = createFileRoute("/")({
   head: () => ({

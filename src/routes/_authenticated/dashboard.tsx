@@ -21,13 +21,22 @@ export const Route = createFileRoute("/_authenticated/dashboard")({
 
 function DashboardPage() {
   const listDocs = useServerFn(listMedicalDocs);
-  const { active } = useActiveMember();
+  const { active, members, setActiveId } = useActiveMember();
   const { data: docs = [] } = useQuery({
     queryKey: ["medsafe-docs", active?.id ?? null],
     queryFn: () => listDocs({ data: { memberId: active?.id } }) as Promise<MedicalDoc[]>,
   });
   const groups = groupDocs(docs);
   const patient = [...docs].reverse().find((d) => d.patientName);
+
+  const segmentCards: { key: "me" | "parents" | "kids"; label: string; sub: string }[] = [
+    { key: "me", label: "MedSafe Me", sub: "Your own timeline" },
+    { key: "parents", label: "MedSafe Parents", sub: "Mum · Dad · in-laws" },
+    { key: "kids", label: "MedSafe Kids", sub: "Vaccines & growth" },
+  ];
+  const firstOf = (seg: "me" | "parents" | "kids") =>
+    members.find((m) => m.segment === seg && m.is_default) || members.find((m) => m.segment === seg);
+
 
   const series = useMemo(() => {
     const map = new Map<string, { date: string; value: number; flag?: string }[]>();

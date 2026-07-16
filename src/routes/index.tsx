@@ -13,9 +13,8 @@ import bubbleGrandma from "@/assets/bubble-grandma.jpg";
 import bubbleGrandpa from "@/assets/bubble-grandpa.jpg";
 import bubbleSon from "@/assets/bubble-son.jpg";
 import refAsk from "@/assets/ref-ask.png.asset.json";
-import refLifestyle from "@/assets/ref-lifestyle.png.asset.json";
+import refLifestyle from "@/assets/lifestyle-value.png.asset.json";
 import refCheckin from "@/assets/ref-checkin.png.asset.json";
-import refFounders from "@/assets/ref-founders.png.asset.json";
 
 export const Route = createFileRoute("/")({
   head: () => ({
@@ -448,23 +447,10 @@ function FoundersSection() {
 
         <Reveal delay={200}>
           <div className="mt-10 flex flex-wrap items-center justify-center gap-3 text-xs text-primary-foreground/80">
-            <TrustChip>King's College London</TrustChip>
-            <TrustChip>Royal Marsden NHS Trust</TrustChip>
-            <TrustChip>ISO 27001</TrustChip>
-            <TrustChip>DPDP · HIPAA aligned</TrustChip>
-            <TrustChip>MEDAIQ Integrated Healthcare Pvt. Ltd.</TrustChip>
+            <TrustChip>DPDP-aligned</TrustChip>
+            <TrustChip>Physician-led only</TrustChip>
           </div>
         </Reveal>
-
-        {/* subtle inspiration image, low profile */}
-        <div className="mt-10 hidden justify-center md:flex">
-          <img
-            src={refFounders.url}
-            alt=""
-            className="h-40 rounded-xl opacity-30"
-            loading="lazy"
-          />
-        </div>
       </div>
     </section>
   );

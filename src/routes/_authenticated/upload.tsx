@@ -292,7 +292,7 @@ function ExtractionLoader() {
         .ext .r1 { animation: ext-row .5s ease forwards; animation-delay:.8s; opacity:0; }
         .ext .r2 { animation: ext-row .5s ease forwards; animation-delay:1.6s; opacity:0; }
         .ext .r3 { animation: ext-row .5s ease forwards; animation-delay:2.4s; opacity:0; }
-        .ext .doc-line { height:7px; border-radius:4px; background:hsl(var(--border)); opacity:.6; }
+        .ext .doc-line { height:7px; border-radius:4px; background:var(--border); opacity:.7; }
       `}</style>
 
       <div className="flex flex-col items-center gap-4 py-4">

@@ -395,3 +395,86 @@ function ImprovementCard({ item }: { item: Improvement }) {
     </div>
   );
 }
+
+/* ─────────────────  MedSafe Kids · vaccination schedule  ─────────────── */
+
+type VaxItem = { ageLabel: string; ageMonths: number; vaccine: string; note?: string };
+
+// India IAP schedule condensed — the essentials caregivers actually need at a glance.
+const IAP_SCHEDULE: VaxItem[] = [
+  { ageLabel: "Birth", ageMonths: 0, vaccine: "BCG, OPV-0, Hep-B 1" },
+  { ageLabel: "6 weeks", ageMonths: 1.5, vaccine: "DTwP/DTaP 1, Hib 1, IPV 1, Hep-B 2, PCV 1, Rota 1" },
+  { ageLabel: "10 weeks", ageMonths: 2.5, vaccine: "DTwP 2, Hib 2, IPV 2, PCV 2, Rota 2" },
+  { ageLabel: "14 weeks", ageMonths: 3.5, vaccine: "DTwP 3, Hib 3, IPV 3, PCV 3, Rota 3" },
+  { ageLabel: "6 months", ageMonths: 6, vaccine: "Hep-B 3, OPV 1", note: "Flu shot annually from 6m" },
+  { ageLabel: "9 months", ageMonths: 9, vaccine: "MMR 1", note: "Typhoid conjugate from 9m" },
+  { ageLabel: "12 months", ageMonths: 12, vaccine: "Hepatitis A 1" },
+  { ageLabel: "15 months", ageMonths: 15, vaccine: "MMR 2, Varicella 1, PCV booster" },
+  { ageLabel: "16–18 months", ageMonths: 17, vaccine: "DTwP B1, Hib B1, IPV B1" },
+  { ageLabel: "18–19 months", ageMonths: 18.5, vaccine: "Hepatitis A 2, Varicella 2" },
+  { ageLabel: "4–6 years", ageMonths: 60, vaccine: "DTwP B2, OPV 2, MMR 3" },
+  { ageLabel: "9–14 years (girls)", ageMonths: 108, vaccine: "HPV (2 doses, 6m apart)" },
+  { ageLabel: "10–12 years", ageMonths: 120, vaccine: "Tdap / Td booster" },
+];
+
+function KidsVaccinations({ dob, name }: { dob: string | null; name: string }) {
+  const ageMonths = dob ? Math.max(0, (Date.now() - new Date(dob).getTime()) / (1000 * 60 * 60 * 24 * 30.4375)) : null;
+  const next = ageMonths != null ? IAP_SCHEDULE.find((v) => v.ageMonths >= ageMonths) : null;
+  return (
+    <div className="mt-8 overflow-hidden rounded-2xl border border-border bg-kids p-6 text-kids-foreground shadow-sm">
+      <div className="flex flex-wrap items-start justify-between gap-3">
+        <div>
+          <div className="inline-flex items-center gap-1.5 text-xs font-semibold uppercase tracking-[0.16em] opacity-80">
+            <Syringe className="h-3.5 w-3.5" /> MedSafe Kids · Vaccination schedule
+          </div>
+          <h2 className="mt-1 font-serif text-2xl">
+            {name.split(" ")[0]}'s immunisations
+          </h2>
+          <p className="mt-1 text-sm opacity-80">
+            Based on the IAP (India) schedule. We highlight what's next so you never miss a dose.
+          </p>
+        </div>
+        {next && (
+          <div className="rounded-xl bg-background/70 px-4 py-2 text-sm shadow-sm">
+            <div className="text-[11px] uppercase tracking-wider opacity-70">Next up</div>
+            <div className="font-semibold">{next.ageLabel}</div>
+            <div className="text-xs opacity-90">{next.vaccine}</div>
+          </div>
+        )}
+      </div>
+
+      <ol className="mt-5 grid gap-2 sm:grid-cols-2 lg:grid-cols-3">
+        {IAP_SCHEDULE.map((v) => {
+          const done = ageMonths != null && ageMonths >= v.ageMonths + 1;
+          const upcoming = next?.ageLabel === v.ageLabel;
+          return (
+            <li
+              key={v.ageLabel}
+              className={`rounded-xl border p-3 text-sm shadow-sm ring-1 ${
+                upcoming
+                  ? "border-primary/40 bg-background/90 ring-primary/30"
+                  : done
+                    ? "border-transparent bg-background/50 opacity-80"
+                    : "border-transparent bg-background/70"
+              }`}
+            >
+              <div className="flex items-center justify-between">
+                <span className="font-semibold">{v.ageLabel}</span>
+                {done && <span className="text-[10px] font-semibold uppercase tracking-wider text-green-700">Done</span>}
+                {upcoming && <span className="text-[10px] font-semibold uppercase tracking-wider text-primary">Next</span>}
+              </div>
+              <div className="mt-1 text-xs">{v.vaccine}</div>
+              {v.note && <div className="mt-1 text-[11px] opacity-70">{v.note}</div>}
+            </li>
+          );
+        })}
+      </ol>
+
+      {!dob && (
+        <p className="mt-4 text-xs opacity-70">
+          Tip: add your child's date of birth in Family to auto-highlight the next due vaccine.
+        </p>
+      )}
+    </div>
+  );
+}

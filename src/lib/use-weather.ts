@@ -113,6 +113,38 @@ async function fetchWeather(lat: number, lon: number, signal: AbortSignal) {
   return r.json();
 }
 
+async function renderFrom(
+  loc: { lat: number; lon: number; city: string | null },
+  signal: AbortSignal,
+  setWeather: (w: Weather) => void,
+) {
+  const data = await fetchWeather(loc.lat, loc.lon, signal);
+  const code = data?.current?.weather_code ?? 0;
+  const temp = data?.current?.temperature_2m ?? null;
+  const condition = mapCode(code);
+  const hourlyCodes: number[] = data?.hourly?.weather_code ?? [];
+  const hourlyProb: number[] = data?.hourly?.precipitation_probability ?? [];
+  const willRainSoon =
+    hourlyCodes.some((c) => {
+      const m = mapCode(c);
+      return m === "rain" || m === "thunder";
+    }) || hourlyProb.some((p) => (p ?? 0) >= 60);
+  const isRainingNow = condition === "rain" || condition === "thunder";
+  const isCloudy = condition === "clouds" || condition === "fog" || willRainSoon;
+  const parts = [conditionLabel(condition)];
+  if (typeof temp === "number") parts.push(`${Math.round(temp)}°C`);
+  if (loc.city) parts.push(loc.city);
+  setWeather({
+    condition,
+    isRainingNow,
+    willRainSoon,
+    isCloudy,
+    tempC: typeof temp === "number" ? temp : null,
+    locationName: loc.city,
+    label: parts.join(" · "),
+  });
+}
+
 export function useWeather(): Weather | null {
   const [weather, setWeather] = useState<Weather | null>(null);
 

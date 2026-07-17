@@ -42,6 +42,7 @@ function Index() {
       <div className="bg-background text-foreground">
         <Hero />
         <Marquee />
+        <PersonaVoices />
         <FeatureBreakdown />
         <FamilySection />
         <FoundersSection />

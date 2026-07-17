@@ -233,7 +233,6 @@ function PersonaVoices() {
     </section>
   );
 }
-}
 
 /* ─────────────────────  luffu-style marquee  ───────────────────── */
 

@@ -140,35 +140,6 @@ export function useWeather(): Weather | null {
         }
         if (!loc) return;
         await renderFrom(loc, ctrl.signal, setWeather);
-        const data = await fetchWeather(loc.lat, loc.lon, ctrl.signal);
-        const code = data?.current?.weather_code ?? 0;
-        const temp = data?.current?.temperature_2m ?? null;
-        const condition = mapCode(code);
-
-        const hourlyCodes: number[] = data?.hourly?.weather_code ?? [];
-        const hourlyProb: number[] = data?.hourly?.precipitation_probability ?? [];
-        const willRainSoon =
-          hourlyCodes.some((c) => {
-            const m = mapCode(c);
-            return m === "rain" || m === "thunder";
-          }) || hourlyProb.some((p) => (p ?? 0) >= 60);
-
-        const isRainingNow = condition === "rain" || condition === "thunder";
-        const isCloudy = condition === "clouds" || condition === "fog" || willRainSoon;
-
-        const parts = [conditionLabel(condition)];
-        if (typeof temp === "number") parts.push(`${Math.round(temp)}°C`);
-        if (loc.city) parts.push(loc.city);
-
-        setWeather({
-          condition,
-          isRainingNow,
-          willRainSoon,
-          isCloudy,
-          tempC: typeof temp === "number" ? temp : null,
-          locationName: loc.city,
-          label: parts.join(" · "),
-        });
       } catch { /* fail silently */ }
     })();
     return () => ctrl.abort();

@@ -92,17 +92,9 @@ function PrimaryCTA({ className = "" }: { className?: string }) {
 }
 
 function Hero() {
-  const [idx, setIdx] = useState(0);
-  useEffect(() => {
-    const t = setInterval(() => setIdx((i) => (i + 1) % HERO_CLIPS.length), 3800);
-    return () => clearInterval(t);
-  }, []);
-
-  const active = HERO_CLIPS[idx];
-
+  const authed = useAuthed();
   return (
     <section className="relative isolate overflow-hidden">
-      {/* background image */}
       <div className="absolute inset-0 -z-10">
         <img
           src={heroFamily}
@@ -121,44 +113,86 @@ function Hero() {
         />
       </div>
 
-      <div className="mx-auto grid max-w-7xl grid-cols-1 items-center gap-10 px-4 pb-24 pt-16 sm:pt-20 md:grid-cols-[1.15fr_1fr] md:pb-32 md:pt-24">
-        <div>
-          <div className="inline-flex items-center gap-2 rounded-full border border-white/25 bg-white/15 px-3 py-1 text-[11px] font-medium uppercase tracking-[0.18em] text-white backdrop-blur">
-            <Sparkles className="h-3 w-3" /> AI-powered · Whole-family healthcare
-          </div>
-          <h1
-            className="mt-5 font-serif text-white"
-            style={{
-              fontSize: "clamp(2.4rem, 5.6vw, 4.8rem)",
-              lineHeight: 1.03,
-              letterSpacing: "-0.02em",
-              textShadow: "0 2px 24px rgba(0,0,0,0.35)",
-            }}
-          >
-            When your whole family relies on you,
-            <br />
-            <span className="italic">rely on MedSafe.</span>
-          </h1>
-          <p
-            className="mt-5 max-w-xl text-base leading-relaxed text-white/95 sm:text-lg"
-            style={{ textShadow: "0 1px 12px rgba(0,0,0,0.4)" }}
-          >
-            One private, AI-powered health record for every prescription, lab report and daily
-            rhythm — grounded in what's actually happening with your family.
-          </p>
-          <div className="mt-8 flex flex-wrap items-center gap-3">
-            <PrimaryCTA />
+      <div className="mx-auto flex max-w-5xl flex-col items-center gap-8 px-4 pb-28 pt-20 text-center sm:pt-24 md:pb-36 md:pt-28">
+        <div className="inline-flex items-center gap-2 rounded-full border border-white/25 bg-white/15 px-3 py-1 text-[11px] font-medium uppercase tracking-[0.18em] text-white backdrop-blur">
+          <Sparkles className="h-3 w-3" /> AI-powered · Secure platform · Whole-family healthcare
+        </div>
+        <h1
+          className="font-serif text-white"
+          style={{
+            fontSize: "clamp(2.4rem, 5.6vw, 4.8rem)",
+            lineHeight: 1.03,
+            letterSpacing: "-0.02em",
+            textShadow: "0 2px 24px rgba(0,0,0,0.35)",
+          }}
+        >
+          When your whole family relies on you,
+          <br />
+          <span className="italic">rely on MedSafe.</span>
+        </h1>
+        <p
+          className="max-w-2xl text-base leading-relaxed text-white/95 sm:text-lg"
+          style={{ textShadow: "0 1px 12px rgba(0,0,0,0.4)" }}
+        >
+          One private, AI-powered health record for every prescription, lab report and daily
+          rhythm — grounded in what's actually happening with your family.
+        </p>
+        <div className="mt-2 flex flex-wrap items-center justify-center gap-3">
+          <PrimaryCTA />
+          {!authed && (
             <Link
               to="/auth"
               className="inline-flex items-center gap-2 rounded-full border border-white/40 bg-white/15 px-5 py-3 text-sm font-semibold text-white backdrop-blur transition hover:bg-white/25"
             >
               Log in
             </Link>
-          </div>
+          )}
         </div>
+        <div className="mt-6 flex flex-wrap items-center justify-center gap-2 text-[11px] font-medium text-white/90">
+          <HeroChip>Secure platform</HeroChip>
+          <HeroChip>DPDP-aligned</HeroChip>
+          <HeroChip>Physician-led</HeroChip>
+          <HeroChip>End-to-end encrypted</HeroChip>
+        </div>
+      </div>
+    </section>
+  );
+}
 
-        {/* right: single active persona card that cross-fades (no dog, no cluttered stack) */}
-        <div className="relative h-[320px] sm:h-[380px]">
+function HeroChip({ children }: { children: React.ReactNode }) {
+  return (
+    <span className="inline-flex items-center gap-1.5 rounded-full border border-white/30 bg-white/10 px-2.5 py-1 backdrop-blur">
+      <ShieldCheck className="h-3 w-3" /> {children}
+    </span>
+  );
+}
+
+/* ─────────────────────  persona voices (moved below fold)  ───────────────────── */
+
+function PersonaVoices() {
+  const [idx, setIdx] = useState(0);
+  useEffect(() => {
+    const t = setInterval(() => setIdx((i) => (i + 1) % HERO_CLIPS.length), 3800);
+    return () => clearInterval(t);
+  }, []);
+  return (
+    <section className="bg-background py-20 sm:py-28">
+      <div className="mx-auto max-w-5xl px-4">
+        <Reveal>
+          <div className="mx-auto max-w-2xl text-center">
+            <div className="text-xs font-semibold uppercase tracking-[0.2em] text-primary">
+              Real questions, real families
+            </div>
+            <h2
+              className="mt-3 font-serif text-foreground"
+              style={{ fontSize: "clamp(1.9rem, 3.8vw, 2.8rem)", lineHeight: 1.08, letterSpacing: "-0.02em" }}
+            >
+              The things you already worry about — answered from your own records.
+            </h2>
+          </div>
+        </Reveal>
+
+        <div className="relative mt-14 h-[360px] sm:h-[420px]">
           {HERO_CLIPS.map((c, i) => {
             const isActive = i === idx;
             return (
@@ -171,35 +205,34 @@ function Hero() {
                 }}
                 aria-hidden={!isActive}
               >
-                <div className="flex flex-col items-center gap-4">
-                  <div className="h-40 w-40 overflow-hidden rounded-full ring-4 ring-white/70 shadow-2xl sm:h-52 sm:w-52">
+                <div className="flex flex-col items-center gap-5">
+                  <div className="h-40 w-40 overflow-hidden rounded-full ring-4 ring-primary/15 shadow-2xl sm:h-56 sm:w-56">
                     <img src={c.img} alt="" className="h-full w-full object-cover" />
                   </div>
-                  <div className="max-w-xs rounded-2xl bg-white/95 px-4 py-2.5 text-center text-sm font-medium text-foreground shadow-xl">
-                    {c.caption}
+                  <div className="max-w-md rounded-2xl bg-card px-5 py-3 text-center font-serif text-lg text-foreground shadow-xl ring-1 ring-border/60 sm:text-xl">
+                    “{c.caption}”
                   </div>
                 </div>
               </div>
             );
           })}
-          {/* dots */}
           <div className="absolute inset-x-0 bottom-0 flex justify-center gap-1.5">
             {HERO_CLIPS.map((_, i) => (
               <span
                 key={i}
                 className="h-1.5 rounded-full transition-all"
                 style={{
-                  width: i === idx ? 20 : 6,
-                  background: i === idx ? "white" : "rgba(255,255,255,0.5)",
+                  width: i === idx ? 22 : 6,
+                  background: i === idx ? "var(--primary)" : "color-mix(in oklch, var(--primary) 25%, transparent)",
                 }}
               />
             ))}
           </div>
         </div>
       </div>
-      <p className="sr-only">{active.caption}</p>
     </section>
   );
+}
 }
 
 /* ─────────────────────  luffu-style marquee  ───────────────────── */

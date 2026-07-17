@@ -120,17 +120,26 @@ export function useWeather(): Weather | null {
     const ctrl = new AbortController();
     (async () => {
       try {
-        // Prefer cached precise location, then live browser geolocation, then IP.
-        const cached = getCachedLatLon();
-        const browserLoc = cached ?? await getBrowserLatLon(ctrl.signal);
+        // Prefer live browser geolocation (highest accuracy). Cached fix keeps
+        // the UI responsive while a fresh fix loads; IP is only a last resort.
         let loc: { lat: number; lon: number; city: string | null } | null = null;
-        if (browserLoc) {
-          const city = await reverseCity(browserLoc.lat, browserLoc.lon, ctrl.signal);
-          loc = { ...browserLoc, city };
-        } else {
+        const cached = getCachedLatLon();
+        if (cached) {
+          const city = await reverseCity(cached.lat, cached.lon, ctrl.signal);
+          loc = { ...cached, city };
+          renderFrom(loc, ctrl.signal, setWeather);
+        }
+        const fresh =
+          (await getBrowserLatLon(ctrl.signal, true)) ??
+          (await getBrowserLatLon(ctrl.signal, false));
+        if (fresh) {
+          const city = await reverseCity(fresh.lat, fresh.lon, ctrl.signal);
+          loc = { ...fresh, city };
+        } else if (!loc) {
           loc = await fetchLatLonIp(ctrl.signal);
         }
         if (!loc) return;
+        await renderFrom(loc, ctrl.signal, setWeather);
         const data = await fetchWeather(loc.lat, loc.lon, ctrl.signal);
         const code = data?.current?.weather_code ?? 0;
         const temp = data?.current?.temperature_2m ?? null;

@@ -354,20 +354,28 @@ function FeatureBreakdown() {
 
 function FeatureVisual({ image, secondary }: { image: string; secondary?: string }) {
   return (
-    <div className="relative aspect-[4/3] w-full">
+    <div className="relative w-full">
       <div
-        className="absolute inset-0 rounded-3xl bg-accent/60"
+        className="absolute inset-0 rounded-3xl"
         style={{
           background:
-            "linear-gradient(135deg, color-mix(in oklch, var(--primary) 8%, var(--background)), color-mix(in oklch, var(--accent) 60%, var(--background)))",
+            "linear-gradient(135deg, color-mix(in oklch, var(--primary) 10%, var(--background)), color-mix(in oklch, var(--accent) 60%, var(--background)))",
         }}
       />
-      <div className="absolute inset-4 overflow-hidden rounded-2xl bg-white shadow-2xl shadow-primary/15">
-        <img src={image} alt="" className="h-full w-full object-cover" loading="lazy" />
-      </div>
-      {secondary && (
-        <div className="absolute -bottom-6 -right-4 h-40 w-32 overflow-hidden rounded-2xl bg-white shadow-2xl shadow-primary/20 ring-4 ring-background sm:h-52 sm:w-40">
-          <img src={secondary} alt="" className="h-full w-full object-cover" loading="lazy" />
+      {secondary ? (
+        <div className="relative grid grid-cols-2 gap-3 p-5 sm:gap-4 sm:p-6">
+          <div className="overflow-hidden rounded-2xl bg-card shadow-xl shadow-primary/10 ring-1 ring-border/60">
+            <img src={image} alt="" className="h-full w-full object-contain" loading="lazy" />
+          </div>
+          <div className="overflow-hidden rounded-2xl bg-card shadow-xl shadow-primary/10 ring-1 ring-border/60">
+            <img src={secondary} alt="" className="h-full w-full object-contain" loading="lazy" />
+          </div>
+        </div>
+      ) : (
+        <div className="relative p-5 sm:p-6">
+          <div className="overflow-hidden rounded-2xl bg-card shadow-xl shadow-primary/10 ring-1 ring-border/60">
+            <img src={image} alt="" className="h-auto w-full object-contain" loading="lazy" />
+          </div>
         </div>
       )}
     </div>

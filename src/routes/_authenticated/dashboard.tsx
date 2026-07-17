@@ -157,6 +157,8 @@ function DashboardPage() {
           <Kpi icon={Activity} label="Medicines tracked" value={totalMeds} />
         </div>
 
+        {active?.segment === "kids" && <KidsVaccinations dob={active?.dob ?? null} name={active?.name ?? "Your child"} />}
+
         {improvements.length > 0 && (
           <div className="mt-10">
             <div className="flex items-end justify-between">

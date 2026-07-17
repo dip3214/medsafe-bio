@@ -519,12 +519,14 @@ function FinalCTA() {
         <Reveal delay={120}>
           <div className="mt-8 flex flex-wrap items-center justify-center gap-3">
             <PrimaryCTA />
-            <Link
-              to="/auth"
-              className="inline-flex items-center gap-2 rounded-full border border-border bg-card px-5 py-3 text-sm font-semibold text-foreground hover:bg-accent"
-            >
-              Log in
-            </Link>
+            {!authed && (
+              <Link
+                to="/auth"
+                className="inline-flex items-center gap-2 rounded-full border border-border bg-card px-5 py-3 text-sm font-semibold text-foreground hover:bg-accent"
+              >
+                Log in
+              </Link>
+            )}
           </div>
         </Reveal>
       </div>

@@ -2,7 +2,7 @@ import { createFileRoute, Link, useNavigate } from "@tanstack/react-router";
 import { useEffect, useState } from "react";
 import { ArrowRight, HeartPulse, ShieldCheck, Sparkles, Activity, Users } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
-import { useActiveMember } from "@/lib/active-member";
+
 import { Reveal } from "@/components/Reveal";
 import { SiteLayout } from "@/components/SiteLayout";
 

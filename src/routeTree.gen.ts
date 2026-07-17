@@ -22,6 +22,7 @@ import { Route as ApiTranscribeRouteImport } from './routes/api/transcribe'
 import { Route as ApiChatRouteImport } from './routes/api/chat'
 import { Route as AuthenticatedUploadRouteImport } from './routes/_authenticated/upload'
 import { Route as AuthenticatedSummaryRouteImport } from './routes/_authenticated/summary'
+import { Route as AuthenticatedStartRouteImport } from './routes/_authenticated/start'
 import { Route as AuthenticatedMembersRouteImport } from './routes/_authenticated/members'
 import { Route as AuthenticatedLifestyleRouteImport } from './routes/_authenticated/lifestyle'
 import { Route as AuthenticatedDashboardRouteImport } from './routes/_authenticated/dashboard'
@@ -92,6 +93,11 @@ const AuthenticatedSummaryRoute = AuthenticatedSummaryRouteImport.update({
   path: '/summary',
   getParentRoute: () => AuthenticatedRouteRoute,
 } as any)
+const AuthenticatedStartRoute = AuthenticatedStartRouteImport.update({
+  id: '/start',
+  path: '/start',
+  getParentRoute: () => AuthenticatedRouteRoute,
+} as any)
 const AuthenticatedMembersRoute = AuthenticatedMembersRouteImport.update({
   id: '/members',
   path: '/members',
@@ -131,6 +137,7 @@ export interface FileRoutesByFullPath {
   '/dashboard': typeof AuthenticatedDashboardRoute
   '/lifestyle': typeof AuthenticatedLifestyleRoute
   '/members': typeof AuthenticatedMembersRoute
+  '/start': typeof AuthenticatedStartRoute
   '/summary': typeof AuthenticatedSummaryRoute
   '/upload': typeof AuthenticatedUploadRoute
   '/api/chat': typeof ApiChatRoute
@@ -150,6 +157,7 @@ export interface FileRoutesByTo {
   '/dashboard': typeof AuthenticatedDashboardRoute
   '/lifestyle': typeof AuthenticatedLifestyleRoute
   '/members': typeof AuthenticatedMembersRoute
+  '/start': typeof AuthenticatedStartRoute
   '/summary': typeof AuthenticatedSummaryRoute
   '/upload': typeof AuthenticatedUploadRoute
   '/api/chat': typeof ApiChatRoute
@@ -171,6 +179,7 @@ export interface FileRoutesById {
   '/_authenticated/dashboard': typeof AuthenticatedDashboardRoute
   '/_authenticated/lifestyle': typeof AuthenticatedLifestyleRoute
   '/_authenticated/members': typeof AuthenticatedMembersRoute
+  '/_authenticated/start': typeof AuthenticatedStartRoute
   '/_authenticated/summary': typeof AuthenticatedSummaryRoute
   '/_authenticated/upload': typeof AuthenticatedUploadRoute
   '/api/chat': typeof ApiChatRoute
@@ -192,6 +201,7 @@ export interface FileRouteTypes {
     | '/dashboard'
     | '/lifestyle'
     | '/members'
+    | '/start'
     | '/summary'
     | '/upload'
     | '/api/chat'
@@ -211,6 +221,7 @@ export interface FileRouteTypes {
     | '/dashboard'
     | '/lifestyle'
     | '/members'
+    | '/start'
     | '/summary'
     | '/upload'
     | '/api/chat'
@@ -231,6 +242,7 @@ export interface FileRouteTypes {
     | '/_authenticated/dashboard'
     | '/_authenticated/lifestyle'
     | '/_authenticated/members'
+    | '/_authenticated/start'
     | '/_authenticated/summary'
     | '/_authenticated/upload'
     | '/api/chat'
@@ -345,6 +357,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof AuthenticatedSummaryRouteImport
       parentRoute: typeof AuthenticatedRouteRoute
     }
+    '/_authenticated/start': {
+      id: '/_authenticated/start'
+      path: '/start'
+      fullPath: '/start'
+      preLoaderRoute: typeof AuthenticatedStartRouteImport
+      parentRoute: typeof AuthenticatedRouteRoute
+    }
     '/_authenticated/members': {
       id: '/_authenticated/members'
       path: '/members'
@@ -389,6 +408,7 @@ interface AuthenticatedRouteRouteChildren {
   AuthenticatedDashboardRoute: typeof AuthenticatedDashboardRoute
   AuthenticatedLifestyleRoute: typeof AuthenticatedLifestyleRoute
   AuthenticatedMembersRoute: typeof AuthenticatedMembersRoute
+  AuthenticatedStartRoute: typeof AuthenticatedStartRoute
   AuthenticatedSummaryRoute: typeof AuthenticatedSummaryRoute
   AuthenticatedUploadRoute: typeof AuthenticatedUploadRoute
 }
@@ -399,6 +419,7 @@ const AuthenticatedRouteRouteChildren: AuthenticatedRouteRouteChildren = {
   AuthenticatedDashboardRoute: AuthenticatedDashboardRoute,
   AuthenticatedLifestyleRoute: AuthenticatedLifestyleRoute,
   AuthenticatedMembersRoute: AuthenticatedMembersRoute,
+  AuthenticatedStartRoute: AuthenticatedStartRoute,
   AuthenticatedSummaryRoute: AuthenticatedSummaryRoute,
   AuthenticatedUploadRoute: AuthenticatedUploadRoute,
 }

@@ -46,23 +46,28 @@ function conditionLabel(c: WeatherCondition): string {
 }
 
 async function fetchLatLonIp(signal: AbortSignal): Promise<{ lat: number; lon: number; city: string | null } | null> {
-  try {
-    const r = await fetch("https://ipapi.co/json/", { signal });
-    if (!r.ok) return null;
-    const j = await r.json();
-    if (typeof j?.latitude === "number" && typeof j?.longitude === "number") {
-      return { lat: j.latitude, lon: j.longitude, city: j.city ?? null };
-    }
-  } catch { /* ignore */ }
+  const providers = [
+    { url: "https://ipapi.co/json/", pick: (j: any) => ({ lat: j?.latitude, lon: j?.longitude, city: j?.city ?? null }) },
+    { url: "https://ipwho.is/", pick: (j: any) => ({ lat: j?.latitude, lon: j?.longitude, city: j?.city ?? null }) },
+  ];
+  for (const p of providers) {
+    try {
+      const r = await fetch(p.url, { signal });
+      if (!r.ok) continue;
+      const j = await r.json();
+      const { lat, lon, city } = p.pick(j);
+      if (typeof lat === "number" && typeof lon === "number") return { lat, lon, city };
+    } catch { /* try next */ }
+  }
   return null;
 }
 
-function getBrowserLatLon(signal: AbortSignal): Promise<{ lat: number; lon: number } | null> {
+function getBrowserLatLon(signal: AbortSignal, highAccuracy = true): Promise<{ lat: number; lon: number } | null> {
   return new Promise((resolve) => {
     if (typeof navigator === "undefined" || !navigator.geolocation) return resolve(null);
     let done = false;
     const finish = (v: { lat: number; lon: number } | null) => { if (!done) { done = true; clearTimeout(timer); resolve(v); } };
-    const timer = setTimeout(() => finish(null), 9000);
+    const timer = setTimeout(() => finish(null), highAccuracy ? 6000 : 10000);
     signal.addEventListener("abort", () => finish(null));
     navigator.geolocation.getCurrentPosition(
       (pos) => {
@@ -71,7 +76,7 @@ function getBrowserLatLon(signal: AbortSignal): Promise<{ lat: number; lon: numb
         finish(coords);
       },
       () => finish(null),
-      { enableHighAccuracy: true, maximumAge: 30 * 60 * 1000, timeout: 8000 },
+      { enableHighAccuracy: highAccuracy, maximumAge: 10 * 60 * 1000, timeout: highAccuracy ? 5500 : 9000 },
     );
   });
 }
@@ -108,6 +113,38 @@ async function fetchWeather(lat: number, lon: number, signal: AbortSignal) {
   return r.json();
 }
 
+async function renderFrom(
+  loc: { lat: number; lon: number; city: string | null },
+  signal: AbortSignal,
+  setWeather: (w: Weather) => void,
+) {
+  const data = await fetchWeather(loc.lat, loc.lon, signal);
+  const code = data?.current?.weather_code ?? 0;
+  const temp = data?.current?.temperature_2m ?? null;
+  const condition = mapCode(code);
+  const hourlyCodes: number[] = data?.hourly?.weather_code ?? [];
+  const hourlyProb: number[] = data?.hourly?.precipitation_probability ?? [];
+  const willRainSoon =
+    hourlyCodes.some((c) => {
+      const m = mapCode(c);
+      return m === "rain" || m === "thunder";
+    }) || hourlyProb.some((p) => (p ?? 0) >= 60);
+  const isRainingNow = condition === "rain" || condition === "thunder";
+  const isCloudy = condition === "clouds" || condition === "fog" || willRainSoon;
+  const parts = [conditionLabel(condition)];
+  if (typeof temp === "number") parts.push(`${Math.round(temp)}°C`);
+  if (loc.city) parts.push(loc.city);
+  setWeather({
+    condition,
+    isRainingNow,
+    willRainSoon,
+    isCloudy,
+    tempC: typeof temp === "number" ? temp : null,
+    locationName: loc.city,
+    label: parts.join(" · "),
+  });
+}
+
 export function useWeather(): Weather | null {
   const [weather, setWeather] = useState<Weather | null>(null);
 
@@ -115,46 +152,26 @@ export function useWeather(): Weather | null {
     const ctrl = new AbortController();
     (async () => {
       try {
-        // Prefer cached precise location, then live browser geolocation, then IP.
-        const cached = getCachedLatLon();
-        const browserLoc = cached ?? await getBrowserLatLon(ctrl.signal);
+        // Prefer live browser geolocation (highest accuracy). Cached fix keeps
+        // the UI responsive while a fresh fix loads; IP is only a last resort.
         let loc: { lat: number; lon: number; city: string | null } | null = null;
-        if (browserLoc) {
-          const city = await reverseCity(browserLoc.lat, browserLoc.lon, ctrl.signal);
-          loc = { ...browserLoc, city };
-        } else {
+        const cached = getCachedLatLon();
+        if (cached) {
+          const city = await reverseCity(cached.lat, cached.lon, ctrl.signal);
+          loc = { ...cached, city };
+          renderFrom(loc, ctrl.signal, setWeather);
+        }
+        const fresh =
+          (await getBrowserLatLon(ctrl.signal, true)) ??
+          (await getBrowserLatLon(ctrl.signal, false));
+        if (fresh) {
+          const city = await reverseCity(fresh.lat, fresh.lon, ctrl.signal);
+          loc = { ...fresh, city };
+        } else if (!loc) {
           loc = await fetchLatLonIp(ctrl.signal);
         }
         if (!loc) return;
-        const data = await fetchWeather(loc.lat, loc.lon, ctrl.signal);
-        const code = data?.current?.weather_code ?? 0;
-        const temp = data?.current?.temperature_2m ?? null;
-        const condition = mapCode(code);
-
-        const hourlyCodes: number[] = data?.hourly?.weather_code ?? [];
-        const hourlyProb: number[] = data?.hourly?.precipitation_probability ?? [];
-        const willRainSoon =
-          hourlyCodes.some((c) => {
-            const m = mapCode(c);
-            return m === "rain" || m === "thunder";
-          }) || hourlyProb.some((p) => (p ?? 0) >= 60);
-
-        const isRainingNow = condition === "rain" || condition === "thunder";
-        const isCloudy = condition === "clouds" || condition === "fog" || willRainSoon;
-
-        const parts = [conditionLabel(condition)];
-        if (typeof temp === "number") parts.push(`${Math.round(temp)}°C`);
-        if (loc.city) parts.push(loc.city);
-
-        setWeather({
-          condition,
-          isRainingNow,
-          willRainSoon,
-          isCloudy,
-          tempC: typeof temp === "number" ? temp : null,
-          locationName: loc.city,
-          label: parts.join(" · "),
-        });
+        await renderFrom(loc, ctrl.signal, setWeather);
       } catch { /* fail silently */ }
     })();
     return () => ctrl.abort();

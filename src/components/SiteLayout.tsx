@@ -42,11 +42,14 @@ export function SiteLayout({ children }: { children: ReactNode }) {
       <header className="sticky top-0 z-40 border-b border-border/60 bg-background/85 backdrop-blur">
         <div className="mx-auto flex max-w-7xl items-center justify-between gap-4 px-4 py-3">
           <Link to="/" className="flex items-center gap-2.5">
-            <span className="grid h-9 w-9 place-items-center rounded-full bg-primary text-primary-foreground shadow-sm">
+            <span
+              className="grid h-9 w-9 place-items-center rounded-full text-white shadow-md"
+              style={{ background: "oklch(0.42 0.16 28)" }}
+            >
               <HeartPulse className="h-5 w-5" />
             </span>
             <span className="text-xl font-semibold tracking-tight">
-              med<span className="text-primary">Safe</span>
+              med<span style={{ color: "oklch(0.42 0.16 28)" }}>Safe</span>
             </span>
           </Link>
 
@@ -66,19 +69,21 @@ export function SiteLayout({ children }: { children: ReactNode }) {
           <div className="flex items-center gap-2">
             {email && <MemberSwitcher />}
             <span className="hidden items-center gap-1.5 rounded-full border border-border bg-card px-2.5 py-1 text-[11px] font-medium text-foreground/80 xl:inline-flex">
-              <ShieldCheck className="h-3 w-3 text-primary" /> DPDP-aligned
+              <ShieldCheck className="h-3 w-3 text-primary" /> Secure platform · DPDP-aligned
             </span>
             {email ? (
               <button
                 onClick={signOut}
-                className="inline-flex items-center gap-1.5 rounded-full bg-primary px-3.5 py-1.5 text-sm font-medium text-primary-foreground hover:bg-primary/90"
+                className="inline-flex items-center gap-1.5 rounded-full px-3.5 py-1.5 text-sm font-medium text-white shadow-md transition hover:opacity-90"
+                style={{ background: "oklch(0.42 0.16 28)" }}
               >
                 <LogOut className="h-3.5 w-3.5" /> <span className="hidden sm:inline">Sign out</span>
               </button>
             ) : (
               <Link
                 to="/auth"
-                className="inline-flex items-center gap-1.5 rounded-full bg-primary px-3.5 py-1.5 text-sm font-medium text-primary-foreground hover:bg-primary/90"
+                className="inline-flex items-center gap-1.5 rounded-full px-3.5 py-1.5 text-sm font-semibold text-white shadow-md transition hover:opacity-90"
+                style={{ background: "oklch(0.42 0.16 28)" }}
               >
                 <LogIn className="h-3.5 w-3.5" /> Sign in
               </Link>

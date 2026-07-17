@@ -7,7 +7,7 @@ import { Loader2, ShieldCheck, HeartPulse, Sparkles } from "lucide-react";
 async function signInWithGoogle() {
   const { error } = await supabase.auth.signInWithOAuth({
     provider: "google",
-    options: { redirectTo: window.location.origin + "/upload" },
+    options: { redirectTo: window.location.origin + "/start" },
   });
   if (error) throw error;
 }
@@ -39,7 +39,7 @@ function AuthPage() {
 
   useEffect(() => {
     supabase.auth.getUser().then(({ data }) => {
-      if (data.user) navigate({ to: (redirect as any) || "/upload" });
+      if (data.user) navigate({ to: (redirect as any) || "/start" });
     });
   }, [navigate, redirect]);
 
@@ -62,7 +62,7 @@ function AuthPage() {
         const { error } = await supabase.auth.signInWithPassword({ email, password });
         if (error) throw error;
       }
-      navigate({ to: (redirect as any) || "/upload" });
+      navigate({ to: (redirect as any) || "/start" });
     } catch (e: any) {
       setErr(e?.message || "Authentication failed");
     } finally {

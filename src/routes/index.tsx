@@ -61,20 +61,22 @@ const HERO_CLIPS = [
   { img: bubbleSon, caption: "Is my son's vaccination schedule up to date?" },
 ];
 
-function PrimaryCTA({ className = "" }: { className?: string }) {
-  const navigate = useNavigate();
-  const { members, setActiveId } = useActiveMember();
+function useAuthed() {
   const [authed, setAuthed] = useState(false);
   useEffect(() => {
     supabase.auth.getUser().then(({ data }) => setAuthed(!!data.user));
     const { data: sub } = supabase.auth.onAuthStateChange((_e, s) => setAuthed(!!s?.user));
     return () => sub.subscription.unsubscribe();
   }, []);
+  return authed;
+}
+
+function PrimaryCTA({ className = "" }: { className?: string }) {
+  const navigate = useNavigate();
+  const authed = useAuthed();
   function onClick() {
     if (!authed) return navigate({ to: "/auth" });
-    const def = members.find((m) => m.is_default) || members[0];
-    if (def) setActiveId(def.id);
-    navigate({ to: "/dashboard" });
+    navigate({ to: "/start" });
   }
   return (
     <button

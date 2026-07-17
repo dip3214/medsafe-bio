@@ -46,23 +46,28 @@ function conditionLabel(c: WeatherCondition): string {
 }
 
 async function fetchLatLonIp(signal: AbortSignal): Promise<{ lat: number; lon: number; city: string | null } | null> {
-  try {
-    const r = await fetch("https://ipapi.co/json/", { signal });
-    if (!r.ok) return null;
-    const j = await r.json();
-    if (typeof j?.latitude === "number" && typeof j?.longitude === "number") {
-      return { lat: j.latitude, lon: j.longitude, city: j.city ?? null };
-    }
-  } catch { /* ignore */ }
+  const providers = [
+    { url: "https://ipapi.co/json/", pick: (j: any) => ({ lat: j?.latitude, lon: j?.longitude, city: j?.city ?? null }) },
+    { url: "https://ipwho.is/", pick: (j: any) => ({ lat: j?.latitude, lon: j?.longitude, city: j?.city ?? null }) },
+  ];
+  for (const p of providers) {
+    try {
+      const r = await fetch(p.url, { signal });
+      if (!r.ok) continue;
+      const j = await r.json();
+      const { lat, lon, city } = p.pick(j);
+      if (typeof lat === "number" && typeof lon === "number") return { lat, lon, city };
+    } catch { /* try next */ }
+  }
   return null;
 }
 
-function getBrowserLatLon(signal: AbortSignal): Promise<{ lat: number; lon: number } | null> {
+function getBrowserLatLon(signal: AbortSignal, highAccuracy = true): Promise<{ lat: number; lon: number } | null> {
   return new Promise((resolve) => {
     if (typeof navigator === "undefined" || !navigator.geolocation) return resolve(null);
     let done = false;
     const finish = (v: { lat: number; lon: number } | null) => { if (!done) { done = true; clearTimeout(timer); resolve(v); } };
-    const timer = setTimeout(() => finish(null), 9000);
+    const timer = setTimeout(() => finish(null), highAccuracy ? 6000 : 10000);
     signal.addEventListener("abort", () => finish(null));
     navigator.geolocation.getCurrentPosition(
       (pos) => {
@@ -71,7 +76,7 @@ function getBrowserLatLon(signal: AbortSignal): Promise<{ lat: number; lon: numb
         finish(coords);
       },
       () => finish(null),
-      { enableHighAccuracy: true, maximumAge: 30 * 60 * 1000, timeout: 8000 },
+      { enableHighAccuracy: highAccuracy, maximumAge: 10 * 60 * 1000, timeout: highAccuracy ? 5500 : 9000 },
     );
   });
 }

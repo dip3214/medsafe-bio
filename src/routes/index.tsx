@@ -502,6 +502,7 @@ function TrustChip({ children }: { children: React.ReactNode }) {
 /* ─────────────────────  final CTA  ───────────────────── */
 
 function FinalCTA() {
+  const authed = useAuthed();
   return (
     <section className="bg-background py-24 sm:py-32">
       <div className="mx-auto max-w-2xl px-4 text-center">

@@ -41,6 +41,7 @@ function Index() {
     <SiteLayout>
       <div className="bg-background text-foreground">
         <Hero />
+        <AuthedWelcomeBand />
         <Marquee />
         <PersonaVoices />
         <FeatureBreakdown />
@@ -49,6 +50,24 @@ function Index() {
         <FinalCTA />
       </div>
     </SiteLayout>
+  );
+}
+
+/* Shown only to signed-in users so "Open your timeline" gets a proper home
+   below the hero image instead of overlapping the family photo. */
+function AuthedWelcomeBand() {
+  const authed = useAuthed();
+  if (!authed) return null;
+  return (
+    <section className="border-b border-border bg-secondary/50">
+      <div className="mx-auto flex max-w-5xl flex-col items-center justify-between gap-4 px-4 py-6 text-center sm:flex-row sm:text-left">
+        <div>
+          <div className="text-xs font-semibold uppercase tracking-[0.18em] text-primary">Welcome back</div>
+          <div className="mt-1 font-serif text-lg text-foreground">Pick up where you left off.</div>
+        </div>
+        <PrimaryCTA />
+      </div>
+    </section>
   );
 }
 

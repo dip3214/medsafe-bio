@@ -67,16 +67,22 @@ function getBrowserLatLon(signal: AbortSignal, highAccuracy = true): Promise<{ l
     if (typeof navigator === "undefined" || !navigator.geolocation) return resolve(null);
     let done = false;
     const finish = (v: { lat: number; lon: number } | null) => { if (!done) { done = true; clearTimeout(timer); resolve(v); } };
-    const timer = setTimeout(() => finish(null), highAccuracy ? 6000 : 10000);
+    const timer = setTimeout(() => finish(null), highAccuracy ? 8000 : 12000);
     signal.addEventListener("abort", () => finish(null));
     navigator.geolocation.getCurrentPosition(
       (pos) => {
         const coords = { lat: pos.coords.latitude, lon: pos.coords.longitude };
-        try { localStorage.setItem("medsafe:geo", JSON.stringify({ ...coords, t: Date.now() })); } catch {}
+        // Only cache high-quality browser fixes so we never reuse a stale IP guess.
+        try {
+          localStorage.setItem(
+            "medsafe:geo",
+            JSON.stringify({ ...coords, t: Date.now(), src: "browser", acc: pos.coords.accuracy ?? null }),
+          );
+        } catch {}
         finish(coords);
       },
       () => finish(null),
-      { enableHighAccuracy: highAccuracy, maximumAge: 10 * 60 * 1000, timeout: highAccuracy ? 5500 : 9000 },
+      { enableHighAccuracy: highAccuracy, maximumAge: 5 * 60 * 1000, timeout: highAccuracy ? 7500 : 11000 },
     );
   });
 }
@@ -87,6 +93,8 @@ function getCachedLatLon(): { lat: number; lon: number } | null {
     if (!raw) return null;
     const j = JSON.parse(raw);
     if (typeof j?.lat !== "number" || typeof j?.lon !== "number") return null;
+    // Only reuse *browser*-sourced fixes; IP geo is often 100+ km off.
+    if (j.src !== "browser") return null;
     // 24h freshness
     if (Date.now() - (j.t ?? 0) > 24 * 60 * 60 * 1000) return null;
     return { lat: j.lat, lon: j.lon };

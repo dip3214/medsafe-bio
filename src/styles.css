@@ -60,8 +60,9 @@
   --popover: oklch(1 0 0);
   --popover-foreground: oklch(0.22 0.03 30);
 
-  /* Softer terracotta rosewood — lifted lightness, reduced saturation ~40% */
-  --primary: oklch(0.52 0.09 28);
+  /* Rich terracotta — the same intense hue used by the logo/header for a
+     consistent, high-contrast look on every primary action button. */
+  --primary: oklch(0.42 0.16 28);
   --primary-foreground: oklch(0.99 0.01 78);
 
   --secondary: oklch(0.965 0.014 68);
@@ -77,7 +78,7 @@
 
   --border: oklch(0.9 0.012 55);
   --input: oklch(0.93 0.012 55);
-  --ring: oklch(0.52 0.09 28);
+  --ring: oklch(0.42 0.16 28);
 
   --chart-1: oklch(0.55 0.13 28);
   --chart-2: oklch(0.68 0.11 80);

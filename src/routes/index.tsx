@@ -158,14 +158,16 @@ function Hero() {
           rhythm — grounded in what's actually happening with your family.
         </p>
         <div className="mt-2 flex flex-wrap items-center justify-center gap-3">
-          <PrimaryCTA />
-          {!authed && (
-            <Link
-              to="/auth"
-              className="inline-flex items-center gap-2 rounded-full border border-white/40 bg-white/15 px-5 py-3 text-sm font-semibold text-white backdrop-blur transition hover:bg-white/25"
-            >
-              Log in
-            </Link>
+          {authed ? null : (
+            <>
+              <PrimaryCTA />
+              <Link
+                to="/auth"
+                className="inline-flex items-center gap-2 rounded-full border border-white/40 bg-white/15 px-5 py-3 text-sm font-semibold text-white backdrop-blur transition hover:bg-white/25"
+              >
+                Log in
+              </Link>
+            </>
           )}
         </div>
         <div className="mt-6 flex flex-wrap items-center justify-center gap-2 text-[11px] font-medium text-white/90">

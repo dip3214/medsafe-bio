@@ -82,7 +82,8 @@ function PrimaryCTA({ className = "" }: { className?: string }) {
   return (
     <button
       onClick={onClick}
-      className={`group inline-flex items-center gap-2.5 rounded-full bg-primary px-5 py-3 text-sm font-semibold text-primary-foreground shadow-lg shadow-primary/25 transition hover:scale-[1.02] ${className}`}
+      style={{ background: "oklch(0.42 0.16 28)" }}
+      className={`group inline-flex items-center gap-2.5 rounded-full px-5 py-3 text-sm font-semibold text-white shadow-lg shadow-black/20 ring-1 ring-black/10 transition hover:scale-[1.02] hover:brightness-110 ${className}`}
     >
       <Sparkles className="h-4 w-4" />
       {authed ? "Open your timeline" : "Get started — it's free"}

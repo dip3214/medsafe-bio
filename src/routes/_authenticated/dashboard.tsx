@@ -443,6 +443,22 @@ function KidsVaccinations({ dob, name }: { dob: string | null; name: string }) {
         )}
       </div>
 
+      {/* Certificate upload */}
+      <div className="mt-5 flex flex-wrap items-center justify-between gap-3 rounded-xl border border-primary/20 bg-background/70 p-4">
+        <div>
+          <div className="text-sm font-semibold">Upload a vaccination certificate</div>
+          <div className="text-xs opacity-75">
+            Add {name.split(" ")[0]}'s IAP or hospital certificate — we'll extract the vaccines and dates.
+          </div>
+        </div>
+        <Link
+          to="/upload"
+          className="inline-flex items-center gap-2 rounded-full bg-primary px-4 py-2 text-sm font-semibold text-primary-foreground shadow-sm hover:brightness-110"
+        >
+          <Upload className="h-4 w-4" /> Upload certificate
+        </Link>
+      </div>
+
       <ol className="mt-5 grid gap-2 sm:grid-cols-2 lg:grid-cols-3">
         {IAP_SCHEDULE.map((v) => {
           const done = ageMonths != null && ageMonths >= v.ageMonths + 1;

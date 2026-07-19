@@ -159,6 +159,9 @@ function DashboardPage() {
           <Kpi icon={Activity} label="Medicines tracked" value={totalMeds} />
         </div>
 
+        {/* Flagged now — quick-glance red/amber pill row */}
+        <FlaggedNowCard docs={docs} />
+
         {active?.segment === "kids" && <KidsVaccinations dob={active?.dob ?? null} name={active?.name ?? "Your child"} />}
 
         {improvements.length > 0 && (

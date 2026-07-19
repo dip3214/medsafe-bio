@@ -1,12 +1,13 @@
 import { createFileRoute, Link } from "@tanstack/react-router";
 import { SiteLayout } from "@/components/SiteLayout";
+import { QuickActions } from "@/components/QuickActions";
 import { groupDocs, type MedicalDoc, type VisitGroup } from "@/lib/medsafe-types";
 import { listMedicalDocs } from "@/lib/medsafe.functions";
 import { useServerFn } from "@tanstack/react-start";
 import { useQuery } from "@tanstack/react-query";
-import { useMemo } from "react";
+import { useMemo, useState } from "react";
 import { LineChart, Line, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer } from "recharts";
-import { Activity, AlertTriangle, CalendarDays, FlaskConical, Pill, TrendingUp, TrendingDown, Upload, UserRound, Sparkles, HeartPulse, ShieldCheck, FileDown, Syringe } from "lucide-react";
+import { Activity, AlertTriangle, CalendarDays, FlaskConical, Pill, TrendingUp, TrendingDown, Upload, UserRound, Sparkles, HeartPulse, ShieldCheck, FileDown, Syringe, ChevronDown, ChevronRight } from "lucide-react";
 import { useActiveMember } from "@/lib/active-member";
 
 export const Route = createFileRoute("/_authenticated/dashboard")({

@@ -221,6 +221,8 @@ function LifestylePage() {
   return (
     <SiteLayout>
       <DailyMoodPrompt memberId={active?.id ?? null} name={active?.name} />
+      {/* Quick actions bar */}
+      <QuickActions compact />
       {/* Hero */}
       <section className="relative overflow-hidden min-h-[520px] sm:min-h-[600px]">
         <LifestyleHeroBackground phase={ctx.phase} weather={weather} />

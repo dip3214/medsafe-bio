@@ -1,8 +1,8 @@
 import { createFileRoute, Link } from "@tanstack/react-router";
-import { useMemo } from "react";
+import { useMemo, useState } from "react";
 import { useQuery } from "@tanstack/react-query";
 import { useServerFn } from "@tanstack/react-start";
-import { Printer, ArrowLeft, FileText } from "lucide-react";
+import { Printer, ArrowLeft, FileText, HeartPulse, Share2, MessageCircle } from "lucide-react";
 import { SiteLayout } from "@/components/SiteLayout";
 import { listMedicalDocs } from "@/lib/medsafe.functions";
 import { groupDocs, type MedicalDoc, type VisitGroup } from "@/lib/medsafe-types";

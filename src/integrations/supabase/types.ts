@@ -264,6 +264,36 @@ export type Database = {
           },
         ]
       }
+      email_preferences: {
+        Row: {
+          created_at: string
+          last_sent_at: string | null
+          timezone: string
+          unsubscribe_token: string
+          updated_at: string
+          user_id: string
+          weekly_enabled: boolean
+        }
+        Insert: {
+          created_at?: string
+          last_sent_at?: string | null
+          timezone?: string
+          unsubscribe_token?: string
+          updated_at?: string
+          user_id: string
+          weekly_enabled?: boolean
+        }
+        Update: {
+          created_at?: string
+          last_sent_at?: string | null
+          timezone?: string
+          unsubscribe_token?: string
+          updated_at?: string
+          user_id?: string
+          weekly_enabled?: boolean
+        }
+        Relationships: []
+      }
       episodes: {
         Row: {
           created_at: string
@@ -768,6 +798,44 @@ export type Database = {
           },
           {
             foreignKeyName: "summaries_member_id_fkey"
+            columns: ["member_id"]
+            isOneToOne: false
+            referencedRelation: "family_members"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      summary_shares: {
+        Row: {
+          created_at: string
+          expires_at: string
+          id: string
+          member_id: string | null
+          payload: Json
+          token: string
+          user_id: string
+        }
+        Insert: {
+          created_at?: string
+          expires_at?: string
+          id?: string
+          member_id?: string | null
+          payload: Json
+          token?: string
+          user_id: string
+        }
+        Update: {
+          created_at?: string
+          expires_at?: string
+          id?: string
+          member_id?: string | null
+          payload?: Json
+          token?: string
+          user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "summary_shares_member_id_fkey"
             columns: ["member_id"]
             isOneToOne: false
             referencedRelation: "family_members"

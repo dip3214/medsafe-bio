@@ -1,9 +1,9 @@
 // Best-effort browser weather lookup. No API key.
-//  - IP-based geolocation via ipapi.co (no permission prompt)
-//  - Current + next-hours forecast via Open-Meteo
+//  - Prefers navigator.geolocation, falls back to IP geolocation.
+//  - Current + short-range forecast via Open-Meteo.
 // Fails silently: the hero background still renders without weather.
 
-import { useEffect, useState } from "react";
+import { useCallback, useEffect, useRef, useState } from "react";
 
 export type WeatherCondition =
   | "clear"
@@ -16,14 +16,13 @@ export type WeatherCondition =
 export type Weather = {
   condition: WeatherCondition;
   isRainingNow: boolean;
-  willRainSoon: boolean; // any rain in the next ~6h
+  willRainSoon: boolean;
   isCloudy: boolean;
   tempC: number | null;
   locationName: string | null;
-  label: string; // short human string e.g. "Light rain · 24°C"
+  label: string;
 };
 
-// Open-Meteo WMO weather codes → condition
 function mapCode(code: number): WeatherCondition {
   if (code === 0) return "clear";
   if (code <= 3) return "clouds";
@@ -45,10 +44,10 @@ function conditionLabel(c: WeatherCondition): string {
   }
 }
 
-async function fetchLatLonIp(signal: AbortSignal): Promise<{ lat: number; lon: number; city: string | null } | null> {
+async function fetchLatLonIp(signal: AbortSignal) {
   const providers = [
     { url: "https://ipapi.co/json/", pick: (j: any) => ({ lat: j?.latitude, lon: j?.longitude, city: j?.city ?? null }) },
-    { url: "https://ipwho.is/", pick: (j: any) => ({ lat: j?.latitude, lon: j?.longitude, city: j?.city ?? null }) },
+    { url: "https://ipwho.is/",      pick: (j: any) => ({ lat: j?.latitude, lon: j?.longitude, city: j?.city ?? null }) },
   ];
   for (const p of providers) {
     try {
@@ -57,13 +56,13 @@ async function fetchLatLonIp(signal: AbortSignal): Promise<{ lat: number; lon: n
       const j = await r.json();
       const { lat, lon, city } = p.pick(j);
       if (typeof lat === "number" && typeof lon === "number") return { lat, lon, city };
-    } catch { /* try next */ }
+    } catch {}
   }
   return null;
 }
 
-function getBrowserLatLon(signal: AbortSignal, highAccuracy = true): Promise<{ lat: number; lon: number } | null> {
-  return new Promise((resolve) => {
+function getBrowserLatLon(signal: AbortSignal, highAccuracy = true, forceFresh = false) {
+  return new Promise<{ lat: number; lon: number } | null>((resolve) => {
     if (typeof navigator === "undefined" || !navigator.geolocation) return resolve(null);
     let done = false;
     const finish = (v: { lat: number; lon: number } | null) => { if (!done) { done = true; clearTimeout(timer); resolve(v); } };
@@ -72,36 +71,31 @@ function getBrowserLatLon(signal: AbortSignal, highAccuracy = true): Promise<{ l
     navigator.geolocation.getCurrentPosition(
       (pos) => {
         const coords = { lat: pos.coords.latitude, lon: pos.coords.longitude };
-        // Only cache high-quality browser fixes so we never reuse a stale IP guess.
         try {
-          localStorage.setItem(
-            "medsafe:geo",
-            JSON.stringify({ ...coords, t: Date.now(), src: "browser", acc: pos.coords.accuracy ?? null }),
-          );
+          localStorage.setItem("medsafe:geo",
+            JSON.stringify({ ...coords, t: Date.now(), src: "browser", acc: pos.coords.accuracy ?? null }));
         } catch {}
         finish(coords);
       },
       () => finish(null),
-      { enableHighAccuracy: highAccuracy, maximumAge: 5 * 60 * 1000, timeout: highAccuracy ? 7500 : 11000 },
+      { enableHighAccuracy: highAccuracy, maximumAge: forceFresh ? 0 : 5 * 60 * 1000, timeout: highAccuracy ? 7500 : 11000 },
     );
   });
 }
 
-function getCachedLatLon(): { lat: number; lon: number } | null {
+function getCachedLatLon() {
   try {
     const raw = localStorage.getItem("medsafe:geo");
     if (!raw) return null;
     const j = JSON.parse(raw);
     if (typeof j?.lat !== "number" || typeof j?.lon !== "number") return null;
-    // Only reuse *browser*-sourced fixes; IP geo is often 100+ km off.
     if (j.src !== "browser") return null;
-    // 24h freshness
     if (Date.now() - (j.t ?? 0) > 24 * 60 * 60 * 1000) return null;
-    return { lat: j.lat, lon: j.lon };
+    return { lat: j.lat, lon: j.lon } as { lat: number; lon: number };
   } catch { return null; }
 }
 
-async function reverseCity(lat: number, lon: number, signal: AbortSignal): Promise<string | null> {
+async function reverseCity(lat: number, lon: number, signal: AbortSignal) {
   try {
     const r = await fetch(
       `https://geocoding-api.open-meteo.com/v1/reverse?latitude=${lat}&longitude=${lon}&count=1&language=en&format=json`,
@@ -124,66 +118,79 @@ async function fetchWeather(lat: number, lon: number, signal: AbortSignal) {
 async function renderFrom(
   loc: { lat: number; lon: number; city: string | null },
   signal: AbortSignal,
-  setWeather: (w: Weather) => void,
-) {
+): Promise<Weather> {
   const data = await fetchWeather(loc.lat, loc.lon, signal);
   const code = data?.current?.weather_code ?? 0;
   const temp = data?.current?.temperature_2m ?? null;
   const condition = mapCode(code);
   const hourlyCodes: number[] = data?.hourly?.weather_code ?? [];
-  const hourlyProb: number[] = data?.hourly?.precipitation_probability ?? [];
+  const hourlyProb: number[]  = data?.hourly?.precipitation_probability ?? [];
   const willRainSoon =
-    hourlyCodes.some((c) => {
-      const m = mapCode(c);
-      return m === "rain" || m === "thunder";
-    }) || hourlyProb.some((p) => (p ?? 0) >= 60);
+    hourlyCodes.some((c) => { const m = mapCode(c); return m === "rain" || m === "thunder"; }) ||
+    hourlyProb.some((p) => (p ?? 0) >= 60);
   const isRainingNow = condition === "rain" || condition === "thunder";
   const isCloudy = condition === "clouds" || condition === "fog" || willRainSoon;
   const parts = [conditionLabel(condition)];
   if (typeof temp === "number") parts.push(`${Math.round(temp)}°C`);
   if (loc.city) parts.push(loc.city);
-  setWeather({
-    condition,
-    isRainingNow,
-    willRainSoon,
-    isCloudy,
+  return {
+    condition, isRainingNow, willRainSoon, isCloudy,
     tempC: typeof temp === "number" ? temp : null,
     locationName: loc.city,
     label: parts.join(" · "),
-  });
+  };
 }
 
-export function useWeather(): Weather | null {
-  const [weather, setWeather] = useState<Weather | null>(null);
+export type UseWeatherResult = {
+  weather: Weather | null;
+  refresh: () => Promise<void>;
+  refreshing: boolean;
+};
 
-  useEffect(() => {
+export function useWeather(): UseWeatherResult {
+  const [weather, setWeather] = useState<Weather | null>(null);
+  const [refreshing, setRefreshing] = useState(false);
+  const ctrlRef = useRef<AbortController | null>(null);
+
+  const run = useCallback(async (forceFresh: boolean) => {
+    ctrlRef.current?.abort();
     const ctrl = new AbortController();
-    (async () => {
-      try {
-        // Prefer live browser geolocation (highest accuracy). Cached fix keeps
-        // the UI responsive while a fresh fix loads; IP is only a last resort.
-        let loc: { lat: number; lon: number; city: string | null } | null = null;
+    ctrlRef.current = ctrl;
+    setRefreshing(true);
+    try {
+      let loc: { lat: number; lon: number; city: string | null } | null = null;
+      if (!forceFresh) {
         const cached = getCachedLatLon();
         if (cached) {
           const city = await reverseCity(cached.lat, cached.lon, ctrl.signal);
           loc = { ...cached, city };
-          renderFrom(loc, ctrl.signal, setWeather);
+          try { setWeather(await renderFrom(loc, ctrl.signal)); } catch {}
         }
-        const fresh =
-          (await getBrowserLatLon(ctrl.signal, true)) ??
-          (await getBrowserLatLon(ctrl.signal, false));
-        if (fresh) {
-          const city = await reverseCity(fresh.lat, fresh.lon, ctrl.signal);
-          loc = { ...fresh, city };
-        } else if (!loc) {
-          loc = await fetchLatLonIp(ctrl.signal);
-        }
-        if (!loc) return;
-        await renderFrom(loc, ctrl.signal, setWeather);
-      } catch { /* fail silently */ }
-    })();
-    return () => ctrl.abort();
+      } else {
+        try { localStorage.removeItem("medsafe:geo"); } catch {}
+      }
+      const fresh =
+        (await getBrowserLatLon(ctrl.signal, true, forceFresh)) ??
+        (await getBrowserLatLon(ctrl.signal, false, forceFresh));
+      if (fresh) {
+        const city = await reverseCity(fresh.lat, fresh.lon, ctrl.signal);
+        loc = { ...fresh, city };
+      } else if (!loc) {
+        loc = await fetchLatLonIp(ctrl.signal);
+      }
+      if (!loc) return;
+      setWeather(await renderFrom(loc, ctrl.signal));
+    } catch {} finally {
+      if (ctrlRef.current === ctrl) setRefreshing(false);
+    }
   }, []);
 
-  return weather;
+  useEffect(() => {
+    run(false);
+    return () => ctrlRef.current?.abort();
+  }, [run]);
+
+  const refresh = useCallback(() => run(true), [run]);
+
+  return { weather, refresh, refreshing };
 }

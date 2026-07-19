@@ -4,6 +4,7 @@ import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { useServerFn } from "@tanstack/react-start";
 import { Moon, Activity, UtensilsCrossed, Sparkles, Target, Flame, Mic, MicOff, Camera, Check, Loader2 } from "lucide-react";
 import { SiteLayout } from "@/components/SiteLayout";
+import { QuickActions } from "@/components/QuickActions";
 import { LifestyleHeroBackground } from "@/components/LifestyleHeroBackground";
 import { DailyMoodPrompt } from "@/components/DailyMoodPrompt";
 import { useActiveMember } from "@/lib/active-member";

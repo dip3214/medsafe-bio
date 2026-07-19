@@ -79,7 +79,8 @@ function UploadPage() {
 
   return (
     <SiteLayout>
-      <section className="mx-auto max-w-6xl px-4 py-10">
+      <QuickActions />
+      <section className="mx-auto max-w-6xl px-4 pt-2 pb-10">
         <div className="text-xs uppercase tracking-wider text-primary">Your records</div>
         <h1 className="mt-1 text-3xl font-semibold tracking-tight">Bring every report under one roof</h1>
         <p className="mt-2 max-w-2xl text-muted-foreground">

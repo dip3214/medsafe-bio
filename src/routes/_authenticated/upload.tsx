@@ -1,5 +1,6 @@
 import { createFileRoute } from "@tanstack/react-router";
 import { SiteLayout } from "@/components/SiteLayout";
+import { QuickActions } from "@/components/QuickActions";
 import { useServerFn } from "@tanstack/react-start";
 import { useState } from "react";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
@@ -78,7 +79,8 @@ function UploadPage() {
 
   return (
     <SiteLayout>
-      <section className="mx-auto max-w-6xl px-4 py-10">
+      <QuickActions />
+      <section className="mx-auto max-w-6xl px-4 pt-2 pb-10">
         <div className="text-xs uppercase tracking-wider text-primary">Your records</div>
         <h1 className="mt-1 text-3xl font-semibold tracking-tight">Bring every report under one roof</h1>
         <p className="mt-2 max-w-2xl text-muted-foreground">
@@ -237,31 +239,42 @@ function DocCard({ d, onDelete }: { d: MedicalDoc; onDelete: () => void }) {
           </div>
         </div>
       )}
-      {d.storagePath && <ViewOriginalButton docId={d.id} />}
+      {d.storagePath && <ViewOriginalButton docId={d.id} fileName={d.title} />}
     </div>
   );
 }
 
-function ViewOriginalButton({ docId }: { docId: string }) {
+function ViewOriginalButton({ docId, fileName }: { docId: string; fileName?: string }) {
   const sign = useServerFn(getDocumentSignedUrl);
-  const [busy, setBusy] = useState(false);
-  async function open() {
-    setBusy(true);
+  const [busy, setBusy] = useState<"open" | "download" | null>(null);
+  async function open(kind: "open" | "download") {
+    setBusy(kind);
     try {
       const { url } = await sign({ data: { documentId: docId } });
-      window.open(url, "_blank", "noopener,noreferrer");
+      const { openInNewTab, downloadUrl } = await import("@/lib/ios-open");
+      if (kind === "open") openInNewTab(url);
+      else await downloadUrl(url, fileName);
     } finally {
-      setBusy(false);
+      setBusy(null);
     }
   }
   return (
-    <button
-      onClick={open}
-      disabled={busy}
-      className="mt-3 inline-flex items-center gap-1.5 rounded-md border border-border bg-background px-2.5 py-1.5 text-xs font-medium text-foreground hover:bg-accent disabled:opacity-50"
-    >
-      <ExternalLink className="h-3 w-3" /> {busy ? "Opening…" : "View original document"}
-    </button>
+    <div className="mt-3 flex flex-wrap gap-2">
+      <button
+        onClick={() => open("open")}
+        disabled={!!busy}
+        className="inline-flex items-center gap-1.5 rounded-md border border-border bg-background px-2.5 py-1.5 text-xs font-medium text-foreground hover:bg-accent disabled:opacity-50"
+      >
+        <ExternalLink className="h-3 w-3" /> {busy === "open" ? "Opening…" : "View original"}
+      </button>
+      <button
+        onClick={() => open("download")}
+        disabled={!!busy}
+        className="inline-flex items-center gap-1.5 rounded-md border border-border bg-background px-2.5 py-1.5 text-xs font-medium text-foreground hover:bg-accent disabled:opacity-50"
+      >
+        {busy === "download" ? "Preparing…" : "Download"}
+      </button>
+    </div>
   );
 }
 

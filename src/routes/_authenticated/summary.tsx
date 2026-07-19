@@ -1,8 +1,8 @@
 import { createFileRoute, Link } from "@tanstack/react-router";
-import { useMemo } from "react";
+import { useMemo, useState } from "react";
 import { useQuery } from "@tanstack/react-query";
 import { useServerFn } from "@tanstack/react-start";
-import { Printer, ArrowLeft, FileText } from "lucide-react";
+import { Printer, ArrowLeft, FileText, HeartPulse, MessageCircle } from "lucide-react";
 import { SiteLayout } from "@/components/SiteLayout";
 import { listMedicalDocs } from "@/lib/medsafe.functions";
 import { groupDocs, type MedicalDoc, type VisitGroup } from "@/lib/medsafe-types";
@@ -29,19 +29,79 @@ function SummaryPage() {
   const groups = useMemo(() => groupDocs(docs), [docs]);
   const visits = groups.slice(0, 2); // last 2 (most recent first)
 
+  const [sharing, setSharing] = useState(false);
+
+  function iosSafePrint() {
+    // iOS Safari sometimes triggers print before layout settles, leaving
+    // the SPA in a weird state and clearing the Supabase listener. A tiny
+    // rAF + timeout lets it stabilise, then we restore focus.
+    const prev = document.title;
+    document.title = `MedSafe summary — ${active?.name ?? "Patient"}`;
+    requestAnimationFrame(() => {
+      setTimeout(() => {
+        try { window.print(); } finally {
+          setTimeout(() => { document.title = prev; }, 400);
+        }
+      }, 60);
+    });
+  }
+
+  async function shareSummary() {
+    setSharing(true);
+    try {
+      const v0 = visits[0];
+      const v1 = visits[1];
+      const dx = v0?.docs.flatMap((d) => d.diagnoses ?? []).slice(0, 3) ?? [];
+      const flags = v0?.docs.flatMap((d) => d.labValues ?? [])
+        .filter((v) => v.flag && v.flag !== "normal")
+        .slice(0, 3) ?? [];
+      const lines = [
+        `MedSafe · ${active?.name ?? "Patient"}'s health summary`,
+        v1 ? `Last visits: ${v1.endDate} → ${v0.startDate}` : v0 ? `Last visit: ${v0.startDate}` : "",
+        dx.length ? `Diagnoses: ${dx.join(", ")}` : "",
+        flags.length
+          ? `Flagged: ${flags.map((f) => `${f.name} ${f.value}${f.unit ? " " + f.unit : ""} (${f.flag})`).join("; ")}`
+          : "",
+        `Open in MedSafe: ${window.location.origin}/summary`,
+      ].filter(Boolean).join("\n");
+
+      if (typeof navigator !== "undefined" && (navigator as any).share) {
+        try {
+          await (navigator as any).share({ title: "MedSafe summary", text: lines });
+          return;
+        } catch { /* user cancelled — fall through to WhatsApp */ }
+      }
+      const wa = `https://wa.me/?text=${encodeURIComponent(lines)}`;
+      const { openInNewTab } = await import("@/lib/ios-open");
+      openInNewTab(wa);
+    } finally {
+      setSharing(false);
+    }
+  }
+
   return (
     <SiteLayout>
       <section className="mx-auto max-w-3xl px-4 py-8 print:max-w-none print:py-0">
-        <div className="mb-6 flex items-center justify-between print:hidden">
+        <div className="mb-6 flex flex-wrap items-center justify-between gap-2 print:hidden">
           <Link to="/dashboard" className="inline-flex items-center gap-1 text-sm text-muted-foreground hover:text-foreground">
             <ArrowLeft className="h-4 w-4" /> Back to dashboard
           </Link>
-          <button
-            onClick={() => window.print()}
-            className="inline-flex items-center gap-2 rounded-md bg-primary px-4 py-2 text-sm font-medium text-primary-foreground"
-          >
-            <Printer className="h-4 w-4" /> Download / Print
-          </button>
+          <div className="flex flex-wrap gap-2">
+            <button
+              onClick={shareSummary}
+              disabled={sharing || visits.length === 0}
+              className="inline-flex items-center gap-2 rounded-md border border-border bg-card px-4 py-2 text-sm font-medium hover:bg-accent disabled:opacity-50"
+            >
+              <MessageCircle className="h-4 w-4 text-emerald-600" /> {sharing ? "Preparing…" : "Share to WhatsApp"}
+            </button>
+            <button
+              onClick={iosSafePrint}
+              className="inline-flex items-center gap-2 rounded-md px-4 py-2 text-sm font-medium text-white"
+              style={{ background: "oklch(0.42 0.16 28)" }}
+            >
+              <Printer className="h-4 w-4" /> Download / Print
+            </button>
+          </div>
         </div>
 
         {isLoading ? (
@@ -55,13 +115,31 @@ function SummaryPage() {
         ) : (
           <article className="rounded-2xl border border-border bg-card p-8 print:border-0 print:shadow-none">
             <header className="border-b border-border pb-5">
-              <div className="text-xs uppercase tracking-wider text-primary">Clinical summary report</div>
+              <div className="flex items-center gap-3">
+                <span
+                  className="grid h-11 w-11 place-items-center rounded-full text-white shadow-sm"
+                  style={{ background: "oklch(0.42 0.16 28)" }}
+                >
+                  <HeartPulse className="h-6 w-6" />
+                </span>
+                <div>
+                  <div className="text-lg font-semibold tracking-tight">
+                    med<span style={{ color: "oklch(0.42 0.16 28)" }}>Safe</span>
+                  </div>
+                  <div className="text-[11px] uppercase tracking-wider text-muted-foreground">
+                    One family. One health record.
+                  </div>
+                </div>
+                <div className="ml-auto text-right text-[11px] text-muted-foreground print:block">
+                  Generated {new Date().toLocaleDateString("en-IN")}
+                </div>
+              </div>
+              <div className="mt-5 text-xs uppercase tracking-wider text-primary">Clinical summary report</div>
               <h1 className="mt-1 font-display text-3xl">{active?.name ?? "Patient"} — Health summary</h1>
               <p className="mt-1 text-sm text-muted-foreground">
                 {visits.length === 1
                   ? "Based on your most recent visit."
                   : `Based on your last ${visits.length} visits, ${visits[1].endDate} → ${visits[0].startDate}.`}
-                {" "}Generated {new Date().toLocaleDateString("en-IN")}.
               </p>
             </header>
 

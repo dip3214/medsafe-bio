@@ -1,12 +1,13 @@
 import { createFileRoute, Link } from "@tanstack/react-router";
 import { SiteLayout } from "@/components/SiteLayout";
+import { QuickActions } from "@/components/QuickActions";
 import { groupDocs, type MedicalDoc, type VisitGroup } from "@/lib/medsafe-types";
 import { listMedicalDocs } from "@/lib/medsafe.functions";
 import { useServerFn } from "@tanstack/react-start";
 import { useQuery } from "@tanstack/react-query";
-import { useMemo } from "react";
+import { useMemo, useState } from "react";
 import { LineChart, Line, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer } from "recharts";
-import { Activity, AlertTriangle, CalendarDays, FlaskConical, Pill, TrendingUp, TrendingDown, Upload, UserRound, Sparkles, HeartPulse, ShieldCheck, FileDown, Syringe } from "lucide-react";
+import { Activity, AlertTriangle, CalendarDays, FlaskConical, Pill, TrendingUp, TrendingDown, Upload, UserRound, Sparkles, HeartPulse, ShieldCheck, FileDown, Syringe, ChevronDown, ChevronRight } from "lucide-react";
 import { useActiveMember } from "@/lib/active-member";
 
 export const Route = createFileRoute("/_authenticated/dashboard")({
@@ -68,7 +69,8 @@ function DashboardPage() {
 
   return (
     <SiteLayout>
-      <section className="mx-auto max-w-7xl px-4 py-10">
+      <QuickActions />
+      <section className="mx-auto max-w-7xl px-4 pt-2 pb-10">
         {/* Segment quick-switcher */}
         <div className="mb-8 grid gap-3 sm:grid-cols-3">
           {segmentCards.map((s) => {
@@ -157,6 +159,9 @@ function DashboardPage() {
           <Kpi icon={Activity} label="Medicines tracked" value={totalMeds} />
         </div>
 
+        {/* Flagged now — quick-glance red/amber pill row */}
+        <FlaggedNowCard docs={docs} />
+
         {active?.segment === "kids" && <KidsVaccinations dob={active?.dob ?? null} name={active?.name ?? "Your child"} />}
 
         {improvements.length > 0 && (
@@ -226,8 +231,171 @@ function DashboardPage() {
             </div>
           </div>
         </div>
+
+        {/* Structured, filterable timeline */}
+        <TimelineBlock groups={groups} />
       </section>
     </SiteLayout>
+  );
+}
+
+function FlaggedNowCard({ docs }: { docs: MedicalDoc[] }) {
+  // Pull the most recent flagged lab values across the last few visits.
+  const flagged = useMemo(() => {
+    const rows: { name: string; value: string; unit: string; flag: string; date: string; doc: string }[] = [];
+    for (const d of [...docs].sort((a, b) => (b.date || "").localeCompare(a.date || ""))) {
+      for (const v of d.labValues ?? []) {
+        if (v.flag && v.flag !== "normal") {
+          rows.push({
+            name: v.name,
+            value: String(v.value ?? ""),
+            unit: v.unit ?? "",
+            flag: v.flag,
+            date: d.date,
+            doc: d.title,
+          });
+        }
+      }
+      if (rows.length >= 8) break;
+    }
+    return rows.slice(0, 6);
+  }, [docs]);
+
+  if (flagged.length === 0) return null;
+
+  return (
+    <div className="mt-6 rounded-2xl border border-border bg-gradient-to-br from-orange-50 via-rose-50 to-background p-5 dark:from-orange-950/30 dark:via-rose-950/20">
+      <div className="flex items-center gap-2">
+        <span className="grid h-8 w-8 place-items-center rounded-full bg-rose-100 text-rose-700 dark:bg-rose-900/40 dark:text-rose-300">
+          <AlertTriangle className="h-4 w-4" />
+        </span>
+        <div>
+          <div className="text-sm font-semibold">Flagged now</div>
+          <div className="text-xs text-muted-foreground">Values from recent reports that are out of the healthy range.</div>
+        </div>
+      </div>
+      <div className="mt-4 flex flex-wrap gap-2">
+        {flagged.map((f, i) => {
+          const critical = f.flag === "critical";
+          return (
+            <span
+              key={i}
+              className={`inline-flex items-center gap-2 rounded-full border px-3 py-1 text-xs font-medium ${
+                critical
+                  ? "border-destructive/40 bg-destructive/10 text-destructive"
+                  : "border-orange-300 bg-orange-50 text-orange-800 dark:bg-orange-950/30 dark:text-orange-200"
+              }`}
+              title={`${f.doc} · ${f.date}`}
+            >
+              <span>{f.name}</span>
+              <span className="tabular-nums">{f.value}{f.unit ? ` ${f.unit}` : ""}</span>
+              <span className="uppercase opacity-70">{f.flag}</span>
+            </span>
+          );
+        })}
+      </div>
+    </div>
+  );
+}
+
+function TimelineBlock({ groups }: { groups: VisitGroup[] }) {
+  const [filter, setFilter] = useState<"all" | "report" | "prescription">("all");
+  const [openId, setOpenId] = useState<string | null>(groups[0]?.id ?? null);
+
+  const filtered = useMemo(() => {
+    if (filter === "all") return groups;
+    return groups
+      .map((g) => ({ ...g, docs: g.docs.filter((d) => d.kind === filter) }))
+      .filter((g) => g.docs.length > 0);
+  }, [groups, filter]);
+
+  if (groups.length === 0) return null;
+
+  return (
+    <div className="mt-10">
+      <div className="flex flex-wrap items-end justify-between gap-3">
+        <div>
+          <h2 className="text-lg font-semibold inline-flex items-center gap-2">
+            <CalendarDays className="h-5 w-5 text-primary" /> Your timeline
+          </h2>
+          <p className="text-sm text-muted-foreground">Every visit, grouped by date. Click a card to see what happened.</p>
+        </div>
+        <div className="inline-flex rounded-full bg-secondary/60 p-1 text-xs">
+          {(["all", "report", "prescription"] as const).map((f) => (
+            <button
+              key={f}
+              onClick={() => setFilter(f)}
+              className={`rounded-full px-3 py-1 font-medium capitalize transition ${
+                filter === f ? "bg-card text-primary shadow-sm" : "text-muted-foreground hover:text-foreground"
+              }`}
+            >
+              {f === "all" ? "All" : f + "s"}
+            </button>
+          ))}
+        </div>
+      </div>
+
+      <ol className="relative mt-5 border-l-2 border-border/60 pl-6">
+        {filtered.map((g) => {
+          const open = openId === g.id;
+          const flaggedCount = g.docs.reduce(
+            (n, d) => n + (d.labValues ?? []).filter((v) => v.flag && v.flag !== "normal").length,
+            0,
+          );
+          return (
+            <li key={g.id} className="mb-4">
+              <span className="absolute -left-[9px] mt-3 grid h-4 w-4 place-items-center rounded-full bg-primary shadow ring-4 ring-background" />
+              <button
+                onClick={() => setOpenId(open ? null : g.id)}
+                className="group flex w-full items-center gap-3 rounded-xl border border-border bg-card px-4 py-3 text-left hover:border-primary/40"
+              >
+                {open ? <ChevronDown className="h-4 w-4 text-muted-foreground" /> : <ChevronRight className="h-4 w-4 text-muted-foreground" />}
+                <div className="flex-1">
+                  <div className="text-sm font-semibold">
+                    {g.startDate === g.endDate ? g.startDate : `${g.startDate} → ${g.endDate}`}
+                    {g.doctor ? <span className="ml-2 text-muted-foreground font-normal">· Dr. {g.doctor}</span> : null}
+                  </div>
+                  <div className="text-xs text-muted-foreground">
+                    {g.docs.length} document{g.docs.length > 1 ? "s" : ""}
+                    {g.hospital ? ` · ${g.hospital}` : ""}
+                  </div>
+                </div>
+                {flaggedCount > 0 && (
+                  <span className="inline-flex items-center gap-1 rounded-full bg-rose-100 px-2 py-0.5 text-[11px] font-medium text-rose-800 dark:bg-rose-900/40 dark:text-rose-200">
+                    <AlertTriangle className="h-3 w-3" /> {flaggedCount} flagged
+                  </span>
+                )}
+              </button>
+              {open && (
+                <div className="mt-2 rounded-xl border border-border/60 bg-secondary/30 p-4 text-sm">
+                  {g.docs.map((d) => (
+                    <div key={d.id} className="mb-3 last:mb-0">
+                      <div className="flex items-center gap-2 font-medium">
+                        {d.kind === "prescription" ? <Pill className="h-4 w-4 text-primary" /> : <FlaskConical className="h-4 w-4 text-primary" />}
+                        {d.title}
+                      </div>
+                      {d.summary && <p className="mt-1 text-muted-foreground">{d.summary}</p>}
+                      {(d.diagnoses ?? []).length > 0 && (
+                        <div className="mt-1 text-xs">
+                          <span className="text-muted-foreground">Dx:</span> {d.diagnoses!.join(", ")}
+                        </div>
+                      )}
+                      {(d.medicines ?? []).length > 0 && (
+                        <div className="mt-1 text-xs">
+                          <span className="text-muted-foreground">Rx:</span>{" "}
+                          {d.medicines!.slice(0, 4).map((m) => m.name).join(", ")}
+                          {d.medicines!.length > 4 ? ` +${d.medicines!.length - 4} more` : ""}
+                        </div>
+                      )}
+                    </div>
+                  ))}
+                </div>
+              )}
+            </li>
+          );
+        })}
+      </ol>
+    </div>
   );
 }
 

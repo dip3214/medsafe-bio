@@ -4,6 +4,7 @@ import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { useServerFn } from "@tanstack/react-start";
 import { Moon, Activity, UtensilsCrossed, Sparkles, Target, Flame, Mic, MicOff, Camera, Check, Loader2 } from "lucide-react";
 import { SiteLayout } from "@/components/SiteLayout";
+import { QuickActions } from "@/components/QuickActions";
 import { LifestyleHeroBackground } from "@/components/LifestyleHeroBackground";
 import { DailyMoodPrompt } from "@/components/DailyMoodPrompt";
 import { useActiveMember } from "@/lib/active-member";
@@ -216,11 +217,13 @@ function LifestylePage() {
   const recent = useMemo(() => logs.slice(0, 7).filter((l) => l.log_date !== today), [logs, today]);
   const displayName = active?.name?.split(/\s+/)[0] || "there";
   const ctx = useLifestyleContext();
-  const weather = useWeather();
+  const { weather, refresh: refreshWeather, refreshing: weatherBusy } = useWeather();
 
   return (
     <SiteLayout>
       <DailyMoodPrompt memberId={active?.id ?? null} name={active?.name} />
+      {/* Quick actions bar */}
+      <QuickActions compact />
       {/* Hero */}
       <section className="relative overflow-hidden min-h-[520px] sm:min-h-[600px]">
         <LifestyleHeroBackground phase={ctx.phase} weather={weather} />
@@ -256,7 +259,7 @@ function LifestylePage() {
               )}
               {/* Date + time pill — top-right, subtle so background stays visible */}
               <div
-                className={`pointer-events-none absolute right-4 top-4 z-10 inline-flex items-center gap-2 rounded-full px-3 py-1 text-[11px] font-medium backdrop-blur-md sm:right-8 sm:top-6 sm:text-xs ${badgeClass}`}
+                className={`pointer-events-auto absolute right-4 top-4 z-10 inline-flex items-center gap-2 rounded-full px-3 py-1 text-[11px] font-medium backdrop-blur-md sm:right-8 sm:top-6 sm:text-xs ${badgeClass}`}
                 style={{ textShadow: inkShadow }}
                 aria-label={`${ctx.dayLabel} · ${ctx.timeLabel}`}
               >
@@ -269,6 +272,17 @@ function LifestylePage() {
                     <span>{weather.label}</span>
                   </>
                 )}
+                <button
+                  onClick={() => refreshWeather()}
+                  disabled={weatherBusy}
+                  className="ml-1 -mr-1 rounded-full p-1 hover:bg-white/20 disabled:opacity-50"
+                  aria-label="Refresh location & weather"
+                  title="Refresh weather"
+                >
+                  <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className={`h-3 w-3 ${weatherBusy ? "animate-spin" : ""}`}>
+                    <path d="M21 12a9 9 0 1 1-3-6.7L21 8" /><path d="M21 3v5h-5" />
+                  </svg>
+                </button>
               </div>
               <div className="relative mx-auto max-w-5xl px-4 pt-28 pb-16 text-left sm:pt-40 sm:pb-24">
                 <div className={`inline-flex items-center gap-1.5 rounded-full px-3 py-1 text-xs font-semibold backdrop-blur-md ${badgeClass}`}>

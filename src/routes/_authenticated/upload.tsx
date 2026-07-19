@@ -237,7 +237,7 @@ function DocCard({ d, onDelete }: { d: MedicalDoc; onDelete: () => void }) {
           </div>
         </div>
       )}
-      {d.storagePath && <ViewOriginalButton docId={d.id} />}
+      {d.storagePath && <ViewOriginalButton docId={d.id} fileName={d.title} />}
     </div>
   );
 }

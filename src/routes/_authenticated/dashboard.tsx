@@ -69,7 +69,8 @@ function DashboardPage() {
 
   return (
     <SiteLayout>
-      <section className="mx-auto max-w-7xl px-4 py-10">
+      <QuickActions />
+      <section className="mx-auto max-w-7xl px-4 pt-2 pb-10">
         {/* Segment quick-switcher */}
         <div className="mb-8 grid gap-3 sm:grid-cols-3">
           {segmentCards.map((s) => {

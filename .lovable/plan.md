@@ -1,63 +1,71 @@
-# MedSafe Refresh Plan
+## What I'll build
 
-A single coordinated pass across theme, landing page, app pages, lifestyle, upload, and security. Grouped so nothing regresses between tabs.
+### 1. Pinned quick actions
+- New `QuickActions` component with 4 buttons: **Add document · Ask MedSafe · Log check-in · Log it**.
+- Rendered as a compact pill bar at the top of Dashboard, Upload, Lifestyle (right under the page header) — same order everywhere so muscle memory works.
+- Dashboard also gets a floating action bar (sticky bottom on mobile, bottom-right cluster on desktop) that collapses into the existing Ask MedSafe FAB on other pages.
+- Segment-aware: "Log check-in / Log it" only shown for the **Me** segment.
 
-## 1. Color system — lighten the red, unify across pages
+### 2. Weather refresh control
+- Add a small refresh icon next to the day/time/temp pill on Lifestyle. Tapping it:
+  - re-requests `navigator.geolocation` (fresh fix, not cached),
+  - clears the cached `medsafe.weather.v1` entry,
+  - shows a spinner + "Updated just now" toast on success.
+- Expose `refresh()` from `useWeather()` so it's a one-line hook change.
 
-- Rework `src/styles.css` design tokens: shift `--primary` from heavy crimson to a warmer, softer terracotta/rosewood (Luffu-style muted warmth). Backgrounds become warm off‑white cream (`oklch(0.985 0.01 60)`); text becomes deep cocoa (`oklch(0.22 0.03 30)`); accent becomes muted sage or dusty gold for contrast.
-- Reduce primary saturation ~40%. All red gradients replaced with soft warm gradients.
-- Every page (`auth`, `upload`, `dashboard`, `doctors`, `care`, `lifestyle`, `members`, `chat`, `account`) uses only semantic tokens — audit and replace any lingering `bg-red-*`, `text-white`, hex literals.
-- Header, footer, buttons, chips, member switcher all pulled through the same tokens so the palette is uniform.
+### 3. MedSafe logo on Summary report
+- Add a print-safe header to `/summary`: heart-pulse logo mark + "MedSafe" wordmark + tagline "One family. One health record.", followed by patient info.
+- Uses inline SVG (no external asset) so it prints reliably.
 
-## 2. Landing page (`src/routes/index.tsx`)
+### 4. iOS "opens report → session breaks" fix
+Root cause: `window.open(signedUrl, "_blank")` on iOS Safari sometimes navigates the current tab (popup blocker) to the Supabase storage URL, which on return path resets the Supabase auth listener. Also `<a target="_blank" href={signedUrl}>` on the print page inherits `rel="opener"` and can steal focus.
 
-- Restyle to Luffu-like calmness: cream background, large serif display headline, generous whitespace, subtle framer-motion reveals, hover scale 1.02.
-- **Character messaging** (auto-cycling persona lines) moves to the **right side** of the hero, stacked vertically; on mobile it stacks below the headline with the same right-aligned card treatment. Full-width safe.
-- **Value proposition section (image #1 reference)**: show BOTH the dashboard mockup AND the chatbot mockup side-by-side with the "Positioning Value: Track, Ask, & Understand Your Life-style" headline. Currently only chatbot half renders — fix by placing two mockup images (dashboard + chat) in a responsive 2-col grid that stacks on mobile.
-- **Lifestyle section image**: replace current `ref-lifestyle.png` visual with the newly uploaded Life-style mockup (image #1 from this message) — upload as new asset and swap.
-- **Trust row**: keep only `DPDP-aligned` and `Physician-led only`. Remove the "brochure" / extra card sitting under the regulatory compliance row (image #2 reference — the floating brochure card in the middle goes; keep just the chip row).
-- Post-login CTA leads to a new **segment picker** landing (see §6).
+Fix in both flows:
+- **Uploaded doc viewer** (dashboard/upload → open original): open in a **new tab safely** — use a hidden `<a>` element with `rel="noopener noreferrer"` and a user-gesture click; fall back to same-tab navigation only if the popup is blocked. Also add a "Download" option that fetches the blob and triggers a `URL.createObjectURL` download — bypasses Safari's cross-origin quirks entirely.
+- **Summary print page**: replace `window.print()` inside a click handler with a small delay + explicit `document.title` restoration; the current implementation triggers Safari's print dialog before layout stabilizes, which is what leaves the app in a bad state.
+- Verify signed-URL creation uses a **short-lived (5 min)** URL (already is) and set `download` param on `createSignedUrl` for the download path so Safari doesn't try to render inline.
 
-## 3. Post-login segment landing
+### 5. Share to WhatsApp on Summary
+- Add a **Share** button next to Print. On tap:
+  - Uses `navigator.share()` when available (iOS/Android native sheet with WhatsApp),
+  - Falls back to a direct `https://wa.me/?text=…` link with a pre-composed summary (patient name, date range, top 3 diagnoses, top 3 flagged labs, link back to app).
+- Also generates a **public share link** to a read-only summary token (see #4 in Technical section).
 
-- New route `src/routes/_authenticated/index.tsx` (or reuse `/dashboard` entry) showing three big cards: **MedSafe Me**, **MedSafe Parents**, **MedSafe Kids**. Each card switches active member segment and routes to `/dashboard`.
-- Same three cards also surfaced as a compact strip on `/dashboard` top for quick switching.
+### 6. Weekly wellness emails (Mon + Sat mornings)
+- Enable **Resend** connector; store `RESEND_API_KEY` via the connector.
+- New table `email_preferences` (opt-in default true, unsubscribe token).
+- Server route `POST /api/public/hooks/weekly-nudge` — pulls users with opt-in, composes a warm HTML email with two rotating tones:
+  - **Monday**: "Let's make this week count — 3 tiny logs beat 1 big one." + top-of-week nudge (log breakfast, mood, sleep). CTA → `/lifestyle`.
+  - **Saturday**: "How did your week feel?" — summary of what they logged (or a gentle "your week is a blank page" if empty). CTA → weekend check-in.
+- `pg_cron`: Monday 08:00 IST + Saturday 09:00 IST, calls the hook via `pg_net` with `apikey` header.
+- Emails link to a one-tap unsubscribe URL that flips the preference.
 
-## 4. Dashboard — flagged values per member
+### 7. Redesigned Dashboard + Timeline
+Full redesign (as chosen):
+- **Hero band**: Member + segment picker (Me/Parents/Kids) + a large "Flagged now" card showing latest out-of-range lab values as pill chips with trend arrows (▲/▼ vs previous visit). Click a chip → jumps to the source document.
+- **Quick actions row** (pinned, per #1).
+- **Timeline column** (left, 60% on desktop): visit-grouped cards, each with date, doctor/hospital chip, diagnoses badges, lab count, medicines count. Collapsed by default, expand on click. Filter chips at top: All / Reports / Prescriptions / Last 30 days.
+- **Right rail** (40%): 
+  - **This week in numbers** — check-ins, meals logged, workouts, avg mood (Me segment only).
+  - **Medications** — active meds with next-dose hints (Parents/Kids too).
+  - **Vaccinations** — IAP schedule card for Kids segment (retained + polished).
+- Consistent card style: rounded-2xl, soft shadow, warm ivory bg, terracotta accents — matches landing page typography.
+- Empty states illustrated (not just "No data yet").
+- Mobile: sections stack; quick actions become a sticky bottom bar.
 
-- On `/dashboard`, add a "Attention needed" panel: pulls latest `lab_results` rows where `flag` in (`high`,`low`,`critical`) for the active member (or all members with a per-member badge). Server function: `listFlaggedLabs` in `src/lib/medsafe.functions.ts`.
+## Technical details
 
-## 5. Lifestyle section
+- **Files to add**: `src/components/QuickActions.tsx`, `src/components/FlaggedNowCard.tsx`, `src/components/TimelineList.tsx`, `src/components/WeekSnapshot.tsx`, `src/routes/api/public/hooks/weekly-nudge.ts`, `src/lib/email-prefs.functions.ts`, `src/lib/share.ts`, `src/routes/api/public/summary.$token.ts` (public read-only share page — no PII beyond names user opts in to include).
+- **Files to edit**: `src/routes/_authenticated/dashboard.tsx` (full rewrite of layout), `src/routes/_authenticated/summary.tsx` (logo header, Share button, print-safe iOS fix), `src/routes/_authenticated/lifestyle.tsx` (weather refresh button), `src/routes/_authenticated/upload.tsx` + doc-open helpers (iOS-safe open/download), `src/lib/use-weather.ts` (expose `refresh()`), `src/lib/medsafe.functions.ts` (add `getDocumentDownloadUrl` with `download=true`).
+- **Migrations**:
+  - `email_preferences` table (user_id, weekly_enabled, unsubscribe_token, timezone).
+  - `summary_shares` table for share tokens (user_id, member_id, token, expires_at) — read via a public route with token check.
+  - Enable `pg_cron` + `pg_net`; schedule 2 cron entries hitting the weekly-nudge hook.
+- **Resend**: `standard_connectors--connect` with `resend`; sender from a verified domain the user provides (I'll fall back to `onboarding@resend.dev` for the owner's own address during testing).
+- **Security**: weekly-nudge hook requires `apikey` header matching anon key; per-user email loops use `supabaseAdmin` inside the handler only after the request is verified. Share route returns only the fields the owner opted into; token expires in 7 days.
 
-- **Loosen chatbot guardrails**: update system prompt in the lifestyle chat/AI path so it answers scientifically (cite mechanisms, give evidence-based reasoning) instead of refusing/redirecting. Keep a small safety footer only for red-flag symptoms.
-- **Location**: `src/lib/use-weather.ts` — request `navigator.geolocation.getCurrentPosition` with `{ enableHighAccuracy: true, timeout: 8000 }`, fall back to IP only if user denies; add explicit permission prompt UI in the lifestyle hero pill; cache last known coords in `localStorage` so refresh doesn't lose it.
-- Hero image/asset for lifestyle updated to match new palette.
+## What I won't touch
+- Existing chat, auth, and family-member logic.
+- Lifestyle background animations (only adding the weather refresh button).
 
-## 6. Upload page — extraction animation
-
-- Replace current extraction spinner with a smooth staged animation: shimmer over the document preview, progress steps ("Reading → Structuring → Verifying → Saving") using framer-motion, and a subtle pulsing badge. Remove the glitchy state transitions by driving purely from a single `status` state machine.
-
-## 7. Consistency polish (all pages)
-
-- Shared page header component (title + subtitle + optional action) used on `auth`, `upload`, `dashboard`, `doctors`, `care`, `lifestyle`.
-- Same serif display font for page titles as landing hero; same sans for body.
-- Motion primitives: `Reveal` component reused across pages for on-scroll fades.
-
-## 8. Security fix
-
-- Finding `SUPA_authenticated_security_definer_function_executable` (SECURITY DEFINER function callable by signed-in users). Audit `has_role` and `owns_member`: both are legitimate helpers used by RLS. Fix: `REVOKE EXECUTE ... FROM PUBLIC, anon, authenticated` on both and `GRANT EXECUTE ... TO service_role` (RLS internals still work because SECURITY DEFINER runs as owner regardless of caller execute grants — confirm by keeping `postgres` grant). Then mark finding as fixed.
-
----
-
-## Technical notes
-
-- Files touched: `src/styles.css`, `src/routes/index.tsx`, `src/routes/auth.tsx`, `src/routes/_authenticated/dashboard.tsx`, `src/routes/_authenticated/upload.tsx`, `src/routes/_authenticated/lifestyle.tsx`, `src/routes/_authenticated/route.tsx` (segment landing), `src/components/SiteLayout.tsx`, `src/components/LifestyleHeroBackground.tsx`, `src/lib/use-weather.ts`, `src/lib/lifestyle.functions.ts` (chatbot prompt), `src/lib/medsafe.functions.ts` (flagged labs), new asset for lifestyle image.
-- One new migration for GRANT/REVOKE on security definer functions.
-- No schema changes to tables.
-
-## Out of scope (confirm if wanted)
-
-- Rewriting the chat page UI beyond palette.
-- Adding a new brochure PDF (removing per your request).
-
-Approve and I'll implement in one pass.
+Approve and I'll ship it end-to-end. For the Resend piece I'll pause once to walk you through adding the API key + verifying your sender domain.

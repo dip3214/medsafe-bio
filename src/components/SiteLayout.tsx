@@ -1,6 +1,6 @@
 import { Link, useNavigate, useRouterState } from "@tanstack/react-router";
 import { useEffect, useState, type ReactNode } from "react";
-import { MessageSquare, LogOut, LogIn, ShieldCheck, BadgeCheck, HeartPulse } from "lucide-react";
+import { LogOut, LogIn, ShieldCheck, BadgeCheck, HeartPulse } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 import { MemberSwitcher } from "@/components/MemberSwitcher";
 import { ConsentBanner } from "@/components/ConsentBanner";

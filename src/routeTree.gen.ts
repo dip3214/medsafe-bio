@@ -28,6 +28,7 @@ import { Route as AuthenticatedLifestyleRouteImport } from './routes/_authentica
 import { Route as AuthenticatedDashboardRouteImport } from './routes/_authenticated/dashboard'
 import { Route as AuthenticatedChatRouteImport } from './routes/_authenticated/chat'
 import { Route as AuthenticatedAccountRouteImport } from './routes/_authenticated/account'
+import { Route as ApiPublicCronWeeklyEmailRouteImport } from './routes/api/public/cron/weekly-email'
 
 const ServicesRoute = ServicesRouteImport.update({
   id: '/services',
@@ -123,6 +124,12 @@ const AuthenticatedAccountRoute = AuthenticatedAccountRouteImport.update({
   path: '/account',
   getParentRoute: () => AuthenticatedRouteRoute,
 } as any)
+const ApiPublicCronWeeklyEmailRoute =
+  ApiPublicCronWeeklyEmailRouteImport.update({
+    id: '/api/public/cron/weekly-email',
+    path: '/api/public/cron/weekly-email',
+    getParentRoute: () => rootRouteImport,
+  } as any)
 
 export interface FileRoutesByFullPath {
   '/': typeof IndexRoute
@@ -143,6 +150,7 @@ export interface FileRoutesByFullPath {
   '/api/chat': typeof ApiChatRoute
   '/api/transcribe': typeof ApiTranscribeRoute
   '/onboard/$segment': typeof OnboardSegmentRoute
+  '/api/public/cron/weekly-email': typeof ApiPublicCronWeeklyEmailRoute
 }
 export interface FileRoutesByTo {
   '/': typeof IndexRoute
@@ -163,6 +171,7 @@ export interface FileRoutesByTo {
   '/api/chat': typeof ApiChatRoute
   '/api/transcribe': typeof ApiTranscribeRoute
   '/onboard/$segment': typeof OnboardSegmentRoute
+  '/api/public/cron/weekly-email': typeof ApiPublicCronWeeklyEmailRoute
 }
 export interface FileRoutesById {
   __root__: typeof rootRouteImport
@@ -185,6 +194,7 @@ export interface FileRoutesById {
   '/api/chat': typeof ApiChatRoute
   '/api/transcribe': typeof ApiTranscribeRoute
   '/onboard/$segment': typeof OnboardSegmentRoute
+  '/api/public/cron/weekly-email': typeof ApiPublicCronWeeklyEmailRoute
 }
 export interface FileRouteTypes {
   fileRoutesByFullPath: FileRoutesByFullPath
@@ -207,6 +217,7 @@ export interface FileRouteTypes {
     | '/api/chat'
     | '/api/transcribe'
     | '/onboard/$segment'
+    | '/api/public/cron/weekly-email'
   fileRoutesByTo: FileRoutesByTo
   to:
     | '/'
@@ -227,6 +238,7 @@ export interface FileRouteTypes {
     | '/api/chat'
     | '/api/transcribe'
     | '/onboard/$segment'
+    | '/api/public/cron/weekly-email'
   id:
     | '__root__'
     | '/'
@@ -248,6 +260,7 @@ export interface FileRouteTypes {
     | '/api/chat'
     | '/api/transcribe'
     | '/onboard/$segment'
+    | '/api/public/cron/weekly-email'
   fileRoutesById: FileRoutesById
 }
 export interface RootRouteChildren {
@@ -262,6 +275,7 @@ export interface RootRouteChildren {
   ApiChatRoute: typeof ApiChatRoute
   ApiTranscribeRoute: typeof ApiTranscribeRoute
   OnboardSegmentRoute: typeof OnboardSegmentRoute
+  ApiPublicCronWeeklyEmailRoute: typeof ApiPublicCronWeeklyEmailRoute
 }
 
 declare module '@tanstack/react-router' {
@@ -399,6 +413,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof AuthenticatedAccountRouteImport
       parentRoute: typeof AuthenticatedRouteRoute
     }
+    '/api/public/cron/weekly-email': {
+      id: '/api/public/cron/weekly-email'
+      path: '/api/public/cron/weekly-email'
+      fullPath: '/api/public/cron/weekly-email'
+      preLoaderRoute: typeof ApiPublicCronWeeklyEmailRouteImport
+      parentRoute: typeof rootRouteImport
+    }
   }
 }
 
@@ -439,6 +460,7 @@ const rootRouteChildren: RootRouteChildren = {
   ApiChatRoute: ApiChatRoute,
   ApiTranscribeRoute: ApiTranscribeRoute,
   OnboardSegmentRoute: OnboardSegmentRoute,
+  ApiPublicCronWeeklyEmailRoute: ApiPublicCronWeeklyEmailRoute,
 }
 export const routeTree = rootRouteImport
   ._addFileChildren(rootRouteChildren)

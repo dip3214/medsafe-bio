@@ -9,6 +9,7 @@
 // Additionally, you should also exclude this file from your linter and/or formatter to prevent it from being checked or modified.
 
 import { Route as rootRouteImport } from './routes/__root'
+import { Route as UnsubscribeRouteImport } from './routes/unsubscribe'
 import { Route as ServicesRouteImport } from './routes/services'
 import { Route as PrivacyRouteImport } from './routes/privacy'
 import { Route as DpdpNoticeRouteImport } from './routes/dpdp-notice'
@@ -30,6 +31,11 @@ import { Route as AuthenticatedChatRouteImport } from './routes/_authenticated/c
 import { Route as AuthenticatedAccountRouteImport } from './routes/_authenticated/account'
 import { Route as ApiPublicCronWeeklyEmailRouteImport } from './routes/api/public/cron/weekly-email'
 
+const UnsubscribeRoute = UnsubscribeRouteImport.update({
+  id: '/unsubscribe',
+  path: '/unsubscribe',
+  getParentRoute: () => rootRouteImport,
+} as any)
 const ServicesRoute = ServicesRouteImport.update({
   id: '/services',
   path: '/services',
@@ -139,6 +145,7 @@ export interface FileRoutesByFullPath {
   '/dpdp-notice': typeof DpdpNoticeRoute
   '/privacy': typeof PrivacyRoute
   '/services': typeof ServicesRoute
+  '/unsubscribe': typeof UnsubscribeRoute
   '/account': typeof AuthenticatedAccountRoute
   '/chat': typeof AuthenticatedChatRoute
   '/dashboard': typeof AuthenticatedDashboardRoute
@@ -160,6 +167,7 @@ export interface FileRoutesByTo {
   '/dpdp-notice': typeof DpdpNoticeRoute
   '/privacy': typeof PrivacyRoute
   '/services': typeof ServicesRoute
+  '/unsubscribe': typeof UnsubscribeRoute
   '/account': typeof AuthenticatedAccountRoute
   '/chat': typeof AuthenticatedChatRoute
   '/dashboard': typeof AuthenticatedDashboardRoute
@@ -183,6 +191,7 @@ export interface FileRoutesById {
   '/dpdp-notice': typeof DpdpNoticeRoute
   '/privacy': typeof PrivacyRoute
   '/services': typeof ServicesRoute
+  '/unsubscribe': typeof UnsubscribeRoute
   '/_authenticated/account': typeof AuthenticatedAccountRoute
   '/_authenticated/chat': typeof AuthenticatedChatRoute
   '/_authenticated/dashboard': typeof AuthenticatedDashboardRoute
@@ -206,6 +215,7 @@ export interface FileRouteTypes {
     | '/dpdp-notice'
     | '/privacy'
     | '/services'
+    | '/unsubscribe'
     | '/account'
     | '/chat'
     | '/dashboard'
@@ -227,6 +237,7 @@ export interface FileRouteTypes {
     | '/dpdp-notice'
     | '/privacy'
     | '/services'
+    | '/unsubscribe'
     | '/account'
     | '/chat'
     | '/dashboard'
@@ -249,6 +260,7 @@ export interface FileRouteTypes {
     | '/dpdp-notice'
     | '/privacy'
     | '/services'
+    | '/unsubscribe'
     | '/_authenticated/account'
     | '/_authenticated/chat'
     | '/_authenticated/dashboard'
@@ -272,6 +284,7 @@ export interface RootRouteChildren {
   DpdpNoticeRoute: typeof DpdpNoticeRoute
   PrivacyRoute: typeof PrivacyRoute
   ServicesRoute: typeof ServicesRoute
+  UnsubscribeRoute: typeof UnsubscribeRoute
   ApiChatRoute: typeof ApiChatRoute
   ApiTranscribeRoute: typeof ApiTranscribeRoute
   OnboardSegmentRoute: typeof OnboardSegmentRoute
@@ -280,6 +293,13 @@ export interface RootRouteChildren {
 
 declare module '@tanstack/react-router' {
   interface FileRoutesByPath {
+    '/unsubscribe': {
+      id: '/unsubscribe'
+      path: '/unsubscribe'
+      fullPath: '/unsubscribe'
+      preLoaderRoute: typeof UnsubscribeRouteImport
+      parentRoute: typeof rootRouteImport
+    }
     '/services': {
       id: '/services'
       path: '/services'
@@ -457,6 +477,7 @@ const rootRouteChildren: RootRouteChildren = {
   DpdpNoticeRoute: DpdpNoticeRoute,
   PrivacyRoute: PrivacyRoute,
   ServicesRoute: ServicesRoute,
+  UnsubscribeRoute: UnsubscribeRoute,
   ApiChatRoute: ApiChatRoute,
   ApiTranscribeRoute: ApiTranscribeRoute,
   OnboardSegmentRoute: OnboardSegmentRoute,

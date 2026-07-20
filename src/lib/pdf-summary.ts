@@ -36,8 +36,8 @@ export function renderSummaryPdf(
   doc.setFillColor(BRAND);
   doc.circle(M + 14, y + 14, 14, "F");
   // Heart glyph inside pill
-  doc.setDrawColor(255);
-  doc.setFillColor(255);
+  doc.setDrawColor('#ffffff');
+  doc.setFillColor('#ffffff');
   drawHeart(doc, M + 14, y + 14, 6);
 
   // Wordmark
@@ -161,7 +161,7 @@ export function renderSummaryPdf(
         doc.text(`${l.value ?? ""}${l.unit ? " " + l.unit : ""}`, col[1], y);
         doc.text(String(l.refRange ?? "—"), col[2], y, { maxWidth: 100 });
         const flag = String(l.flag ?? "—");
-        if (flag !== "—" && flag !== "normal") doc.setTextColor(190, 70, 20);
+        if (flag !== "—" && flag !== "normal") doc.setTextColor('#be4614');
         doc.text(flag, col[3], y);
         doc.setTextColor(INK);
         y += 14;

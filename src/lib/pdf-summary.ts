@@ -9,10 +9,10 @@ import type { VisitGroup } from "@/lib/medsafe-types";
 export type PdfResult = { blob: Blob; filename: string; url: string };
 
 // Brand — MedSafe terracotta ≈ oklch(0.42 0.16 28)
-const BRAND: [number, number, number] = [168, 51, 24];
-const INK: [number, number, number] = [26, 26, 26];
-const MUTED: [number, number, number] = [110, 110, 110];
-const RULE: [number, number, number] = [220, 220, 220];
+const BRAND = '#a83318';
+const INK = '#1a1a1a';
+const MUTED = '#6e6e6e';
+const RULE = '#dcdcdc';
 
 export function renderSummaryPdf(
   patientName: string,
@@ -33,7 +33,7 @@ export function renderSummaryPdf(
 
   // ── Letterhead ────────────────────────────────────────────────────────
   // Logo pill
-  doc.setFillColor(...BRAND);
+  doc.setFillColor(BRAND);
   doc.circle(M + 14, y + 14, 14, "F");
   // Heart glyph inside pill
   doc.setDrawColor(255);
@@ -41,46 +41,46 @@ export function renderSummaryPdf(
   drawHeart(doc, M + 14, y + 14, 6);
 
   // Wordmark
-  doc.setTextColor(...INK);
+  doc.setTextColor(INK);
   doc.setFont("helvetica", "bold");
   doc.setFontSize(18);
   doc.text("med", M + 38, y + 14);
   const medW = doc.getTextWidth("med");
-  doc.setTextColor(...BRAND);
+  doc.setTextColor(BRAND);
   doc.text("Safe", M + 38 + medW, y + 14);
 
   doc.setFont("helvetica", "normal");
   doc.setFontSize(8);
-  doc.setTextColor(...MUTED);
+  doc.setTextColor(MUTED);
   doc.text("ONE FAMILY · ONE HEALTH RECORD", M + 38, y + 26);
 
   // Right-side: generated date
   doc.setFontSize(9);
-  doc.setTextColor(...MUTED);
+  doc.setTextColor(MUTED);
   const gen = `Generated ${new Date().toLocaleDateString("en-IN")}`;
   doc.text(gen, pageW - M, y + 14, { align: "right" });
 
   y += 44;
-  doc.setDrawColor(...RULE);
+  doc.setDrawColor(RULE);
   doc.line(M, y, pageW - M, y);
   y += 22;
 
   // ── Title ─────────────────────────────────────────────────────────────
   doc.setFont("helvetica", "bold");
   doc.setFontSize(9);
-  doc.setTextColor(...BRAND);
+  doc.setTextColor(BRAND);
   doc.text("CLINICAL SUMMARY REPORT", M, y);
   y += 16;
 
   doc.setFont("helvetica", "bold");
   doc.setFontSize(20);
-  doc.setTextColor(...INK);
+  doc.setTextColor(INK);
   doc.text(`${patientName} — Health summary`, M, y);
   y += 18;
 
   doc.setFont("helvetica", "normal");
   doc.setFontSize(10);
-  doc.setTextColor(...MUTED);
+  doc.setTextColor(MUTED);
   const sub = visits.length >= 2
     ? `Based on your last ${visits.length} visits, ${visits[1].endDate} → ${visits[0].startDate}.`
     : visits[0]
@@ -94,7 +94,7 @@ export function renderSummaryPdf(
     ensureRoom(60);
     doc.setFont("helvetica", "bold");
     doc.setFontSize(13);
-    doc.setTextColor(...INK);
+    doc.setTextColor(INK);
     doc.text(i === 0 ? "Most recent visit" : "Previous visit", M, y);
 
     const meta = [
@@ -104,14 +104,14 @@ export function renderSummaryPdf(
     ].filter(Boolean).join(" · ");
     doc.setFont("helvetica", "normal");
     doc.setFontSize(9);
-    doc.setTextColor(...MUTED);
+    doc.setTextColor(MUTED);
     doc.text(meta, pageW - M, y, { align: "right" });
     y += 16;
 
     const summary = v.docs.find((d) => d.summary)?.summary;
     if (summary) {
       doc.setFontSize(10);
-      doc.setTextColor(...INK);
+      doc.setTextColor(INK);
       const lines = doc.splitTextToSize(summary, pageW - M * 2);
       ensureRoom(lines.length * 12 + 8);
       doc.text(lines, M, y);
@@ -142,18 +142,18 @@ export function renderSummaryPdf(
       const col = [M, M + 210, M + 320, M + 430];
       doc.setFont("helvetica", "bold");
       doc.setFontSize(9);
-      doc.setTextColor(...MUTED);
+      doc.setTextColor(MUTED);
       ensureRoom(16);
       doc.text("Test", col[0], y);
       doc.text("Value", col[1], y);
       doc.text("Ref", col[2], y);
       doc.text("Flag", col[3], y);
       y += 4;
-      doc.setDrawColor(...RULE);
+      doc.setDrawColor(RULE);
       doc.line(M, y, pageW - M, y);
       y += 10;
       doc.setFont("helvetica", "normal");
-      doc.setTextColor(...INK);
+      doc.setTextColor(INK);
       doc.setFontSize(10);
       labs.forEach((l) => {
         ensureRoom(14);
@@ -163,7 +163,7 @@ export function renderSummaryPdf(
         const flag = String(l.flag ?? "—");
         if (flag !== "—" && flag !== "normal") doc.setTextColor(190, 70, 20);
         doc.text(flag, col[3], y);
-        doc.setTextColor(...INK);
+        doc.setTextColor(INK);
         y += 14;
       });
       y += 6;
@@ -171,7 +171,7 @@ export function renderSummaryPdf(
 
     ensureRoom(18);
     doc.setFontSize(8);
-    doc.setTextColor(...MUTED);
+    doc.setTextColor(MUTED);
     doc.text(`${v.docs.length} document${v.docs.length > 1 ? "s" : ""}`, M, y);
     y += 22;
   });
@@ -180,11 +180,11 @@ export function renderSummaryPdf(
   const pageCount = (doc as any).internal.getNumberOfPages();
   for (let p = 1; p <= pageCount; p++) {
     doc.setPage(p);
-    doc.setDrawColor(...RULE);
+    doc.setDrawColor(RULE);
     doc.line(M, pageH - M + 6, pageW - M, pageH - M + 6);
     doc.setFont("helvetica", "italic");
     doc.setFontSize(8);
-    doc.setTextColor(...MUTED);
+    doc.setTextColor(MUTED);
     doc.text(
       "Generated from your uploaded records — not a substitute for medical advice. Discuss with your physician before any change. — MedSafe",
       M, pageH - M + 18, { maxWidth: pageW - M * 2 },
@@ -206,15 +206,15 @@ function section(
   ensureRoom(20);
   doc.setFont("helvetica", "bold");
   doc.setFontSize(9);
-  doc.setTextColor(...MUTED);
+  doc.setTextColor(MUTED);
   doc.text(title.toUpperCase(), M, y);
   y += 6;
-  doc.setDrawColor(...RULE);
+  doc.setDrawColor(RULE);
   doc.line(M, y, pageW - M, y);
   y += 12;
   doc.setFont("helvetica", "normal");
   doc.setFontSize(10);
-  doc.setTextColor(...INK);
+  doc.setTextColor(INK);
   return y;
 }
 
@@ -224,7 +224,7 @@ function bullet(
 ) {
   const lines = doc.splitTextToSize(text, pageW - M * 2 - 12);
   ensureRoom(lines.length * 12 + 2);
-  doc.setFillColor(...BRAND);
+  doc.setFillColor(BRAND);
   doc.circle(M + 3, y - 3, 1.6, "F");
   doc.text(lines, M + 12, y);
   return y + lines.length * 12 + 2;

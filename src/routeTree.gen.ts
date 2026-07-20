@@ -9,6 +9,7 @@
 // Additionally, you should also exclude this file from your linter and/or formatter to prevent it from being checked or modified.
 
 import { Route as rootRouteImport } from './routes/__root'
+import { Route as UnsubscribeRouteImport } from './routes/unsubscribe'
 import { Route as ServicesRouteImport } from './routes/services'
 import { Route as PrivacyRouteImport } from './routes/privacy'
 import { Route as DpdpNoticeRouteImport } from './routes/dpdp-notice'
@@ -28,7 +29,13 @@ import { Route as AuthenticatedLifestyleRouteImport } from './routes/_authentica
 import { Route as AuthenticatedDashboardRouteImport } from './routes/_authenticated/dashboard'
 import { Route as AuthenticatedChatRouteImport } from './routes/_authenticated/chat'
 import { Route as AuthenticatedAccountRouteImport } from './routes/_authenticated/account'
+import { Route as ApiPublicCronWeeklyEmailRouteImport } from './routes/api/public/cron/weekly-email'
 
+const UnsubscribeRoute = UnsubscribeRouteImport.update({
+  id: '/unsubscribe',
+  path: '/unsubscribe',
+  getParentRoute: () => rootRouteImport,
+} as any)
 const ServicesRoute = ServicesRouteImport.update({
   id: '/services',
   path: '/services',
@@ -123,6 +130,12 @@ const AuthenticatedAccountRoute = AuthenticatedAccountRouteImport.update({
   path: '/account',
   getParentRoute: () => AuthenticatedRouteRoute,
 } as any)
+const ApiPublicCronWeeklyEmailRoute =
+  ApiPublicCronWeeklyEmailRouteImport.update({
+    id: '/api/public/cron/weekly-email',
+    path: '/api/public/cron/weekly-email',
+    getParentRoute: () => rootRouteImport,
+  } as any)
 
 export interface FileRoutesByFullPath {
   '/': typeof IndexRoute
@@ -132,6 +145,7 @@ export interface FileRoutesByFullPath {
   '/dpdp-notice': typeof DpdpNoticeRoute
   '/privacy': typeof PrivacyRoute
   '/services': typeof ServicesRoute
+  '/unsubscribe': typeof UnsubscribeRoute
   '/account': typeof AuthenticatedAccountRoute
   '/chat': typeof AuthenticatedChatRoute
   '/dashboard': typeof AuthenticatedDashboardRoute
@@ -143,6 +157,7 @@ export interface FileRoutesByFullPath {
   '/api/chat': typeof ApiChatRoute
   '/api/transcribe': typeof ApiTranscribeRoute
   '/onboard/$segment': typeof OnboardSegmentRoute
+  '/api/public/cron/weekly-email': typeof ApiPublicCronWeeklyEmailRoute
 }
 export interface FileRoutesByTo {
   '/': typeof IndexRoute
@@ -152,6 +167,7 @@ export interface FileRoutesByTo {
   '/dpdp-notice': typeof DpdpNoticeRoute
   '/privacy': typeof PrivacyRoute
   '/services': typeof ServicesRoute
+  '/unsubscribe': typeof UnsubscribeRoute
   '/account': typeof AuthenticatedAccountRoute
   '/chat': typeof AuthenticatedChatRoute
   '/dashboard': typeof AuthenticatedDashboardRoute
@@ -163,6 +179,7 @@ export interface FileRoutesByTo {
   '/api/chat': typeof ApiChatRoute
   '/api/transcribe': typeof ApiTranscribeRoute
   '/onboard/$segment': typeof OnboardSegmentRoute
+  '/api/public/cron/weekly-email': typeof ApiPublicCronWeeklyEmailRoute
 }
 export interface FileRoutesById {
   __root__: typeof rootRouteImport
@@ -174,6 +191,7 @@ export interface FileRoutesById {
   '/dpdp-notice': typeof DpdpNoticeRoute
   '/privacy': typeof PrivacyRoute
   '/services': typeof ServicesRoute
+  '/unsubscribe': typeof UnsubscribeRoute
   '/_authenticated/account': typeof AuthenticatedAccountRoute
   '/_authenticated/chat': typeof AuthenticatedChatRoute
   '/_authenticated/dashboard': typeof AuthenticatedDashboardRoute
@@ -185,6 +203,7 @@ export interface FileRoutesById {
   '/api/chat': typeof ApiChatRoute
   '/api/transcribe': typeof ApiTranscribeRoute
   '/onboard/$segment': typeof OnboardSegmentRoute
+  '/api/public/cron/weekly-email': typeof ApiPublicCronWeeklyEmailRoute
 }
 export interface FileRouteTypes {
   fileRoutesByFullPath: FileRoutesByFullPath
@@ -196,6 +215,7 @@ export interface FileRouteTypes {
     | '/dpdp-notice'
     | '/privacy'
     | '/services'
+    | '/unsubscribe'
     | '/account'
     | '/chat'
     | '/dashboard'
@@ -207,6 +227,7 @@ export interface FileRouteTypes {
     | '/api/chat'
     | '/api/transcribe'
     | '/onboard/$segment'
+    | '/api/public/cron/weekly-email'
   fileRoutesByTo: FileRoutesByTo
   to:
     | '/'
@@ -216,6 +237,7 @@ export interface FileRouteTypes {
     | '/dpdp-notice'
     | '/privacy'
     | '/services'
+    | '/unsubscribe'
     | '/account'
     | '/chat'
     | '/dashboard'
@@ -227,6 +249,7 @@ export interface FileRouteTypes {
     | '/api/chat'
     | '/api/transcribe'
     | '/onboard/$segment'
+    | '/api/public/cron/weekly-email'
   id:
     | '__root__'
     | '/'
@@ -237,6 +260,7 @@ export interface FileRouteTypes {
     | '/dpdp-notice'
     | '/privacy'
     | '/services'
+    | '/unsubscribe'
     | '/_authenticated/account'
     | '/_authenticated/chat'
     | '/_authenticated/dashboard'
@@ -248,6 +272,7 @@ export interface FileRouteTypes {
     | '/api/chat'
     | '/api/transcribe'
     | '/onboard/$segment'
+    | '/api/public/cron/weekly-email'
   fileRoutesById: FileRoutesById
 }
 export interface RootRouteChildren {
@@ -259,13 +284,22 @@ export interface RootRouteChildren {
   DpdpNoticeRoute: typeof DpdpNoticeRoute
   PrivacyRoute: typeof PrivacyRoute
   ServicesRoute: typeof ServicesRoute
+  UnsubscribeRoute: typeof UnsubscribeRoute
   ApiChatRoute: typeof ApiChatRoute
   ApiTranscribeRoute: typeof ApiTranscribeRoute
   OnboardSegmentRoute: typeof OnboardSegmentRoute
+  ApiPublicCronWeeklyEmailRoute: typeof ApiPublicCronWeeklyEmailRoute
 }
 
 declare module '@tanstack/react-router' {
   interface FileRoutesByPath {
+    '/unsubscribe': {
+      id: '/unsubscribe'
+      path: '/unsubscribe'
+      fullPath: '/unsubscribe'
+      preLoaderRoute: typeof UnsubscribeRouteImport
+      parentRoute: typeof rootRouteImport
+    }
     '/services': {
       id: '/services'
       path: '/services'
@@ -399,6 +433,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof AuthenticatedAccountRouteImport
       parentRoute: typeof AuthenticatedRouteRoute
     }
+    '/api/public/cron/weekly-email': {
+      id: '/api/public/cron/weekly-email'
+      path: '/api/public/cron/weekly-email'
+      fullPath: '/api/public/cron/weekly-email'
+      preLoaderRoute: typeof ApiPublicCronWeeklyEmailRouteImport
+      parentRoute: typeof rootRouteImport
+    }
   }
 }
 
@@ -436,9 +477,11 @@ const rootRouteChildren: RootRouteChildren = {
   DpdpNoticeRoute: DpdpNoticeRoute,
   PrivacyRoute: PrivacyRoute,
   ServicesRoute: ServicesRoute,
+  UnsubscribeRoute: UnsubscribeRoute,
   ApiChatRoute: ApiChatRoute,
   ApiTranscribeRoute: ApiTranscribeRoute,
   OnboardSegmentRoute: OnboardSegmentRoute,
+  ApiPublicCronWeeklyEmailRoute: ApiPublicCronWeeklyEmailRoute,
 }
 export const routeTree = rootRouteImport
   ._addFileChildren(rootRouteChildren)

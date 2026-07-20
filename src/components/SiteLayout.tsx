@@ -1,6 +1,6 @@
 import { Link, useNavigate, useRouterState } from "@tanstack/react-router";
 import { useEffect, useState, type ReactNode } from "react";
-import { MessageSquare, LogOut, LogIn, ShieldCheck, BadgeCheck, HeartPulse } from "lucide-react";
+import { LogOut, LogIn, ShieldCheck, BadgeCheck, HeartPulse } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 import { MemberSwitcher } from "@/components/MemberSwitcher";
 import { ConsentBanner } from "@/components/ConsentBanner";
@@ -109,15 +109,9 @@ export function SiteLayout({ children }: { children: ReactNode }) {
 
       <main className="pb-28">{children}</main>
 
-      {email && !onChatPage && (
-        <Link
-          to="/chat"
-          className="fixed bottom-5 right-5 z-30 inline-flex items-center gap-2 rounded-full bg-primary px-5 py-3 text-sm font-semibold text-primary-foreground shadow-xl shadow-primary/30 transition hover:scale-[1.03] hover:bg-primary/90 active:scale-95"
-          style={{ paddingBottom: "max(env(safe-area-inset-bottom), 0.75rem)" }}
-        >
-          <MessageSquare className="h-4 w-4" /> Ask MedSafe
-        </Link>
-      )}
+      {/* Floating "Ask MedSafe" removed — the same action lives in the
+          pinned QuickActions strip on every logged-in surface. */}
+
 
       <footer className="border-t border-border/60 bg-secondary/40">
         <div className="mx-auto max-w-7xl px-4 py-10 text-sm text-muted-foreground">

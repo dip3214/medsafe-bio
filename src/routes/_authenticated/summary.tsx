@@ -2,11 +2,12 @@ import { createFileRoute, Link } from "@tanstack/react-router";
 import { useMemo, useState } from "react";
 import { useQuery } from "@tanstack/react-query";
 import { useServerFn } from "@tanstack/react-start";
-import { Printer, ArrowLeft, FileText, HeartPulse, MessageCircle } from "lucide-react";
+import { Download, ArrowLeft, FileText, HeartPulse, MessageCircle, Loader2 } from "lucide-react";
 import { SiteLayout } from "@/components/SiteLayout";
 import { listMedicalDocs } from "@/lib/medsafe.functions";
 import { groupDocs, type MedicalDoc, type VisitGroup } from "@/lib/medsafe-types";
 import { useActiveMember } from "@/lib/active-member";
+import { renderSummaryPdf, triggerDownload } from "@/lib/pdf-summary";
 
 export const Route = createFileRoute("/_authenticated/summary")({
   head: () => ({
@@ -29,51 +30,60 @@ function SummaryPage() {
   const groups = useMemo(() => groupDocs(docs), [docs]);
   const visits = groups.slice(0, 2); // last 2 (most recent first)
 
+  const [downloading, setDownloading] = useState(false);
   const [sharing, setSharing] = useState(false);
 
-  function iosSafePrint() {
-    // iOS Safari sometimes triggers print before layout settles, leaving
-    // the SPA in a weird state and clearing the Supabase listener. A tiny
-    // rAF + timeout lets it stabilise, then we restore focus.
-    const prev = document.title;
-    document.title = `MedSafe summary — ${active?.name ?? "Patient"}`;
-    requestAnimationFrame(() => {
-      setTimeout(() => {
-        try { window.print(); } finally {
-          setTimeout(() => { document.title = prev; }, 400);
-        }
-      }, 60);
-    });
+
+  function buildPdf() {
+    return renderSummaryPdf(active?.name ?? "Patient", visits);
+  }
+
+
+  async function downloadPdf() {
+    setDownloading(true);
+    try {
+      const pdf = await buildPdf();
+      triggerDownload(pdf);
+      setTimeout(() => URL.revokeObjectURL(pdf.url), 4000);
+    } catch (e) {
+      console.error("[summary] download failed", e);
+      alert("Sorry — couldn't build the PDF. Please try again.");
+    } finally {
+      setDownloading(false);
+    }
   }
 
   async function shareSummary() {
     setSharing(true);
     try {
-      const v0 = visits[0];
-      const v1 = visits[1];
-      const dx = v0?.docs.flatMap((d) => d.diagnoses ?? []).slice(0, 3) ?? [];
-      const flags = v0?.docs.flatMap((d) => d.labValues ?? [])
-        .filter((v) => v.flag && v.flag !== "normal")
-        .slice(0, 3) ?? [];
-      const lines = [
-        `MedSafe · ${active?.name ?? "Patient"}'s health summary`,
-        v1 ? `Last visits: ${v1.endDate} → ${v0.startDate}` : v0 ? `Last visit: ${v0.startDate}` : "",
-        dx.length ? `Diagnoses: ${dx.join(", ")}` : "",
-        flags.length
-          ? `Flagged: ${flags.map((f) => `${f.name} ${f.value}${f.unit ? " " + f.unit : ""} (${f.flag})`).join("; ")}`
-          : "",
-        `Open in MedSafe: ${window.location.origin}/summary`,
-      ].filter(Boolean).join("\n");
+      const pdf = await buildPdf();
+      const file = new File([pdf.blob], pdf.filename, { type: "application/pdf" });
 
-      if (typeof navigator !== "undefined" && (navigator as any).share) {
+      // Prefer native file share (iOS Safari, Android Chrome) — this lets
+      // the user pick WhatsApp and actually attaches the PDF.
+      const nav = navigator as any;
+      if (nav.canShare && nav.canShare({ files: [file] })) {
         try {
-          await (navigator as any).share({ title: "MedSafe summary", text: lines });
+          await nav.share({
+            files: [file],
+            title: "MedSafe summary",
+            text: `${active?.name ?? "Patient"} — health summary from MedSafe`,
+          });
           return;
-        } catch { /* user cancelled — fall through to WhatsApp */ }
+        } catch { /* user cancelled — fall through */ }
       }
-      const wa = `https://wa.me/?text=${encodeURIComponent(lines)}`;
+
+      // Desktop / unsupported: download the PDF so the user has the file,
+      // then open WhatsApp Web with a short message they can attach it to.
+      triggerDownload(pdf);
+      const msg = `${active?.name ?? "Patient"}'s MedSafe health summary is attached (downloaded to this device).`;
+      const wa = `https://web.whatsapp.com/send?text=${encodeURIComponent(msg)}`;
       const { openInNewTab } = await import("@/lib/ios-open");
       openInNewTab(wa);
+      setTimeout(() => URL.revokeObjectURL(pdf.url), 60_000);
+    } catch (e) {
+      console.error("[summary] share failed", e);
+      alert("Sorry — couldn't share the summary. Please try downloading instead.");
     } finally {
       setSharing(false);
     }
@@ -81,28 +91,31 @@ function SummaryPage() {
 
   return (
     <SiteLayout>
-      <section className="mx-auto max-w-3xl px-4 py-8 print:max-w-none print:py-0">
-        <div className="mb-6 flex flex-wrap items-center justify-between gap-2 print:hidden">
+      <section className="mx-auto max-w-3xl px-4 py-8">
+        <div className="mb-6 flex flex-wrap items-center justify-between gap-2">
           <Link to="/dashboard" className="inline-flex items-center gap-1 text-sm text-muted-foreground hover:text-foreground">
             <ArrowLeft className="h-4 w-4" /> Back to dashboard
           </Link>
           <div className="flex flex-wrap gap-2">
             <button
               onClick={shareSummary}
-              disabled={sharing || visits.length === 0}
+              disabled={sharing || downloading || visits.length === 0}
               className="inline-flex items-center gap-2 rounded-md border border-border bg-card px-4 py-2 text-sm font-medium hover:bg-accent disabled:opacity-50"
             >
-              <MessageCircle className="h-4 w-4 text-emerald-600" /> {sharing ? "Preparing…" : "Share to WhatsApp"}
+              <MessageCircle className="h-4 w-4 text-emerald-600" /> {sharing ? "Preparing PDF…" : "Share PDF (WhatsApp)"}
             </button>
             <button
-              onClick={iosSafePrint}
-              className="inline-flex items-center gap-2 rounded-md px-4 py-2 text-sm font-medium text-white"
+              onClick={downloadPdf}
+              disabled={downloading || sharing || visits.length === 0}
+              className="inline-flex items-center gap-2 rounded-md px-4 py-2 text-sm font-medium text-white disabled:opacity-60"
               style={{ background: "oklch(0.42 0.16 28)" }}
             >
-              <Printer className="h-4 w-4" /> Download / Print
+              {downloading ? <Loader2 className="h-4 w-4 animate-spin" /> : <Download className="h-4 w-4" />}
+              {downloading ? "Building PDF…" : "Download PDF"}
             </button>
           </div>
         </div>
+
 
         {isLoading ? (
           <div className="rounded-xl border border-border bg-card p-10 text-center text-sm text-muted-foreground">

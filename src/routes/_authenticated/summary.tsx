@@ -32,7 +32,7 @@ function SummaryPage() {
 
   const [downloading, setDownloading] = useState(false);
   const [sharing, setSharing] = useState(false);
-  const articleRef = useRef<HTMLElement | null>(null);
+
 
   function buildPdf() {
     return renderSummaryPdf(active?.name ?? "Patient", visits);

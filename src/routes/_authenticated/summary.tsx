@@ -34,10 +34,10 @@ function SummaryPage() {
   const [sharing, setSharing] = useState(false);
   const articleRef = useRef<HTMLElement | null>(null);
 
-  async function buildPdf() {
-    if (!articleRef.current) throw new Error("Nothing to export yet.");
-    return renderSummaryPdf(articleRef.current, active?.name ?? "Patient");
+  function buildPdf() {
+    return renderSummaryPdf(active?.name ?? "Patient", visits);
   }
+
 
   async function downloadPdf() {
     setDownloading(true);

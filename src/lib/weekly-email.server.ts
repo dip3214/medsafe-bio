@@ -27,7 +27,7 @@ export async function sendWeeklyCheckInEmails(cadence: Cadence) {
     const { data: u } = await supabaseAdmin.auth.admin.getUserById(p.user_id);
     const email = u?.user?.email;
     if (!email) continue;
-    const name = (u.user.user_metadata?.full_name || u.user.user_metadata?.name || null) as string | null;
+    const name = (u.user!.user_metadata?.full_name || u.user!.user_metadata?.name || null) as string | null;
     recipients.push({ user_id: p.user_id, email, name, token: p.unsubscribe_token });
   }
 

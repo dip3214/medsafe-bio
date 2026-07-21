@@ -8,9 +8,13 @@ import { sendWeeklyCheckInEmails } from "@/lib/weekly-email.server";
 export const Route = createFileRoute("/api/public/cron/weekly-email")({
   server: {
     handlers: {
-      POST: async () => {
+      POST: async ({ request }) => {
+        const url = new URL(request.url);
+        const override = url.searchParams.get("cadence");
         const day = new Date().getUTCDay(); // 0 Sun … 6 Sat
-        const cadence = day === 1 ? "monday" : day === 6 ? "saturday" : null;
+        const cadence = override === "monday" || override === "saturday"
+          ? (override as "monday" | "saturday")
+          : day === 1 ? "monday" : day === 6 ? "saturday" : null;
         if (!cadence) {
           return Response.json({ skipped: true, day });
         }

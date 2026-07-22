@@ -1,6 +1,6 @@
 import { createFileRoute, Link } from "@tanstack/react-router";
 import { SiteLayout } from "@/components/SiteLayout";
-import { QuickActions } from "@/components/QuickActions";
+
 import { groupDocs, type MedicalDoc, type VisitGroup } from "@/lib/medsafe-types";
 import { listMedicalDocs } from "@/lib/medsafe.functions";
 import { useServerFn } from "@tanstack/react-start";
@@ -69,7 +69,7 @@ function DashboardPage() {
 
   return (
     <SiteLayout>
-      <QuickActions />
+      
       <section className="mx-auto max-w-7xl px-4 pt-2 pb-10">
         {/* Segment quick-switcher */}
         <div className="mb-8 grid gap-3 sm:grid-cols-3">

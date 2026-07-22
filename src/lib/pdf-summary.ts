@@ -32,38 +32,44 @@ export function renderSummaryPdf(
   };
 
   // ── Letterhead ────────────────────────────────────────────────────────
-  // Logo pill
+  const logoSize = 26;
+  const logoX = M;
+  const logoY = y;
+  // Rounded terracotta tile
   doc.setFillColor(BRAND);
-  doc.circle(M + 14, y + 14, 14, "F");
-  // Heart glyph inside pill
-  doc.setDrawColor('#ffffff');
+  doc.roundedRect(logoX, logoY, logoSize, logoSize, 6, 6, "F");
+  // White heart glyph, centered in tile
   doc.setFillColor('#ffffff');
-  drawHeart(doc, M + 14, y + 14, 6);
+  drawHeart(doc, logoX + logoSize / 2, logoY + logoSize / 2 + 1, 9);
 
-  // Wordmark
-  doc.setTextColor(INK);
+  // Wordmark — baseline aligned with tile center
+  const textBaseline = logoY + logoSize / 2 + 6;
   doc.setFont("helvetica", "bold");
-  doc.setFontSize(18);
-  doc.text("med", M + 38, y + 14);
+  doc.setFontSize(20);
+  doc.setTextColor(INK);
+  const wordX = logoX + logoSize + 10;
+  doc.text("med", wordX, textBaseline);
   const medW = doc.getTextWidth("med");
   doc.setTextColor(BRAND);
-  doc.text("Safe", M + 38 + medW, y + 14);
-
-  doc.setFont("helvetica", "normal");
-  doc.setFontSize(8);
-  doc.setTextColor(MUTED);
-  doc.text("ONE FAMILY · ONE HEALTH RECORD", M + 38, y + 26);
+  doc.text("Safe", wordX + medW, textBaseline);
 
   // Right-side: generated date
+  doc.setFont("helvetica", "normal");
   doc.setFontSize(9);
   doc.setTextColor(MUTED);
   const gen = `Generated ${new Date().toLocaleDateString("en-IN")}`;
-  doc.text(gen, pageW - M, y + 14, { align: "right" });
+  doc.text(gen, pageW - M, textBaseline, { align: "right" });
 
-  y += 44;
+  y = logoY + logoSize + 8;
+  doc.setFont("helvetica", "normal");
+  doc.setFontSize(8);
+  doc.setTextColor(MUTED);
+  doc.text("ONE FAMILY · ONE HEALTH RECORD", M, y);
+  y += 10;
   doc.setDrawColor(RULE);
   doc.line(M, y, pageW - M, y);
   y += 22;
+
 
   // ── Title ─────────────────────────────────────────────────────────────
   doc.setFont("helvetica", "bold");

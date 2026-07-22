@@ -1,6 +1,6 @@
 import { createFileRoute } from "@tanstack/react-router";
 import { SiteLayout } from "@/components/SiteLayout";
-import { QuickActions } from "@/components/QuickActions";
+
 import { useServerFn } from "@tanstack/react-start";
 import { useState } from "react";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
@@ -79,7 +79,7 @@ function UploadPage() {
 
   return (
     <SiteLayout>
-      <QuickActions />
+      
       <section className="mx-auto max-w-6xl px-4 pt-2 pb-10">
         <div className="text-xs uppercase tracking-wider text-primary">Your records</div>
         <h1 className="mt-1 text-3xl font-semibold tracking-tight">Bring every report under one roof</h1>

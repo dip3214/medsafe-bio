@@ -44,10 +44,10 @@ export function renderSummaryPdf(
   doc.setTextColor('#ffffff');
   doc.text("M", M + tile / 2, headerTop + tile / 2 + 4, { align: "center" });
 
-  const wordBaseline = headerTop + tile / 2 + 5;
+  const wordBaseline = headerTop + tile / 2 + 4;
   const wordX = M + tile + 10;
-  doc.setFont("helvetica", "bold");
-  doc.setFontSize(16);
+  doc.setFont("helvetica", "normal");
+  doc.setFontSize(12);
   doc.setTextColor(INK);
   doc.text("med", wordX, wordBaseline);
   const medW = doc.getTextWidth("med");

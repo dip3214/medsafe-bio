@@ -32,68 +32,73 @@ export function renderSummaryPdf(
   };
 
   // ── Letterhead ────────────────────────────────────────────────────────
-  const logoSize = 26;
-  const logoX = M;
-  const logoY = y;
-  // Rounded terracotta tile
-  doc.setFillColor(BRAND);
-  doc.roundedRect(logoX, logoY, logoSize, logoSize, 6, 6, "F");
-  // White heart glyph, centered in tile
-  doc.setFillColor('#ffffff');
-  drawHeart(doc, logoX + logoSize / 2, logoY + logoSize / 2 + 1, 9);
+  // Clean three-zone header: [logo tile + wordmark] · [meta]
+  const headerTop = y;
+  const tile = 22;
 
-  // Wordmark — baseline aligned with tile center
-  const textBaseline = logoY + logoSize / 2 + 6;
+  // Left: tile + wordmark on a shared baseline
+  doc.setFillColor(BRAND);
+  doc.roundedRect(M, headerTop, tile, tile, 5, 5, "F");
   doc.setFont("helvetica", "bold");
-  doc.setFontSize(20);
+  doc.setFontSize(12);
+  doc.setTextColor('#ffffff');
+  doc.text("M", M + tile / 2, headerTop + tile / 2 + 4, { align: "center" });
+
+  const wordBaseline = headerTop + tile / 2 + 5;
+  const wordX = M + tile + 10;
+  doc.setFont("helvetica", "bold");
+  doc.setFontSize(16);
   doc.setTextColor(INK);
-  const wordX = logoX + logoSize + 10;
-  doc.text("med", wordX, textBaseline);
+  doc.text("med", wordX, wordBaseline);
   const medW = doc.getTextWidth("med");
   doc.setTextColor(BRAND);
-  doc.text("Safe", wordX + medW, textBaseline);
+  doc.text("Safe", wordX + medW, wordBaseline);
 
-  // Right-side: generated date
+  // Right: generation date on the same baseline
   doc.setFont("helvetica", "normal");
   doc.setFontSize(9);
   doc.setTextColor(MUTED);
-  const gen = `Generated ${new Date().toLocaleDateString("en-IN")}`;
-  doc.text(gen, pageW - M, textBaseline, { align: "right" });
+  doc.text(
+    `Generated ${new Date().toLocaleDateString("en-IN")}`,
+    pageW - M,
+    wordBaseline,
+    { align: "right" },
+  );
 
-  y = logoY + logoSize + 8;
-  doc.setFont("helvetica", "normal");
-  doc.setFontSize(8);
-  doc.setTextColor(MUTED);
-  doc.text("ONE FAMILY · ONE HEALTH RECORD", M, y);
-  y += 10;
+  // Rule under the header
+  y = headerTop + tile + 14;
   doc.setDrawColor(RULE);
+  doc.setLineWidth(0.5);
   doc.line(M, y, pageW - M, y);
-  y += 22;
+  y += 24;
 
 
-  // ── Title ─────────────────────────────────────────────────────────────
+  // ── Title block ───────────────────────────────────────────────────────
   doc.setFont("helvetica", "bold");
-  doc.setFontSize(9);
+  doc.setFontSize(8);
   doc.setTextColor(BRAND);
   doc.text("CLINICAL SUMMARY REPORT", M, y);
-  y += 16;
+  y += 20;
 
   doc.setFont("helvetica", "bold");
-  doc.setFontSize(20);
+  doc.setFontSize(22);
   doc.setTextColor(INK);
-  doc.text(`${patientName} — Health summary`, M, y);
+  doc.text(patientName, M, y);
+  y += 16;
+  doc.setFont("helvetica", "normal");
+  doc.setFontSize(11);
+  doc.setTextColor(MUTED);
+  doc.text("Health summary", M, y);
   y += 18;
 
-  doc.setFont("helvetica", "normal");
   doc.setFontSize(10);
-  doc.setTextColor(MUTED);
   const sub = visits.length >= 2
     ? `Based on your last ${visits.length} visits, ${visits[1].endDate} → ${visits[0].startDate}.`
     : visits[0]
       ? "Based on your most recent visit."
       : "No visits recorded yet.";
   doc.text(sub, M, y);
-  y += 24;
+  y += 28;
 
   // ── Visit blocks ──────────────────────────────────────────────────────
   visits.forEach((v, i) => {

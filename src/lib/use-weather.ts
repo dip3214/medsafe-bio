@@ -150,15 +150,44 @@ async function renderFrom(
   };
 }
 
+export type GeoStatus =
+  | "idle"
+  | "locating"
+  | "gps"
+  | "cached"
+  | "ip"
+  | "denied"
+  | "unavailable"
+  | "timeout"
+  | "unsupported"
+  | "error";
+
 export type UseWeatherResult = {
   weather: Weather | null;
   refresh: () => Promise<void>;
   refreshing: boolean;
+  geoStatus: GeoStatus;
+  geoMessage: string | null;
+};
+
+const STATUS_LABEL: Record<GeoStatus, string> = {
+  idle: "Locating…",
+  locating: "Locating…",
+  gps: "GPS location",
+  cached: "Recent GPS location",
+  ip: "Approx. location (IP)",
+  denied: "Location permission denied",
+  unavailable: "Location unavailable",
+  timeout: "Location request timed out",
+  unsupported: "Geolocation not supported",
+  error: "Couldn't get your location",
 };
 
 export function useWeather(): UseWeatherResult {
   const [weather, setWeather] = useState<Weather | null>(null);
   const [refreshing, setRefreshing] = useState(false);
+  const [geoStatus, setGeoStatus] = useState<GeoStatus>("idle");
+  const [geoMessage, setGeoMessage] = useState<string | null>(null);
   const ctrlRef = useRef<AbortController | null>(null);
 
   const run = useCallback(async (forceFresh: boolean) => {
@@ -166,34 +195,57 @@ export function useWeather(): UseWeatherResult {
     const ctrl = new AbortController();
     ctrlRef.current = ctrl;
     setRefreshing(true);
+    setGeoStatus("locating");
+    setGeoMessage(STATUS_LABEL.locating);
     try {
+      if (forceFresh) {
+        try { localStorage.removeItem("medsafe:geo"); } catch {}
+      }
+
+      // 1) Always try a fresh browser GPS fix first.
+      const tryBrowser = async () => {
+        const a = await getBrowserLatLon(ctrl.signal, true, forceFresh);
+        if (a && "lat" in a) return { fix: a, err: null as string | null };
+        const b = await getBrowserLatLon(ctrl.signal, false, forceFresh);
+        if (b && "lat" in b) return { fix: b, err: null as string | null };
+        const err = (a && "error" in a && a.error) || (b && "error" in b && b.error) || null;
+        return { fix: null, err };
+      };
+      const { fix, err: gpsErr } = await tryBrowser();
+
       let loc: { lat: number; lon: number; city: string | null } | null = null;
-      if (!forceFresh) {
+      let nextStatus: GeoStatus = "idle";
+
+      if (fix) {
+        const city = await reverseCity(fix.lat, fix.lon, ctrl.signal);
+        loc = { lat: fix.lat, lon: fix.lon, city };
+        nextStatus = "gps";
+      } else {
+        // 2) Fall back to a recent cached GPS fix if available.
         const cached = getCachedLatLon();
         if (cached) {
           const city = await reverseCity(cached.lat, cached.lon, ctrl.signal);
           loc = { ...cached, city };
-          try { setWeather(await renderFrom(loc, ctrl.signal)); } catch {}
+          nextStatus = "cached";
+        } else {
+          // 3) Last resort — coarse IP lookup.
+          const ip = await fetchLatLonIp(ctrl.signal);
+          if (ip) {
+            loc = ip;
+            nextStatus = "ip";
+          } else {
+            nextStatus = gpsErr?.includes("denied") ? "denied"
+              : gpsErr?.includes("timed out") ? "timeout"
+              : gpsErr?.includes("unavailable") ? "unavailable"
+              : gpsErr?.includes("not supported") ? "unsupported"
+              : "error";
+          }
         }
-      } else {
-        try { localStorage.removeItem("medsafe:geo"); } catch {}
+        if (gpsErr) console.warn("[weather] geolocation:", gpsErr);
       }
-      const tryBrowser = async () => {
-        const a = await getBrowserLatLon(ctrl.signal, true, forceFresh);
-        if (a && "lat" in a) return a;
-        const b = await getBrowserLatLon(ctrl.signal, false, forceFresh);
-        if (b && "lat" in b) return b;
-        const err = (a && "error" in a && a.error) || (b && "error" in b && b.error) || null;
-        if (err) console.warn("[weather] geolocation:", err);
-        return null;
-      };
-      const fresh = await tryBrowser();
-      if (fresh) {
-        const city = await reverseCity(fresh.lat, fresh.lon, ctrl.signal);
-        loc = { lat: fresh.lat, lon: fresh.lon, city };
-      } else if (!loc) {
-        loc = await fetchLatLonIp(ctrl.signal);
-      }
+
+      setGeoStatus(nextStatus);
+      setGeoMessage(gpsErr ?? STATUS_LABEL[nextStatus]);
       if (!loc) return;
       setWeather(await renderFrom(loc, ctrl.signal));
     } catch {} finally {
@@ -208,5 +260,5 @@ export function useWeather(): UseWeatherResult {
 
   const refresh = useCallback(() => run(true), [run]);
 
-  return { weather, refresh, refreshing };
+  return { weather, refresh, refreshing, geoStatus, geoMessage };
 }

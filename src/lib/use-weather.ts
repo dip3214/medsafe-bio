@@ -62,26 +62,35 @@ async function fetchLatLonIp(signal: AbortSignal) {
 }
 
 function getBrowserLatLon(signal: AbortSignal, highAccuracy = true, forceFresh = false) {
-  return new Promise<{ lat: number; lon: number } | null>((resolve) => {
-    if (typeof navigator === "undefined" || !navigator.geolocation) return resolve(null);
+  return new Promise<{ lat: number; lon: number; accuracy: number | null } | { error: string } | null>((resolve) => {
+    if (typeof navigator === "undefined" || !navigator.geolocation) {
+      return resolve({ error: "Geolocation not supported by this browser" });
+    }
     let done = false;
-    const finish = (v: { lat: number; lon: number } | null) => { if (!done) { done = true; clearTimeout(timer); resolve(v); } };
-    const timer = setTimeout(() => finish(null), highAccuracy ? 8000 : 12000);
+    const finish = (v: any) => { if (!done) { done = true; clearTimeout(timer); resolve(v); } };
+    const timer = setTimeout(() => finish({ error: "Location request timed out" }), highAccuracy ? 12000 : 15000);
     signal.addEventListener("abort", () => finish(null));
     navigator.geolocation.getCurrentPosition(
       (pos) => {
-        const coords = { lat: pos.coords.latitude, lon: pos.coords.longitude };
+        const coords = { lat: pos.coords.latitude, lon: pos.coords.longitude, accuracy: pos.coords.accuracy ?? null };
         try {
           localStorage.setItem("medsafe:geo",
-            JSON.stringify({ ...coords, t: Date.now(), src: "browser", acc: pos.coords.accuracy ?? null }));
+            JSON.stringify({ ...coords, t: Date.now(), src: "browser" }));
         } catch {}
         finish(coords);
       },
-      () => finish(null),
-      { enableHighAccuracy: highAccuracy, maximumAge: forceFresh ? 0 : 5 * 60 * 1000, timeout: highAccuracy ? 7500 : 11000 },
+      (err) => {
+        const msg = err.code === 1 ? "Location permission denied — enable it in your browser settings"
+                  : err.code === 2 ? "Location unavailable on this device"
+                  : err.code === 3 ? "Location request timed out"
+                  : "Couldn't get your location";
+        finish({ error: msg });
+      },
+      { enableHighAccuracy: highAccuracy, maximumAge: forceFresh ? 0 : 5 * 60 * 1000, timeout: highAccuracy ? 11000 : 14000 },
     );
   });
 }
+
 
 function getCachedLatLon() {
   try {
@@ -169,12 +178,19 @@ export function useWeather(): UseWeatherResult {
       } else {
         try { localStorage.removeItem("medsafe:geo"); } catch {}
       }
-      const fresh =
-        (await getBrowserLatLon(ctrl.signal, true, forceFresh)) ??
-        (await getBrowserLatLon(ctrl.signal, false, forceFresh));
+      const tryBrowser = async () => {
+        const a = await getBrowserLatLon(ctrl.signal, true, forceFresh);
+        if (a && "lat" in a) return a;
+        const b = await getBrowserLatLon(ctrl.signal, false, forceFresh);
+        if (b && "lat" in b) return b;
+        const err = (a && "error" in a && a.error) || (b && "error" in b && b.error) || null;
+        if (err) console.warn("[weather] geolocation:", err);
+        return null;
+      };
+      const fresh = await tryBrowser();
       if (fresh) {
         const city = await reverseCity(fresh.lat, fresh.lon, ctrl.signal);
-        loc = { ...fresh, city };
+        loc = { lat: fresh.lat, lon: fresh.lon, city };
       } else if (!loc) {
         loc = await fetchLatLonIp(ctrl.signal);
       }

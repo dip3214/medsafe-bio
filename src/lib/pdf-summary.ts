@@ -241,18 +241,6 @@ function bullet(
   return y + lines.length * 12 + 2;
 }
 
-function drawHeart(doc: jsPDF, cx: number, cy: number, size: number) {
-  // Two circles + downward triangle — clean heart glyph
-  const r = size / 2;
-  doc.circle(cx - r * 0.9, cy - r * 0.2, r, "F");
-  doc.circle(cx + r * 0.9, cy - r * 0.2, r, "F");
-  doc.triangle(
-    cx - r * 1.8, cy + r * 0.2,
-    cx + r * 1.8, cy + r * 0.2,
-    cx, cy + r * 2.2,
-    "F",
-  );
-}
 
 export function triggerDownload({ url, filename }: { url: string; filename: string }) {
   const a = document.createElement("a");

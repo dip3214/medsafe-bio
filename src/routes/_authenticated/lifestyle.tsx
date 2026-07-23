@@ -217,7 +217,7 @@ function LifestylePage() {
   const recent = useMemo(() => logs.slice(0, 7).filter((l) => l.log_date !== today), [logs, today]);
   const displayName = active?.name?.split(/\s+/)[0] || "there";
   const ctx = useLifestyleContext();
-  const { weather, refresh: refreshWeather, refreshing: weatherBusy } = useWeather();
+  const { weather, refresh: refreshWeather, refreshing: weatherBusy, geoStatus, geoMessage } = useWeather();
 
   return (
     <SiteLayout>
@@ -272,12 +272,39 @@ function LifestylePage() {
                     <span>{weather.label}</span>
                   </>
                 )}
+                <span className="opacity-60">·</span>
+                <span
+                  className="inline-flex items-center gap-1"
+                  title={geoMessage ?? ""}
+                  aria-label={`Location status: ${geoMessage ?? geoStatus}`}
+                >
+                  <span
+                    className={`inline-block h-1.5 w-1.5 rounded-full ${
+                      geoStatus === "gps" ? "bg-emerald-400"
+                      : geoStatus === "cached" ? "bg-amber-300"
+                      : geoStatus === "ip" ? "bg-orange-400"
+                      : geoStatus === "locating" ? "bg-sky-300 animate-pulse"
+                      : "bg-rose-400"
+                    }`}
+                  />
+                  <span className="opacity-90">
+                    {geoStatus === "gps" ? "GPS"
+                      : geoStatus === "cached" ? "GPS·cached"
+                      : geoStatus === "ip" ? "IP"
+                      : geoStatus === "locating" ? "Locating…"
+                      : geoStatus === "denied" ? "Denied"
+                      : geoStatus === "timeout" ? "Timeout"
+                      : geoStatus === "unavailable" ? "Unavailable"
+                      : geoStatus === "unsupported" ? "N/A"
+                      : "—"}
+                  </span>
+                </span>
                 <button
                   onClick={() => refreshWeather()}
                   disabled={weatherBusy}
                   className="ml-1 -mr-1 rounded-full p-1 hover:bg-white/20 disabled:opacity-50"
                   aria-label="Refresh location & weather"
-                  title="Refresh weather"
+                  title="Refresh location & weather"
                 >
                   <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className={`h-3 w-3 ${weatherBusy ? "animate-spin" : ""}`}>
                     <path d="M21 12a9 9 0 1 1-3-6.7L21 8" /><path d="M21 3v5h-5" />

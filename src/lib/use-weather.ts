@@ -178,12 +178,19 @@ export function useWeather(): UseWeatherResult {
       } else {
         try { localStorage.removeItem("medsafe:geo"); } catch {}
       }
-      const fresh =
-        (await getBrowserLatLon(ctrl.signal, true, forceFresh)) ??
-        (await getBrowserLatLon(ctrl.signal, false, forceFresh));
+      const tryBrowser = async () => {
+        const a = await getBrowserLatLon(ctrl.signal, true, forceFresh);
+        if (a && "lat" in a) return a;
+        const b = await getBrowserLatLon(ctrl.signal, false, forceFresh);
+        if (b && "lat" in b) return b;
+        const err = (a && "error" in a && a.error) || (b && "error" in b && b.error) || null;
+        if (err) console.warn("[weather] geolocation:", err);
+        return null;
+      };
+      const fresh = await tryBrowser();
       if (fresh) {
         const city = await reverseCity(fresh.lat, fresh.lon, ctrl.signal);
-        loc = { ...fresh, city };
+        loc = { lat: fresh.lat, lon: fresh.lon, city };
       } else if (!loc) {
         loc = await fetchLatLonIp(ctrl.signal);
       }

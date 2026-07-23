@@ -217,7 +217,7 @@ function LifestylePage() {
   const recent = useMemo(() => logs.slice(0, 7).filter((l) => l.log_date !== today), [logs, today]);
   const displayName = active?.name?.split(/\s+/)[0] || "there";
   const ctx = useLifestyleContext();
-  const { weather, refresh: refreshWeather, refreshing: weatherBusy } = useWeather();
+  const { weather, refresh: refreshWeather, refreshing: weatherBusy, geoStatus, geoMessage } = useWeather();
 
   return (
     <SiteLayout>

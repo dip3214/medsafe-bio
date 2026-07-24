@@ -168,7 +168,9 @@ export type UseWeatherResult = {
   refreshing: boolean;
   geoStatus: GeoStatus;
   geoMessage: string | null;
+  lastUpdated: number | null;
 };
+
 
 const STATUS_LABEL: Record<GeoStatus, string> = {
   idle: "Locating…",

@@ -217,7 +217,23 @@ function LifestylePage() {
   const recent = useMemo(() => logs.slice(0, 7).filter((l) => l.log_date !== today), [logs, today]);
   const displayName = active?.name?.split(/\s+/)[0] || "there";
   const ctx = useLifestyleContext();
-  const { weather, refresh: refreshWeather, refreshing: weatherBusy, geoStatus, geoMessage } = useWeather();
+  const { weather, refresh: refreshWeather, refreshing: weatherBusy, geoStatus, geoMessage, lastUpdated } = useWeather();
+  const [now, setNow] = useState(() => Date.now());
+  useEffect(() => {
+    const t = setInterval(() => setNow(Date.now()), 30_000);
+    return () => clearInterval(t);
+  }, []);
+  const updatedLabel = lastUpdated
+    ? (() => {
+        const s = Math.max(0, Math.round((now - lastUpdated) / 1000));
+        if (s < 45) return "just now";
+        const m = Math.round(s / 60);
+        if (m < 60) return `${m}m ago`;
+        const h = Math.round(m / 60);
+        return `${h}h ago`;
+      })()
+    : null;
+
 
   return (
     <SiteLayout>

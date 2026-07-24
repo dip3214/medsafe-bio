@@ -30,14 +30,20 @@ function renderEmail(cadence: Cadence, name: string | null, token: string) {
         <tr><td style="padding:24px 28px 8px;border-bottom:1px solid #eee">
           <table role="presentation"><tr>
             <td style="vertical-align:middle">
-              <div style="width:36px;height:36px;border-radius:10px;background:${BRAND};display:inline-block;text-align:center;line-height:36px;color:#fff;font-size:18px">♥</div>
+              <div style="width:40px;height:40px;border-radius:12px;background:${BRAND};display:inline-block;text-align:center;vertical-align:middle;line-height:0">
+                <svg xmlns="http://www.w3.org/2000/svg" width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="#ffffff" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" style="display:inline-block;margin-top:9px">
+                  <path d="M19 14c1.49-1.46 3-3.21 3-5.5A5.5 5.5 0 0 0 16.5 3c-1.76 0-3 .5-4.5 2-1.5-1.5-2.74-2-4.5-2A5.5 5.5 0 0 0 2 8.5c0 2.29 1.51 4.04 3 5.5l7 7Z"/>
+                  <path d="M3.22 12H9.5l.5-1 2 4.5 2-7 1.5 3.5h5.27"/>
+                </svg>
+              </div>
             </td>
-            <td style="vertical-align:middle;padding-left:10px">
-              <div style="font-weight:700;font-size:18px;letter-spacing:-0.2px">med<span style="color:${BRAND}">Safe</span></div>
-              <div style="font-size:10px;color:#888;letter-spacing:1px;text-transform:uppercase">One family · one health record</div>
+            <td style="vertical-align:middle;padding-left:12px">
+              <div style="font-weight:600;font-size:19px;letter-spacing:-0.3px;color:#1a1a1a">med<span style="color:${BRAND};font-weight:700">Safe</span></div>
+              <div style="font-size:10px;color:#888;letter-spacing:0.6px;text-transform:uppercase;margin-top:2px">One family · one health record</div>
             </td>
           </tr></table>
         </td></tr>
+
         <tr><td style="padding:28px">
           <h1 style="margin:0 0 12px;font-size:22px;line-height:1.25;color:#1a1a1a">${copy.hero}</h1>
           <p style="margin:0 0 20px;font-size:15px;line-height:1.55;color:#333">${copy.body}</p>

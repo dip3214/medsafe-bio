@@ -217,7 +217,23 @@ function LifestylePage() {
   const recent = useMemo(() => logs.slice(0, 7).filter((l) => l.log_date !== today), [logs, today]);
   const displayName = active?.name?.split(/\s+/)[0] || "there";
   const ctx = useLifestyleContext();
-  const { weather, refresh: refreshWeather, refreshing: weatherBusy, geoStatus, geoMessage } = useWeather();
+  const { weather, refresh: refreshWeather, refreshing: weatherBusy, geoStatus, geoMessage, lastUpdated } = useWeather();
+  const [now, setNow] = useState(() => Date.now());
+  useEffect(() => {
+    const t = setInterval(() => setNow(Date.now()), 30_000);
+    return () => clearInterval(t);
+  }, []);
+  const updatedLabel = lastUpdated
+    ? (() => {
+        const s = Math.max(0, Math.round((now - lastUpdated) / 1000));
+        if (s < 45) return "just now";
+        const m = Math.round(s / 60);
+        if (m < 60) return `${m}m ago`;
+        const h = Math.round(m / 60);
+        return `${h}h ago`;
+      })()
+    : null;
+
 
   return (
     <SiteLayout>
@@ -302,15 +318,19 @@ function LifestylePage() {
                 <button
                   onClick={() => refreshWeather()}
                   disabled={weatherBusy}
-                  className="ml-1 -mr-1 rounded-full p-1 hover:bg-white/20 disabled:opacity-50"
+                  className="ml-1 -mr-1 inline-flex items-center gap-1 rounded-full px-1.5 py-1 hover:bg-white/20 disabled:opacity-50"
                   aria-label="Refresh location & weather"
-                  title="Refresh location & weather"
+                  title={updatedLabel ? `Updated ${updatedLabel} — click to refresh` : "Refresh location & weather"}
                 >
                   <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className={`h-3 w-3 ${weatherBusy ? "animate-spin" : ""}`}>
                     <path d="M21 12a9 9 0 1 1-3-6.7L21 8" /><path d="M21 3v5h-5" />
                   </svg>
+                  {updatedLabel && (
+                    <span className="text-[10px] opacity-80 sm:text-[11px]">{updatedLabel}</span>
+                  )}
                 </button>
               </div>
+
               <div className="relative mx-auto max-w-5xl px-4 pt-28 pb-16 text-left sm:pt-40 sm:pb-24">
                 <div className={`inline-flex items-center gap-1.5 rounded-full px-3 py-1 text-xs font-semibold backdrop-blur-md ${badgeClass}`}>
                   <Sparkles className="h-3 w-3" /> {ctx.badge}

@@ -168,7 +168,9 @@ export type UseWeatherResult = {
   refreshing: boolean;
   geoStatus: GeoStatus;
   geoMessage: string | null;
+  lastUpdated: number | null;
 };
+
 
 const STATUS_LABEL: Record<GeoStatus, string> = {
   idle: "Locating…",
@@ -188,6 +190,7 @@ export function useWeather(): UseWeatherResult {
   const [refreshing, setRefreshing] = useState(false);
   const [geoStatus, setGeoStatus] = useState<GeoStatus>("idle");
   const [geoMessage, setGeoMessage] = useState<string | null>(null);
+  const [lastUpdated, setLastUpdated] = useState<number | null>(null);
   const ctrlRef = useRef<AbortController | null>(null);
 
   const run = useCallback(async (forceFresh: boolean) => {
@@ -221,14 +224,12 @@ export function useWeather(): UseWeatherResult {
         loc = { lat: fix.lat, lon: fix.lon, city };
         nextStatus = "gps";
       } else {
-        // 2) Fall back to a recent cached GPS fix if available.
         const cached = getCachedLatLon();
         if (cached) {
           const city = await reverseCity(cached.lat, cached.lon, ctrl.signal);
           loc = { ...cached, city };
           nextStatus = "cached";
         } else {
-          // 3) Last resort — coarse IP lookup.
           const ip = await fetchLatLonIp(ctrl.signal);
           if (ip) {
             loc = ip;
@@ -248,6 +249,7 @@ export function useWeather(): UseWeatherResult {
       setGeoMessage(gpsErr ?? STATUS_LABEL[nextStatus]);
       if (!loc) return;
       setWeather(await renderFrom(loc, ctrl.signal));
+      setLastUpdated(Date.now());
     } catch {} finally {
       if (ctrlRef.current === ctrl) setRefreshing(false);
     }
@@ -260,5 +262,6 @@ export function useWeather(): UseWeatherResult {
 
   const refresh = useCallback(() => run(true), [run]);
 
-  return { weather, refresh, refreshing, geoStatus, geoMessage };
+  return { weather, refresh, refreshing, geoStatus, geoMessage, lastUpdated };
 }
+

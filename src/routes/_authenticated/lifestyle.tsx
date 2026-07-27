@@ -564,7 +564,9 @@ function LifestylePage() {
             onSave={(g) => saveGoalsMut.mutate(g)}
             saving={saveGoalsMut.isPending}
           />
+          <LogReminders />
         </div>
+
       </section>
     </SiteLayout>
   );

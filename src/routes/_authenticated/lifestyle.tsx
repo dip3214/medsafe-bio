@@ -7,6 +7,8 @@ import { SiteLayout } from "@/components/SiteLayout";
 
 import { LifestyleHeroBackground } from "@/components/LifestyleHeroBackground";
 import { DailyMoodPrompt } from "@/components/DailyMoodPrompt";
+import { LogReminders } from "@/components/LogReminders";
+
 import { useActiveMember } from "@/lib/active-member";
 import { getLifestyleContext } from "@/lib/lifestyle-context";
 import { useWeather } from "@/lib/use-weather";

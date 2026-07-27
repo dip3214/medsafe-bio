@@ -11,7 +11,7 @@ const INK = "#1f1a17";
 const MUTED = "#7d726b";
 const CREAM = "#faf6f2";
 
-type Cadence = "monday" | "saturday";
+type Cadence = "monday" | "monday-afternoon" | "saturday";
 
 const COPY: Record<Cadence, {
   preheader: string;
@@ -33,6 +33,18 @@ const COPY: Record<Cadence, {
       { icon: "🎯", title: "One goal", text: "Walk, water, or an early night." },
     ],
   },
+  "monday-afternoon": {
+    preheader: "Mid-day check: lunch done? Log it in 20 seconds.",
+    kicker: "Monday, mid-day",
+    hero: "How's your Monday going so far?",
+    body: "Half the day is done. Have you had your lunch yet? Whatever it was — dal-chawal, a rushed sandwich, or a skipped meal — it takes 20 seconds to log. And we'll nudge you again this evening so tonight's dinner and sleep get logged too.",
+    cta: "Log my lunch",
+    prompts: [
+      { icon: "🍛", title: "Lunch", text: "Snap it or type it — we estimate calories." },
+      { icon: "💧", title: "Water & energy", text: "Feeling sluggish? Note it, patterns show up." },
+      { icon: "🌆", title: "Evening nudge", text: "We'll remind you tonight to close the day." },
+    ],
+  },
   saturday: {
     preheader: "Weekend reflection: how did your body feel this week?",
     kicker: "Saturday reflection",
@@ -50,7 +62,7 @@ const COPY: Record<Cadence, {
 function renderEmail(cadence: Cadence, name: string | null, token: string) {
   const first = (name || "there").split(" ")[0];
   const c = COPY[cadence];
-  const body = c.body.replace("It's Monday.", `Hi ${first}, it's Monday.`).replace("Weekend check-in time.", `Hi ${first}, weekend check-in time.`);
+  const body = c.body.replace("It's Monday.", `Hi ${first}, it's Monday.`).replace("Weekend check-in time.", `Hi ${first}, weekend check-in time.`).replace("Half the day is done.", `Hi ${first}, half the day is done.`);
 
   const prompts = c.prompts
     .map(
@@ -109,7 +121,8 @@ function renderEmail(cadence: Cadence, name: string | null, token: string) {
 Deno.serve(async (req) => {
   try {
     const url = new URL(req.url);
-    const cadence = (url.searchParams.get("cadence") === "saturday" ? "saturday" : "monday") as Cadence;
+    const q = url.searchParams.get("cadence");
+    const cadence = (q === "saturday" || q === "monday-afternoon" ? q : "monday") as Cadence;
     const force = url.searchParams.get("force") === "1";
     const RESEND_API_KEY = Deno.env.get("RESEND_API_KEY");
     const SUPABASE_URL = Deno.env.get("SUPABASE_URL");
@@ -135,6 +148,8 @@ Deno.serve(async (req) => {
       const html = renderEmail(cadence, name, p.unsubscribe_token);
       const subject = cadence === "monday"
         ? "Let's make this a healthy week 💛"
+        : cadence === "monday-afternoon"
+        ? "How's your Monday going? Had lunch yet? 🍛"
         : "How did your week feel? A quick MedSafe check-in";
       try {
         const res = await fetch("https://api.resend.com/emails", {

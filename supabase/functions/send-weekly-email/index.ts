@@ -11,7 +11,7 @@ const INK = "#1f1a17";
 const MUTED = "#7d726b";
 const CREAM = "#faf6f2";
 
-type Cadence = "monday" | "monday-afternoon" | "saturday" | "sunday";
+type Cadence = "monday" | "monday-afternoon" | "saturday" | "sunday" | "intro";
 
 const COPY: Record<Cadence, {
   preheader: string;

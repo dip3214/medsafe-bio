@@ -98,7 +98,7 @@ const COPY: Record<Cadence, {
 function renderEmail(cadence: Cadence, name: string | null, token: string) {
   const first = (name || "there").split(" ")[0];
   const c = COPY[cadence];
-  const body = c.body.replace("It's Monday.", `Hi ${first}, it's Monday.`).replace("Weekend check-in time.", `Hi ${first}, weekend check-in time.`).replace("Half the day is done.", `Hi ${first}, half the day is done.`).replace("Sundays are for resetting.", `Hi ${first}, Sundays are for resetting.`);
+  const body = c.body.replace("It's Monday.", `Hi ${first}, it's Monday.`).replace("Weekend check-in time.", `Hi ${first}, weekend check-in time.`).replace("Half the day is done.", `Hi ${first}, half the day is done.`).replace("Sundays are for resetting.", `Hi ${first}, Sundays are for resetting.`).replace("MedSafe keeps", `Hi ${first} — MedSafe keeps`);
 
   const prompts = c.prompts
     .map(

@@ -193,6 +193,28 @@ export function LogReminders() {
         ))}
       </ul>
 
+      <div className="mt-3">
+        <div className="text-[11px] font-medium uppercase tracking-wide text-muted-foreground">Quick add</div>
+        <div className="mt-2 flex flex-wrap gap-1.5">
+          {PRESETS.map((p) => (
+            <button
+              key={p.label}
+              type="button"
+              onClick={() =>
+                setState((s) =>
+                  s.items.some((x) => x.label === p.label)
+                    ? s
+                    : { ...s, items: [...s.items, { id: `r${Date.now()}`, time: p.time, label: p.label }] },
+                )
+              }
+              className="rounded-full border border-border bg-background px-3 py-1 text-xs hover:bg-accent"
+            >
+              {p.label.split(" ")[0]} · {p.time}
+            </button>
+          ))}
+        </div>
+      </div>
+
       <div className="mt-3 flex flex-wrap items-center justify-between gap-2">
         <button
           type="button"
@@ -204,12 +226,13 @@ export function LogReminders() {
           }
           className="flex items-center gap-1.5 rounded-full border border-border bg-background px-3 py-1.5 text-xs font-medium hover:bg-accent"
         >
-          <Plus className="h-3.5 w-3.5" /> Add reminder
+          <Plus className="h-3.5 w-3.5" /> Custom time
         </button>
         {state.enabled && perm === "granted" && nextUp && (
           <span className="text-xs text-muted-foreground">Next nudge at {nextUp.time}</span>
         )}
       </div>
+
 
       {perm === "denied" && (
         <p className="mt-3 rounded-lg bg-secondary px-3 py-2 text-xs text-muted-foreground">

@@ -204,6 +204,8 @@ Deno.serve(async (req) => {
         ? "How's your Monday going? Had lunch yet? 🍛"
         : cadence === "sunday"
         ? "Slow Sunday? Set your week up in 2 minutes 🌿"
+        : cadence === "intro"
+        ? "Your family's health records, all in one place — try MedSafe"
         : "How did your week feel? A quick MedSafe check-in";
       try {
         const res = await fetch("https://api.resend.com/emails", {

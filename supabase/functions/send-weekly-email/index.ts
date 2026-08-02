@@ -11,7 +11,7 @@ const INK = "#1f1a17";
 const MUTED = "#7d726b";
 const CREAM = "#faf6f2";
 
-type Cadence = "monday" | "monday-afternoon" | "saturday" | "sunday";
+type Cadence = "monday" | "monday-afternoon" | "saturday" | "sunday" | "intro";
 
 const COPY: Record<Cadence, {
   preheader: string;
@@ -23,6 +23,20 @@ const COPY: Record<Cadence, {
   tip: string;
   prompts: { icon: string; title: string; text: string }[];
 }> = {
+  intro: {
+    preheader: "One place for every family health record — reports, meds, daily logs.",
+    kicker: "Meet MedSafe",
+    hero: "Your family's health, finally in one place",
+    body: "MedSafe keeps every prescription, lab report and daily habit for you, your parents and your kids in a single private timeline. Upload a report and we read it for you — values, flagged results and what they actually mean in plain language. Ask questions any time and log meals, sleep or how you feel in 30 seconds. Free to try, DPDP-aligned, and your records stay yours.",
+    cta: "Try MedSafe free",
+    ctaHref: "/auth",
+    tip: "Start with one report — upload it and see your first health timeline in under a minute.",
+    prompts: [
+      { icon: "📄", title: "Upload reports", text: "We extract the values and flag what's off." },
+      { icon: "💬", title: "Ask MedSafe", text: "Plain-language answers from your own records." },
+      { icon: "👨‍👩‍👧", title: "Whole family", text: "You, parents and kids — one private account." },
+    ],
+  },
   monday: {
     preheader: "Three tiny logs beat one big one. Start the week right.",
     kicker: "Monday reset",
@@ -84,7 +98,7 @@ const COPY: Record<Cadence, {
 function renderEmail(cadence: Cadence, name: string | null, token: string) {
   const first = (name || "there").split(" ")[0];
   const c = COPY[cadence];
-  const body = c.body.replace("It's Monday.", `Hi ${first}, it's Monday.`).replace("Weekend check-in time.", `Hi ${first}, weekend check-in time.`).replace("Half the day is done.", `Hi ${first}, half the day is done.`).replace("Sundays are for resetting.", `Hi ${first}, Sundays are for resetting.`);
+  const body = c.body.replace("It's Monday.", `Hi ${first}, it's Monday.`).replace("Weekend check-in time.", `Hi ${first}, weekend check-in time.`).replace("Half the day is done.", `Hi ${first}, half the day is done.`).replace("Sundays are for resetting.", `Hi ${first}, Sundays are for resetting.`).replace("MedSafe keeps", `Hi ${first} — MedSafe keeps`);
 
   const prompts = c.prompts
     .map(
@@ -160,7 +174,7 @@ Deno.serve(async (req) => {
   try {
     const url = new URL(req.url);
     const q = url.searchParams.get("cadence");
-    const cadence = (q === "saturday" || q === "monday-afternoon" || q === "sunday" ? q : "monday") as Cadence;
+    const cadence = (q === "saturday" || q === "monday-afternoon" || q === "sunday" || q === "intro" ? q : "monday") as Cadence;
     const force = url.searchParams.get("force") === "1";
     const RESEND_API_KEY = Deno.env.get("RESEND_API_KEY");
     const SUPABASE_URL = Deno.env.get("SUPABASE_URL");
@@ -190,6 +204,8 @@ Deno.serve(async (req) => {
         ? "How's your Monday going? Had lunch yet? 🍛"
         : cadence === "sunday"
         ? "Slow Sunday? Set your week up in 2 minutes 🌿"
+        : cadence === "intro"
+        ? "Your family's health records, all in one place — try MedSafe"
         : "How did your week feel? A quick MedSafe check-in";
       try {
         const res = await fetch("https://api.resend.com/emails", {

@@ -23,6 +23,20 @@ const COPY: Record<Cadence, {
   tip: string;
   prompts: { icon: string; title: string; text: string }[];
 }> = {
+  intro: {
+    preheader: "One place for every family health record — reports, meds, daily logs.",
+    kicker: "Meet MedSafe",
+    hero: "Your family's health, finally in one place",
+    body: "MedSafe keeps every prescription, lab report and daily habit for you, your parents and your kids in a single private timeline. Upload a report and we read it for you — values, flagged results and what they actually mean in plain language. Ask questions any time and log meals, sleep or how you feel in 30 seconds. Free to try, DPDP-aligned, and your records stay yours.",
+    cta: "Try MedSafe free",
+    ctaHref: "/auth",
+    tip: "Start with one report — upload it and see your first health timeline in under a minute.",
+    prompts: [
+      { icon: "📄", title: "Upload reports", text: "We extract the values and flag what's off." },
+      { icon: "💬", title: "Ask MedSafe", text: "Plain-language answers from your own records." },
+      { icon: "👨‍👩‍👧", title: "Whole family", text: "You, parents and kids — one private account." },
+    ],
+  },
   monday: {
     preheader: "Three tiny logs beat one big one. Start the week right.",
     kicker: "Monday reset",

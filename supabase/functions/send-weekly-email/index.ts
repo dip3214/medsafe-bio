@@ -182,6 +182,55 @@ Deno.serve(async (req) => {
     if (!RESEND_API_KEY || !SUPABASE_URL || !SUPABASE_SERVICE_ROLE_KEY) {
       return new Response(JSON.stringify({ ok: false, error: "missing env" }), { status: 500 });
     }
+    const subjectFor = (c: Cadence) =>
+      c === "monday"
+        ? "Let's make this a healthy week 💛"
+        : c === "monday-afternoon"
+        ? "How's your Monday going? Had lunch yet? 🍛"
+        : c === "sunday"
+        ? "Slow Sunday? Set your week up in 2 minutes 🌿"
+        : c === "intro"
+        ? "Your family's health records, all in one place — try MedSafe"
+        : "How did your week feel? A quick MedSafe check-in";
+
+    // Optional: send to an explicit list of external addresses (no DB lookup).
+    let extRecipients: string[] = [];
+    if (req.method === "POST") {
+      try {
+        const body = await req.json();
+        if (Array.isArray(body?.recipients)) extRecipients = body.recipients.filter((x: unknown) => typeof x === "string");
+      } catch { /* no body */ }
+    }
+    if (extRecipients.length > 0) {
+      const extResults: { email: string; ok: boolean; err?: string }[] = [];
+      for (const email of extRecipients) {
+        try {
+          const res = await fetch("https://api.resend.com/emails", {
+            method: "POST",
+            headers: { "Content-Type": "application/json", Authorization: `Bearer ${RESEND_API_KEY}` },
+            body: JSON.stringify({
+              from: FROM,
+              to: [email],
+              subject: subjectFor(cadence),
+              html: renderEmail(cadence, null, ""),
+              headers: { "List-Unsubscribe": `<${APP_URL}/unsubscribe>` },
+            }),
+          });
+          if (!res.ok) {
+            extResults.push({ email, ok: false, err: `${res.status} ${await res.text()}` });
+            continue;
+          }
+          extResults.push({ email, ok: true });
+        } catch (e) {
+          extResults.push({ email, ok: false, err: String((e as Error).message ?? e) });
+        }
+      }
+      return new Response(
+        JSON.stringify({ ok: true, cadence, mode: "external", total: extRecipients.length, sent: extResults.filter((r) => r.ok).length, results: extResults }),
+        { headers: { "Content-Type": "application/json" } },
+      );
+    }
+
     const admin = createClient(SUPABASE_URL, SUPABASE_SERVICE_ROLE_KEY, { auth: { persistSession: false } });
     const today = new Date().toISOString().slice(0, 10);
     const { data: prefs, error } = await admin

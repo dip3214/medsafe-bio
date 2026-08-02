@@ -16,6 +16,16 @@ const DEFAULTS: Reminder[] = [
   { id: "evening", time: "20:30", label: "Close the day — dinner, mood & sleep 🌙" },
 ];
 
+const PRESETS: { time: string; label: string }[] = [
+  { time: "07:30", label: "Breakfast — log your first meal 🥣" },
+  { time: "09:00", label: "Medicines — take your morning dose 💊" },
+  { time: "13:30", label: "Lunch — log your meal 🍛" },
+  { time: "17:30", label: "Movement — walk or workout 🏃" },
+  { time: "20:30", label: "Dinner — log your evening meal 🍽️" },
+  { time: "22:30", label: "Bedtime — log mood & sleep 🌙" },
+];
+
+
 function load(): { enabled: boolean; items: Reminder[] } {
   if (typeof window === "undefined") return { enabled: false, items: DEFAULTS };
   try {

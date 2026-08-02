@@ -11,7 +11,7 @@ const INK = "#1f1a17";
 const MUTED = "#7d726b";
 const CREAM = "#faf6f2";
 
-type Cadence = "monday" | "monday-afternoon" | "saturday";
+type Cadence = "monday" | "monday-afternoon" | "saturday" | "sunday";
 
 const COPY: Record<Cadence, {
   preheader: string;
@@ -19,6 +19,8 @@ const COPY: Record<Cadence, {
   hero: string;
   body: string;
   cta: string;
+  ctaHref: string;
+  tip: string;
   prompts: { icon: string; title: string; text: string }[];
 }> = {
   monday: {
@@ -27,6 +29,8 @@ const COPY: Record<Cadence, {
     hero: "A fresh week — small habits, big wins",
     body: "It's Monday. A 30-second check-in now sets the tone for the whole week. Log how you slept, what you ate for breakfast, and one thing you'll do for your body today.",
     cta: "Log today's check-in",
+    ctaHref: "/lifestyle",
+    tip: "Tip: set a lunch and bedtime reminder inside MedSafe — people who do log 3x more often.",
     prompts: [
       { icon: "🌙", title: "Sleep", text: "How many hours did you actually get?" },
       { icon: "🥗", title: "Breakfast", text: "Snap it — we estimate the calories." },
@@ -39,6 +43,8 @@ const COPY: Record<Cadence, {
     hero: "How's your Monday going so far?",
     body: "Half the day is done. Have you had your lunch yet? Whatever it was — dal-chawal, a rushed sandwich, or a skipped meal — it takes 20 seconds to log. And we'll nudge you again this evening so tonight's dinner and sleep get logged too.",
     cta: "Log my lunch",
+    ctaHref: "/lifestyle",
+    tip: "Tip: a photo counts as a full log — no typing needed.",
     prompts: [
       { icon: "🍛", title: "Lunch", text: "Snap it or type it — we estimate calories." },
       { icon: "💧", title: "Water & energy", text: "Feeling sluggish? Note it, patterns show up." },
@@ -51,10 +57,26 @@ const COPY: Record<Cadence, {
     hero: "How did your body feel this week?",
     body: "Weekend check-in time. Which day felt best? Any headaches, restless nights, or meals you'd change? A short reflection helps MedSafe spot patterns before they turn into problems.",
     cta: "Reflect on this week",
+    ctaHref: "/lifestyle",
+    tip: "Tip: even one line about how you slept is enough for MedSafe to spot a trend.",
     prompts: [
       { icon: "📈", title: "Your patterns", text: "See what actually moved your labs." },
       { icon: "🎙️", title: "Voice log", text: "Just speak — we transcribe and file it." },
       { icon: "📄", title: "Pending reports", text: "Upload anything from this week." },
+    ],
+  },
+  sunday: {
+    preheader: "Two minutes today makes the whole week easier.",
+    kicker: "Sunday setup",
+    hero: "Slow Sunday? Set your week up in 2 minutes",
+    body: "Sundays are for resetting. Take two minutes to close out the weekend — how you slept, what you ate, how your body feels — and set your reminder times so nothing slips once Monday starts.",
+    cta: "Set up my week",
+    ctaHref: "/lifestyle",
+    tip: "Tip: pick reminder times that match your real routine — lunch, evening walk, bedtime. You can add as many as you like.",
+    prompts: [
+      { icon: "⏰", title: "Reminders", text: "Choose your own nudge times — lunch, meds, bedtime." },
+      { icon: "🛌", title: "Weekend sleep", text: "Log Saturday and Sunday nights while it's fresh." },
+      { icon: "🗂️", title: "Family records", text: "Add a parent or kid report you've been putting off." },
     ],
   },
 };
@@ -62,7 +84,7 @@ const COPY: Record<Cadence, {
 function renderEmail(cadence: Cadence, name: string | null, token: string) {
   const first = (name || "there").split(" ")[0];
   const c = COPY[cadence];
-  const body = c.body.replace("It's Monday.", `Hi ${first}, it's Monday.`).replace("Weekend check-in time.", `Hi ${first}, weekend check-in time.`).replace("Half the day is done.", `Hi ${first}, half the day is done.`);
+  const body = c.body.replace("It's Monday.", `Hi ${first}, it's Monday.`).replace("Weekend check-in time.", `Hi ${first}, weekend check-in time.`).replace("Half the day is done.", `Hi ${first}, half the day is done.`).replace("Sundays are for resetting.", `Hi ${first}, Sundays are for resetting.`);
 
   const prompts = c.prompts
     .map(
@@ -99,11 +121,27 @@ function renderEmail(cadence: Cadence, name: string | null, token: string) {
           <div style="display:inline-block;background:${CREAM};color:${BRAND};font-size:11px;font-weight:600;letter-spacing:0.8px;text-transform:uppercase;padding:5px 12px;border-radius:999px">${c.kicker}</div>
           <h1 style="margin:14px 0 12px;font-size:23px;line-height:1.25;color:${INK};font-weight:600">${c.hero}</h1>
           <p style="margin:0 0 22px;font-size:15px;line-height:1.6;color:#463d38">${body}</p>
-          <a href="${APP_URL}/lifestyle" style="display:inline-block;background:${BRAND};color:#fff;text-decoration:none;padding:13px 24px;border-radius:999px;font-weight:600;font-size:15px">${c.cta} →</a>
+          <a href="${APP_URL}${c.ctaHref}" style="display:inline-block;background:${BRAND};color:#fff;text-decoration:none;padding:13px 24px;border-radius:999px;font-weight:600;font-size:15px">${c.cta} →</a>
+          <div style="margin-top:14px;font-size:13px;color:${MUTED}">Takes about 30 seconds · no typing required</div>
         </td></tr>
 
-        <tr><td style="padding:24px 22px 28px">
+        <tr><td style="padding:24px 22px 4px">
           <table role="presentation" width="100%" cellpadding="0" cellspacing="0"><tr>${prompts}</tr></table>
+        </td></tr>
+
+        <tr><td style="padding:18px 28px 4px">
+          <table role="presentation" width="100%" cellpadding="0" cellspacing="0" style="background:#fdf3ee;border-left:3px solid ${BRAND};border-radius:10px">
+            <tr><td style="padding:12px 14px;font-size:13px;line-height:1.5;color:#5b4c45">${c.tip}</td></tr>
+          </table>
+        </td></tr>
+
+        <tr><td style="padding:18px 28px 26px">
+          <div style="font-size:11px;letter-spacing:0.8px;text-transform:uppercase;color:${MUTED};margin-bottom:8px">Jump straight in</div>
+          <a href="${APP_URL}/lifestyle" style="display:inline-block;margin:0 8px 8px 0;font-size:13px;color:${BRAND};text-decoration:none;border:1px solid #efdfd7;border-radius:999px;padding:7px 14px">Log today</a>
+          <a href="${APP_URL}/upload" style="display:inline-block;margin:0 8px 8px 0;font-size:13px;color:${BRAND};text-decoration:none;border:1px solid #efdfd7;border-radius:999px;padding:7px 14px">Add a report</a>
+          <a href="${APP_URL}/chat" style="display:inline-block;margin:0 8px 8px 0;font-size:13px;color:${BRAND};text-decoration:none;border:1px solid #efdfd7;border-radius:999px;padding:7px 14px">Ask MedSafe</a>
+          <a href="${APP_URL}/dashboard" style="display:inline-block;margin:0 8px 8px 0;font-size:13px;color:${BRAND};text-decoration:none;border:1px solid #efdfd7;border-radius:999px;padding:7px 14px">My timeline</a>
+          <div style="margin-top:12px;font-size:13px;color:${MUTED};line-height:1.55">Just reply to this email if something feels off — a real person reads it.</div>
         </td></tr>
 
         <tr><td style="padding:18px 28px;background:${CREAM};font-size:11px;color:${MUTED};text-align:center;line-height:1.6">
@@ -122,7 +160,7 @@ Deno.serve(async (req) => {
   try {
     const url = new URL(req.url);
     const q = url.searchParams.get("cadence");
-    const cadence = (q === "saturday" || q === "monday-afternoon" ? q : "monday") as Cadence;
+    const cadence = (q === "saturday" || q === "monday-afternoon" || q === "sunday" ? q : "monday") as Cadence;
     const force = url.searchParams.get("force") === "1";
     const RESEND_API_KEY = Deno.env.get("RESEND_API_KEY");
     const SUPABASE_URL = Deno.env.get("SUPABASE_URL");
@@ -150,6 +188,8 @@ Deno.serve(async (req) => {
         ? "Let's make this a healthy week 💛"
         : cadence === "monday-afternoon"
         ? "How's your Monday going? Had lunch yet? 🍛"
+        : cadence === "sunday"
+        ? "Slow Sunday? Set your week up in 2 minutes 🌿"
         : "How did your week feel? A quick MedSafe check-in";
       try {
         const res = await fetch("https://api.resend.com/emails", {

@@ -174,7 +174,7 @@ Deno.serve(async (req) => {
   try {
     const url = new URL(req.url);
     const q = url.searchParams.get("cadence");
-    const cadence = (q === "saturday" || q === "monday-afternoon" || q === "sunday" ? q : "monday") as Cadence;
+    const cadence = (q === "saturday" || q === "monday-afternoon" || q === "sunday" || q === "intro" ? q : "monday") as Cadence;
     const force = url.searchParams.get("force") === "1";
     const RESEND_API_KEY = Deno.env.get("RESEND_API_KEY");
     const SUPABASE_URL = Deno.env.get("SUPABASE_URL");

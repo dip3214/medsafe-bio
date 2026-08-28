@@ -11,7 +11,7 @@ const INK = "#1f1a17";
 const MUTED = "#7d726b";
 const CREAM = "#faf6f2";
 
-type Cadence = "monday" | "monday-afternoon" | "saturday" | "sunday" | "sunday-evening" | "intro";
+type Cadence = "monday" | "monday-afternoon" | "saturday" | "sunday" | "sunday-evening" | "intro" | "rakhi";
 
 const COPY: Record<Cadence, {
   preheader: string;
@@ -263,15 +263,100 @@ function renderEveningEmail(name: string | null, token: string) {
 </body></html>`;
 }
 
+// Festive Raksha Bandhan template — maroon & gold, rakhi thread motif,
+// ties sibling bond into family health (care for parents/siblings in MedSafe).
+function renderRakhiEmail(name: string | null, token: string) {
+  const first = (name || "there").split(" ")[0];
+  const MAROON = "#7a1f1f";
+  const GOLD = "#c9962e";
+  const CREAM_BG = "#fdf7ef";
+  return `<!doctype html>
+<html><body style="margin:0;padding:0;background:${CREAM_BG};font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',Helvetica,Arial,sans-serif;color:${INK}">
+  <div style="display:none;max-height:0;overflow:hidden;opacity:0">Happy Raksha Bandhan — the thread that says "I care". Keep your family's health safe too. 🪔</div>
+  <table role="presentation" width="100%" cellpadding="0" cellspacing="0" style="background:${CREAM_BG};padding:28px 12px">
+    <tr><td align="center">
+      <table role="presentation" width="560" cellpadding="0" cellspacing="0" style="max-width:560px;background:#ffffff;border-radius:18px;overflow:hidden;box-shadow:0 2px 22px rgba(0,0,0,0.08)">
+
+        <tr><td style="background:${MAROON};padding:26px 28px;position:relative">
+          <table role="presentation" cellpadding="0" cellspacing="0" width="100%"><tr>
+            <td style="vertical-align:middle;width:44px">
+              <img src="${LOGO_URL}" width="44" height="44" alt="MedSafe" style="display:block;border:0;border-radius:12px" />
+            </td>
+            <td style="vertical-align:middle;padding-left:12px">
+              <div style="font-size:19px;letter-spacing:-0.3px;color:#fff;font-weight:600">med<span style="color:#f4c76b;font-weight:700">Safe</span></div>
+              <div style="font-size:10px;color:#e8cbb0;letter-spacing:0.7px;text-transform:uppercase;margin-top:2px">Raksha Bandhan wishes</div>
+            </td>
+            <td align="right" style="vertical-align:middle;font-size:24px">🪔</td>
+          </tr></table>
+          <div style="margin-top:22px;height:2px;background:linear-gradient(90deg,transparent,${GOLD},transparent);border-radius:2px"></div>
+          <div style="text-align:center;margin:16px 0 4px;font-size:30px;line-height:1">🧵 🪢 🧵</div>
+          <h1 style="margin:12px 0 8px;font-size:26px;line-height:1.3;color:#fff;font-weight:600;text-align:center">Happy Raksha Bandhan, ${first}</h1>
+          <p style="margin:0;font-size:15px;line-height:1.65;color:#f3e3d5;text-align:center">A thread on the wrist is a promise — <em>"I've got you."</em><br>That promise deserves a health record to match.</p>
+        </td></tr>
+
+        <tr><td style="padding:26px 28px 6px">
+          <p style="margin:0 0 16px;font-size:15px;line-height:1.65;color:#463d38">
+            Brothers and sisters spend today checking on each other — phone calls, sweets, old photos. But the most practical way to look after family is the one we rarely talk about: <strong>knowing their health.</strong>
+          </p>
+          <p style="margin:0 0 22px;font-size:15px;line-height:1.65;color:#463d38">
+            MedSafe lets you keep your parents' and siblings' reports, medicines and check-ins in the same private timeline as yours — so the next "are you okay?" has real answers behind it, not just guesses.
+          </p>
+          <a href="${APP_URL}/dashboard" style="display:inline-block;background:${MAROON};color:#fff;text-decoration:none;padding:13px 26px;border-radius:999px;font-weight:600;font-size:15px">Add a family member →</a>
+          <div style="margin-top:12px;font-size:13px;color:${MUTED}">Takes under a minute · fully private · DPDP-aligned</div>
+        </td></tr>
+
+        <tr><td style="padding:22px 28px 6px">
+          <table role="presentation" width="100%" cellpadding="0" cellspacing="0" style="border:1px solid #eeddc9;border-radius:14px;background:#fffdf8">
+            <tr><td style="padding:16px 18px">
+              <div style="font-size:11px;letter-spacing:0.8px;text-transform:uppercase;color:${GOLD};margin-bottom:10px">This weekend, for the people you love</div>
+              <div style="font-size:14px;line-height:1.9;color:#463d38">
+                👨‍👩‍👧 &nbsp;Add your parents as members — their reports get read too.<br>
+                📄 &nbsp;Upload one old report you found in a drawer.<br>
+                ⏰ &nbsp;Set a medicine reminder for someone who always forgets.
+              </div>
+            </td></tr>
+          </table>
+        </td></tr>
+
+        <tr><td style="padding:20px 28px 6px">
+          <table role="presentation" width="100%" cellpadding="0" cellspacing="0" style="background:#fdf3ee;border-left:3px solid ${MAROON};border-radius:10px">
+            <tr><td style="padding:14px 16px;font-size:14px;line-height:1.6;color:#5b4c45">
+              <strong>A small festive thank-you.</strong> Reply to this email and tell us one thing you'd want MedSafe to do for your family — every reply is read by a real person, and most features we build start exactly this way.
+            </td></tr>
+          </table>
+        </td></tr>
+
+        <tr><td style="padding:20px 28px 26px">
+          <div style="font-size:11px;letter-spacing:0.8px;text-transform:uppercase;color:${MUTED};margin-bottom:8px">Jump straight in</div>
+          <a href="${APP_URL}/dashboard" style="display:inline-block;margin:0 8px 8px 0;font-size:13px;color:${MAROON};text-decoration:none;border:1px solid #eeddc9;border-radius:999px;padding:7px 14px">Family timeline</a>
+          <a href="${APP_URL}/upload" style="display:inline-block;margin:0 8px 8px 0;font-size:13px;color:${MAROON};text-decoration:none;border:1px solid #eeddc9;border-radius:999px;padding:7px 14px">Add a report</a>
+          <a href="${APP_URL}/lifestyle" style="display:inline-block;margin:0 8px 8px 0;font-size:13px;color:${MAROON};text-decoration:none;border:1px solid #eeddc9;border-radius:999px;padding:7px 14px">Log today</a>
+          <a href="${APP_URL}/chat" style="display:inline-block;margin:0 8px 8px 0;font-size:13px;color:${MAROON};text-decoration:none;border:1px solid #eeddc9;border-radius:999px;padding:7px 14px">Ask MedSafe</a>
+        </td></tr>
+
+        <tr><td style="padding:18px 28px;background:${CREAM_BG};font-size:11px;color:${MUTED};text-align:center;line-height:1.6">
+          Warm Raksha Bandhan wishes from the MedSafe family to yours. 🧵<br>
+          <a href="${APP_URL}/unsubscribe?token=${token}" style="color:${MUTED}">Unsubscribe</a> ·
+          <a href="${APP_URL}" style="color:${MUTED}">Open MedSafe</a>
+        </td></tr>
+      </table>
+      <div style="max-width:560px;margin:14px auto 0;font-size:10px;color:#a89e97;text-align:center">MedSafe · One family, one health record · DPDP-aligned</div>
+    </td></tr>
+  </table>
+</body></html>`;
+}
+
 function renderFor(cadence: Cadence, name: string | null, token: string) {
-  return cadence === "sunday-evening" ? renderEveningEmail(name, token) : renderEmail(cadence, name, token);
+  return cadence === "sunday-evening" ? renderEveningEmail(name, token)
+    : cadence === "rakhi" ? renderRakhiEmail(name, token)
+    : renderEmail(cadence, name, token);
 }
 
 Deno.serve(async (req) => {
   try {
     const url = new URL(req.url);
     const q = url.searchParams.get("cadence");
-    const cadence = (q === "saturday" || q === "monday-afternoon" || q === "sunday" || q === "sunday-evening" || q === "intro" ? q : "monday") as Cadence;
+    const cadence = (q === "saturday" || q === "monday-afternoon" || q === "sunday" || q === "sunday-evening" || q === "intro" || q === "rakhi" ? q : "monday") as Cadence;
     const force = url.searchParams.get("force") === "1";
     const RESEND_API_KEY = Deno.env.get("RESEND_API_KEY");
     const SUPABASE_URL = Deno.env.get("SUPABASE_URL");
@@ -280,7 +365,9 @@ Deno.serve(async (req) => {
       return new Response(JSON.stringify({ ok: false, error: "missing env" }), { status: 500 });
     }
     const subjectFor = (c: Cadence) =>
-      c === "monday"
+      c === "rakhi"
+        ? "Happy Raksha Bandhan 🧵 Care for your family's health too"
+        : c === "monday"
         ? "Let's make this a healthy week 💛"
         : c === "monday-afternoon"
         ? "How's your Monday going? Had lunch yet? 🍛"
@@ -346,7 +433,9 @@ Deno.serve(async (req) => {
       if (!email) continue;
       const name = (u.user!.user_metadata?.full_name || u.user!.user_metadata?.name || null) as string | null;
       const html = renderFor(cadence, name, p.unsubscribe_token);
-      const subject = cadence === "monday"
+      const subject = cadence === "rakhi"
+        ? "Happy Raksha Bandhan 🧵 Care for your family's health too"
+        : cadence === "monday"
         ? "Let's make this a healthy week 💛"
         : cadence === "monday-afternoon"
         ? "How's your Monday going? Had lunch yet? 🍛"

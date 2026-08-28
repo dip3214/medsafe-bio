@@ -365,7 +365,9 @@ Deno.serve(async (req) => {
       return new Response(JSON.stringify({ ok: false, error: "missing env" }), { status: 500 });
     }
     const subjectFor = (c: Cadence) =>
-      c === "monday"
+      c === "rakhi"
+        ? "Happy Raksha Bandhan 🧵 Care for your family's health too"
+        : c === "monday"
         ? "Let's make this a healthy week 💛"
         : c === "monday-afternoon"
         ? "How's your Monday going? Had lunch yet? 🍛"
@@ -431,7 +433,9 @@ Deno.serve(async (req) => {
       if (!email) continue;
       const name = (u.user!.user_metadata?.full_name || u.user!.user_metadata?.name || null) as string | null;
       const html = renderFor(cadence, name, p.unsubscribe_token);
-      const subject = cadence === "monday"
+      const subject = cadence === "rakhi"
+        ? "Happy Raksha Bandhan 🧵 Care for your family's health too"
+        : cadence === "monday"
         ? "Let's make this a healthy week 💛"
         : cadence === "monday-afternoon"
         ? "How's your Monday going? Had lunch yet? 🍛"

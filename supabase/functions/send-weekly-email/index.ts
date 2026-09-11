@@ -11,7 +11,7 @@ const INK = "#1f1a17";
 const MUTED = "#7d726b";
 const CREAM = "#faf6f2";
 
-type Cadence = "monday" | "monday-afternoon" | "saturday" | "sunday" | "sunday-evening" | "intro" | "rakhi";
+type Cadence = "monday" | "monday-afternoon" | "saturday" | "sunday" | "sunday-evening" | "intro" | "rakhi" | "friday";
 
 const COPY: Record<Cadence, {
   preheader: string;
@@ -346,9 +346,93 @@ function renderRakhiEmail(name: string | null, token: string) {
 </body></html>`;
 }
 
+// Friday wind-down template — deep green/teal palette, checklist-card design,
+// "close the week" framing with a mini scoreboard and weekend prep.
+function renderFridayEmail(name: string | null, token: string) {
+  const first = (name || "there").split(" ")[0];
+  const DEEP = "#0e4f45";
+  const LEAF = "#2e8b74";
+  const MINT = "#eef7f3";
+  const GOLD = "#c9962e";
+  return `<!doctype html>
+<html><body style="margin:0;padding:0;background:${MINT};font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',Helvetica,Arial,sans-serif;color:${INK}">
+  <div style="display:none;max-height:0;overflow:hidden;opacity:0">It's Friday — close your week in 60 seconds and walk into the weekend with nothing pending. 🌿</div>
+  <table role="presentation" width="100%" cellpadding="0" cellspacing="0" style="background:${MINT};padding:28px 12px">
+    <tr><td align="center">
+      <table role="presentation" width="560" cellpadding="0" cellspacing="0" style="max-width:560px;background:#ffffff;border-radius:18px;overflow:hidden;box-shadow:0 2px 22px rgba(0,0,0,0.08)">
+
+        <tr><td style="background:${DEEP};padding:26px 28px">
+          <table role="presentation" cellpadding="0" cellspacing="0" width="100%"><tr>
+            <td style="vertical-align:middle;width:44px">
+              <img src="${LOGO_URL}" width="44" height="44" alt="MedSafe" style="display:block;border:0;border-radius:12px" />
+            </td>
+            <td style="vertical-align:middle;padding-left:12px">
+              <div style="font-size:19px;letter-spacing:-0.3px;color:#fff;font-weight:600">med<span style="color:#7fd6c0;font-weight:700">Safe</span></div>
+              <div style="font-size:10px;color:#9fd4c6;letter-spacing:0.7px;text-transform:uppercase;margin-top:2px">Friday wrap-up</div>
+            </td>
+            <td align="right" style="vertical-align:middle;font-size:24px">🌿</td>
+          </tr></table>
+          <h1 style="margin:22px 0 8px;font-size:26px;line-height:1.3;color:#fff;font-weight:600">You made it to Friday, ${first} 🎉</h1>
+          <p style="margin:0;font-size:15px;line-height:1.65;color:#cfe8e0">Before the weekend pulls you away, give your week a proper goodbye — 60 seconds of logging today becomes next week's insights.</p>
+        </td></tr>
+
+        <tr><td style="padding:26px 28px 6px">
+          <div style="font-size:11px;letter-spacing:0.8px;text-transform:uppercase;color:${LEAF};margin-bottom:12px">Your Friday checklist</div>
+          <table role="presentation" width="100%" cellpadding="0" cellspacing="0">
+            <tr><td style="padding:12px 16px;background:${MINT};border-radius:12px;border-left:4px solid ${LEAF}">
+              <div style="font-size:14px;font-weight:600;color:${DEEP}">1. Rate this week out of 10</div>
+              <div style="font-size:13px;color:#4d5a55;margin-top:4px;line-height:1.55">Energy, sleep, mood — one honest number is enough. MedSafe turns it into a trend line.</div>
+            </td></tr>
+            <tr><td style="height:10px"></td></tr>
+            <tr><td style="padding:12px 16px;background:${MINT};border-radius:12px;border-left:4px solid ${LEAF}">
+              <div style="font-size:14px;font-weight:600;color:${DEEP}">2. File anything pending</div>
+              <div style="font-size:13px;color:#4d5a55;margin-top:4px;line-height:1.55">A lab report from this week, a new prescription, a vaccination slip — upload it and we read it for you.</div>
+            </td></tr>
+            <tr><td style="height:10px"></td></tr>
+            <tr><td style="padding:12px 16px;background:${MINT};border-radius:12px;border-left:4px solid ${GOLD}">
+              <div style="font-size:14px;font-weight:600;color:${DEEP}">3. Set the weekend loose</div>
+              <div style="font-size:13px;color:#4d5a55;margin-top:4px;line-height:1.55">Plan your rest like you plan your work — log Saturday's first meal and sleep, and we'll watch the rest.</div>
+            </td></tr>
+          </table>
+        </td></tr>
+
+        <tr><td style="padding:22px 28px 4px" align="center">
+          <a href="${APP_URL}/lifestyle" style="display:inline-block;background:${DEEP};color:#fff;text-decoration:none;padding:13px 28px;border-radius:999px;font-weight:600;font-size:15px">Close my week →</a>
+          <div style="margin-top:10px;font-size:13px;color:${MUTED}">60 seconds · works from your phone</div>
+        </td></tr>
+
+        <tr><td style="padding:20px 28px 6px">
+          <table role="presentation" width="100%" cellpadding="0" cellspacing="0" style="background:#fdf3ee;border-left:3px solid ${GOLD};border-radius:10px">
+            <tr><td style="padding:14px 16px;font-size:14px;line-height:1.6;color:#5b4c45">
+              <strong>Why bother on a Friday?</strong> People who log a weekly wrap-up spot health changes <strong>3–4 weeks earlier</strong> than people who don't. Your future self reads what you write today.
+            </td></tr>
+          </table>
+        </td></tr>
+
+        <tr><td style="padding:20px 28px 26px">
+          <div style="font-size:11px;letter-spacing:0.8px;text-transform:uppercase;color:${MUTED};margin-bottom:8px">Weekend shortcuts</div>
+          <a href="${APP_URL}/lifestyle" style="display:inline-block;margin:0 8px 8px 0;font-size:13px;color:${DEEP};text-decoration:none;border:1px solid #d3e7df;border-radius:999px;padding:7px 14px">Log the weekend</a>
+          <a href="${APP_URL}/upload" style="display:inline-block;margin:0 8px 8px 0;font-size:13px;color:${DEEP};text-decoration:none;border:1px solid #d3e7df;border-radius:999px;padding:7px 14px">Upload a report</a>
+          <a href="${APP_URL}/summary" style="display:inline-block;margin:0 8px 8px 0;font-size:13px;color:${DEEP};text-decoration:none;border:1px solid #d3e7df;border-radius:999px;padding:7px 14px">My health summary</a>
+          <a href="${APP_URL}/chat" style="display:inline-block;margin:0 8px 8px 0;font-size:13px;color:${DEEP};text-decoration:none;border:1px solid #d3e7df;border-radius:999px;padding:7px 14px">Ask MedSafe</a>
+        </td></tr>
+
+        <tr><td style="padding:18px 28px;background:${MINT};font-size:11px;color:${MUTED};text-align:center;line-height:1.6">
+          Have a restful weekend — we'll keep an eye on the records while you rest. 🌿<br>
+          <a href="${APP_URL}/unsubscribe?token=${token}" style="color:${MUTED}">Unsubscribe</a> ·
+          <a href="${APP_URL}" style="color:${MUTED}">Open MedSafe</a>
+        </td></tr>
+      </table>
+      <div style="max-width:560px;margin:14px auto 0;font-size:10px;color:#a89e97;text-align:center">MedSafe · One family, one health record · DPDP-aligned</div>
+    </td></tr>
+  </table>
+</body></html>`;
+}
+
 function renderFor(cadence: Cadence, name: string | null, token: string) {
   return cadence === "sunday-evening" ? renderEveningEmail(name, token)
     : cadence === "rakhi" ? renderRakhiEmail(name, token)
+    : cadence === "friday" ? renderFridayEmail(name, token)
     : renderEmail(cadence, name, token);
 }
 
@@ -356,7 +440,7 @@ Deno.serve(async (req) => {
   try {
     const url = new URL(req.url);
     const q = url.searchParams.get("cadence");
-    const cadence = (q === "saturday" || q === "monday-afternoon" || q === "sunday" || q === "sunday-evening" || q === "intro" || q === "rakhi" ? q : "monday") as Cadence;
+    const cadence = (q === "saturday" || q === "monday-afternoon" || q === "sunday" || q === "sunday-evening" || q === "intro" || q === "rakhi" || q === "friday" ? q : "monday") as Cadence;
     const force = url.searchParams.get("force") === "1";
     const RESEND_API_KEY = Deno.env.get("RESEND_API_KEY");
     const SUPABASE_URL = Deno.env.get("SUPABASE_URL");
@@ -365,7 +449,9 @@ Deno.serve(async (req) => {
       return new Response(JSON.stringify({ ok: false, error: "missing env" }), { status: 500 });
     }
     const subjectFor = (c: Cadence) =>
-      c === "rakhi"
+      c === "friday"
+        ? "You made it to Friday 🎉 Close your week in 60 seconds"
+        : c === "rakhi"
         ? "Happy Raksha Bandhan 🧵 Care for your family's health too"
         : c === "monday"
         ? "Let's make this a healthy week 💛"
@@ -433,19 +519,7 @@ Deno.serve(async (req) => {
       if (!email) continue;
       const name = (u.user!.user_metadata?.full_name || u.user!.user_metadata?.name || null) as string | null;
       const html = renderFor(cadence, name, p.unsubscribe_token);
-      const subject = cadence === "rakhi"
-        ? "Happy Raksha Bandhan 🧵 Care for your family's health too"
-        : cadence === "monday"
-        ? "Let's make this a healthy week 💛"
-        : cadence === "monday-afternoon"
-        ? "How's your Monday going? Had lunch yet? 🍛"
-        : cadence === "sunday-evening"
-        ? "Good evening 🌙 How was your Sunday?"
-        : cadence === "sunday"
-        ? "Slow Sunday? Set your week up in 2 minutes 🌿"
-        : cadence === "intro"
-        ? "Your family's health records, all in one place — try MedSafe"
-        : "How did your week feel? A quick MedSafe check-in";
+      const subject = subjectFor(cadence);
       try {
         const res = await fetch("https://api.resend.com/emails", {
           method: "POST",

@@ -134,6 +134,25 @@ export const createMedicalDoc = createServerFn({ method: "POST" })
       structured_data: { ...p, fileName: data.fileName },
     });
     if (exErr) throw new Error(exErr.message);
+
+    // Index the new document for MedSafe Buddy's semantic search (best-effort).
+    try {
+      const apiKey = process.env['LOVABLE_API_KEY'];
+      if (apiKey) {
+        const { indexDocument } = await import("@/lib/rag.server");
+        await indexDocument(context.supabase, apiKey, context.userId, {
+          id: doc.id,
+          title: p.title || data.fileName,
+          document_date: docDate,
+          document_type: p.kind,
+          member_id: memberId ?? null,
+          structured: { ...p, fileName: data.fileName },
+        });
+      }
+    } catch (e) {
+      console.error("rag index failed", e);
+    }
+
     return { id: doc.id };
   });
 

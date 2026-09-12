@@ -16,8 +16,12 @@ import { createMedicalDoc } from "@/lib/medsafe.functions";
 export const Route = createFileRoute("/_authenticated/chat")({
   head: () => ({
     meta: [
-      { title: "Ask MedSafe — your private medical assistant" },
-      { name: "description", content: "Ask anything about your records. Answers are grounded in your uploaded prescriptions and lab reports." },
+      { title: "MedSafe Buddy — your private medical assistant" },
+      { name: "description", content: "Ask MedSafe Buddy anything about your records. Every answer is searched out of your own prescriptions and lab reports." },
+      { property: "og:title", content: "MedSafe Buddy — your private medical assistant" },
+      { property: "og:description", content: "Answers grounded in your own prescriptions and lab reports." },
+      { property: "og:type", content: "website" },
+      { name: "twitter:card", content: "summary" },
     ],
   }),
   component: ChatPage,

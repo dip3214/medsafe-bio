@@ -58,12 +58,13 @@ function ChatPage() {
       <section className="mx-auto max-w-3xl px-4 py-8 sm:py-10">
         <div className="mb-5 flex items-end justify-between gap-3">
           <div>
-            <div className="text-xs uppercase tracking-wider text-primary">Ask MedSafe</div>
+            <div className="text-xs uppercase tracking-wider text-primary">MedSafe Buddy</div>
             <h1 className="font-display text-3xl">
               {active ? `Talking about ${active.name}` : "Your private medical assistant"}
             </h1>
             <p className="mt-1 text-sm text-muted-foreground">
-              Grounded in {active?.name || "your"} uploaded prescriptions and lab reports. Private to your account.
+              Buddy searches {active?.name ? `${active.name}'s` : "your"} own prescriptions and lab reports before answering, and names
+              the document it used. Private to your account.
             </p>
           </div>
         </div>

@@ -16,8 +16,12 @@ import { createMedicalDoc } from "@/lib/medsafe.functions";
 export const Route = createFileRoute("/_authenticated/chat")({
   head: () => ({
     meta: [
-      { title: "Ask MedSafe — your private medical assistant" },
-      { name: "description", content: "Ask anything about your records. Answers are grounded in your uploaded prescriptions and lab reports." },
+      { title: "MedSafe Buddy — your private medical assistant" },
+      { name: "description", content: "Ask MedSafe Buddy anything about your records. Every answer is searched out of your own prescriptions and lab reports." },
+      { property: "og:title", content: "MedSafe Buddy — your private medical assistant" },
+      { property: "og:description", content: "Answers grounded in your own prescriptions and lab reports." },
+      { property: "og:type", content: "website" },
+      { name: "twitter:card", content: "summary" },
     ],
   }),
   component: ChatPage,
@@ -54,12 +58,13 @@ function ChatPage() {
       <section className="mx-auto max-w-3xl px-4 py-8 sm:py-10">
         <div className="mb-5 flex items-end justify-between gap-3">
           <div>
-            <div className="text-xs uppercase tracking-wider text-primary">Ask MedSafe</div>
+            <div className="text-xs uppercase tracking-wider text-primary">MedSafe Buddy</div>
             <h1 className="font-display text-3xl">
               {active ? `Talking about ${active.name}` : "Your private medical assistant"}
             </h1>
             <p className="mt-1 text-sm text-muted-foreground">
-              Grounded in {active?.name || "your"} uploaded prescriptions and lab reports. Private to your account.
+              Buddy searches {active?.name ? `${active.name}'s` : "your"} own prescriptions and lab reports before answering, and names
+              the document it used. Private to your account.
             </p>
           </div>
         </div>

@@ -108,17 +108,9 @@ export function SiteLayout({ children }: { children: ReactNode }) {
         </div>
       </header>
 
-      <main className="pb-28">
-        {email && !onChatPage && (
-          <div className="mx-auto max-w-7xl px-4 pt-4">
-            <QuickActions compact />
-          </div>
-        )}
+      <main className="pb-20">
         {children}
       </main>
-
-      {/* Floating "Ask MedSafe" removed — the same action lives in the
-          pinned QuickActions strip on every logged-in surface. */}
 
 
       <footer className="border-t border-border/60 bg-secondary/40">

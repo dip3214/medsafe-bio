@@ -1,8 +1,8 @@
-import { createFileRoute, Navigate } from "@tanstack/react-router";
+import { createFileRoute, Navigate, Link } from "@tanstack/react-router";
 import { useEffect, useMemo, useRef, useState } from "react";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { useServerFn } from "@tanstack/react-start";
-import { Moon, Activity, UtensilsCrossed, Sparkles, Target, Flame, Mic, MicOff, Camera, Check, Loader2 } from "lucide-react";
+import { Moon, Activity, UtensilsCrossed, Sparkles, Target, Flame, Mic, MicOff, Camera, Check, Loader2, MessageSquare } from "lucide-react";
 import { SiteLayout } from "@/components/SiteLayout";
 
 import { LifestyleHeroBackground } from "@/components/LifestyleHeroBackground";
@@ -353,6 +353,25 @@ function LifestylePage() {
             </>
           );
         })()}
+      </section>
+
+      {/* MedBuddy Assistant */}
+      <section className="mx-auto max-w-5xl px-4 pt-6">
+        <Link
+          to="/chat"
+          className="flex items-center justify-between gap-4 rounded-2xl border border-primary/20 bg-gradient-to-br from-primary/10 via-card to-accent/30 p-4 shadow-sm transition hover:shadow-md"
+        >
+          <div className="flex items-center gap-3">
+            <span className="grid h-10 w-10 place-items-center rounded-full bg-primary text-primary-foreground shadow-sm">
+              <MessageSquare className="h-5 w-5" />
+            </span>
+            <div>
+              <div className="text-sm font-semibold">MedBuddy Assistant</div>
+              <p className="text-xs text-muted-foreground">Ask about your daily log, reports, or anything health-related.</p>
+            </div>
+          </div>
+          <span className="rounded-full bg-primary px-3 py-1.5 text-xs font-medium text-primary-foreground">Open</span>
+        </Link>
       </section>
 
       <section className="mx-auto grid max-w-5xl gap-6 px-4 py-10 lg:grid-cols-[1.1fr_0.9fr]">

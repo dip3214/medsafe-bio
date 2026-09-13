@@ -3,7 +3,6 @@ import { useEffect, useState, type ReactNode } from "react";
 import { LogOut, LogIn, ShieldCheck, BadgeCheck, HeartPulse } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 import { MemberSwitcher } from "@/components/MemberSwitcher";
-import { QuickActions } from "@/components/QuickActions";
 import { ConsentBanner } from "@/components/ConsentBanner";
 import { useActiveMember } from "@/lib/active-member";
 

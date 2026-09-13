@@ -1,0 +1,47 @@
+# Place at: .github/workflows/deploy.yml
+# Replaces Lovable's own publish step. Builds and deploys to YOUR Cloudflare
+# account on every push to main — no Lovable involved.
+#
+# Setup required (one-time):
+#   1. Create a Cloudflare account (if you don't already use one) and an API
+#      token with "Workers Scripts: Edit" permission.
+#   2. In this GitHub repo: Settings -> Secrets and variables -> Actions, add:
+#        CLOUDFLARE_API_TOKEN
+#        CLOUDFLARE_ACCOUNT_ID
+#        VITE_SUPABASE_URL
+#        VITE_SUPABASE_PUBLISHABLE_KEY
+#        VITE_SUPABASE_PROJECT_ID
+#      (Move these out of the committed .env — see note below.)
+name: Deploy
+
+on:
+  push:
+    branches: [main]
+
+jobs:
+  build-and-deploy:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+
+      - name: Install dependencies
+        run: npm ci
+
+      - name: Build
+        run: npm run build
+        env:
+          VITE_SUPABASE_URL: ${{ secrets.VITE_SUPABASE_URL }}
+          VITE_SUPABASE_PUBLISHABLE_KEY: ${{ secrets.VITE_SUPABASE_PUBLISHABLE_KEY }}
+          VITE_SUPABASE_PROJECT_ID: ${{ secrets.VITE_SUPABASE_PROJECT_ID }}
+
+      - name: Deploy to Cloudflare Workers
+        uses: cloudflare/wrangler-action@v3
+        with:
+          apiToken: ${{ secrets.CLOUDFLARE_API_TOKEN }}
+          accountId: ${{ secrets.CLOUDFLARE_ACCOUNT_ID }}
+          workingDirectory: .output/server
+          command: deploy

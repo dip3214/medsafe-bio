@@ -7,6 +7,7 @@ import { ConsentBanner } from "@/components/ConsentBanner";
 import { useActiveMember } from "@/lib/active-member";
 
 const NAV = [
+  { to: "/chat", label: "MedBuddy" },
   { to: "/upload", label: "Upload" },
   { to: "/dashboard", label: "Dashboard" },
   { to: "/members", label: "Family" },

@@ -1,5 +1,5 @@
 /**
- * Safety guardrails for MedSafe Buddy.
+ * Safety guardrails for MedBuddy Assistant.
  *
  * Three layers:
  *  1. Emergency triage — hard-coded, runs before any model call.
@@ -55,7 +55,7 @@ export function screenUserMessage(text: string): Guard {
     return {
       kind: "out_of_scope",
       reply:
-        "I'm MedSafe Buddy — I stick to your health records, medicines, lab trends and everyday wellbeing. Ask me something about your reports or habits and I'm all yours. 🙂",
+        "I'm MedBuddy Assistant — I stick to your health records, medicines, lab trends and everyday wellbeing. Ask me something about your reports or habits and I'm all yours. 🙂",
     };
   }
 

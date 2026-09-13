@@ -44,4 +44,4 @@ jobs:
           apiToken: ${{ secrets.CLOUDFLARE_API_TOKEN }}
           accountId: ${{ secrets.CLOUDFLARE_ACCOUNT_ID }}
           workingDirectory: .output/server
-          command: deploy index.mjs --name dip3214-medsafe-bio
+             command: deploy index.mjs --name dip3214-medsafe-bio --compatibility-date 2026-09-13 --compatibility-flags nodejs_compat

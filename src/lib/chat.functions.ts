@@ -22,7 +22,7 @@ export const getOrCreateChatThread = createServerFn({ method: "POST" })
 
     const { data: row, error } = await context.supabase
       .from("chat_threads")
-      .insert({ user_id: context.userId, member_id: data.memberId ?? null, title: "MedSafe Buddy" })
+      .insert({ user_id: context.userId, member_id: data.memberId ?? null, title: "MedBuddy Assistant" })
       .select("id")
       .single();
     if (error || !row) throw new Error(error?.message || "Failed to start chat");

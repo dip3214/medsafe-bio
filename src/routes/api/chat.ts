@@ -124,7 +124,7 @@ export const Route = createFileRoute("/api/chat")({
               .join("\n\n")
           : "(nothing in the records matched this question)";
 
-        // A light index of what exists, so Buddy can say "you have 3 reports"
+        // A light index of what exists, so MedBuddy can say "you have 3 reports"
         let idxQ = supabase
           .from("documents")
           .select("title, document_date, document_type")
@@ -152,7 +152,7 @@ export const Route = createFileRoute("/api/chat")({
             )
             .join("\n") || "(no lifestyle logs yet)";
 
-        const system = `You are **MedSafe Buddy** — a warm, India-aware health companion. You are talking about ${memberLabel}'s health.
+        const system = `You are **MedBuddy Assistant** — a warm, India-aware health companion. You are talking about ${memberLabel}'s health.
 
 Voice: friendly, plain-spoken, concise. Short paragraphs and Markdown. Explain the "why" (what HbA1c actually measures, why LDL matters, how sleep affects recovery) so the person understands, not just obeys. No jargon walls, no compliance-bot disclaimers on ordinary wellness questions.
 

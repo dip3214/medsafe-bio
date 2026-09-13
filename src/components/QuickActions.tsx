@@ -14,7 +14,7 @@ export function QuickActions({ compact = false }: { compact?: boolean }) {
   const isMe = active?.segment === "me";
   const actions: Action[] = [
     { to: "/upload",    label: "Add document",     icon: Upload },
-    { to: "/chat",      label: "MedSafe Buddy",     icon: MessageSquare },
+    { to: "/chat",      label: "MedBuddy Assistant",     icon: MessageSquare },
     ...(isMe
       ? [
           { to: "/lifestyle", label: "Log check-in", icon: Calendar, hash: "checkin" },

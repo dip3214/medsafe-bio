@@ -135,7 +135,7 @@ export const createMedicalDoc = createServerFn({ method: "POST" })
     });
     if (exErr) throw new Error(exErr.message);
 
-    // Index the new document for MedSafe Buddy's semantic search (best-effort).
+    // Index the new document for MedBuddy Assistant's semantic search (best-effort).
     try {
       const apiKey = process.env['LOVABLE_API_KEY'];
       if (apiKey) {

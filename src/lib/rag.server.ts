@@ -1,5 +1,5 @@
 /**
- * Real RAG for MedSafe Buddy.
+ * Real RAG for MedBuddy Assistant.
  *
  * Documents are chunked into small, self-describing passages, embedded with
  * the Lovable AI Gateway embeddings endpoint (1536 dims) and stored in

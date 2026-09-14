@@ -2,13 +2,14 @@ import { createFileRoute, Link } from "@tanstack/react-router";
 import { SiteLayout } from "@/components/SiteLayout";
 
 import { groupDocs, type MedicalDoc, type VisitGroup } from "@/lib/medsafe-types";
-import { listMedicalDocs } from "@/lib/medsafe.functions";
+import { getDocumentSignedUrl, listMedicalDocs } from "@/lib/medsafe.functions";
 import { useServerFn } from "@tanstack/react-start";
 import { useQuery } from "@tanstack/react-query";
 import { useMemo, useState } from "react";
 import { LineChart, Line, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer } from "recharts";
-import { Activity, AlertTriangle, CalendarDays, FlaskConical, Pill, TrendingUp, TrendingDown, Upload, UserRound, Sparkles, HeartPulse, ShieldCheck, FileDown, Syringe, ChevronDown, ChevronRight } from "lucide-react";
+import { Activity, AlertTriangle, CalendarDays, FlaskConical, Pill, TrendingUp, TrendingDown, Upload, UserRound, Sparkles, HeartPulse, ShieldCheck, FileDown, Syringe, ChevronDown, ChevronRight, ExternalLink } from "lucide-react";
 import { useActiveMember } from "@/lib/active-member";
+import { Button } from "@/components/ui/button";
 
 export const Route = createFileRoute("/_authenticated/dashboard")({
   head: () => ({
@@ -70,7 +71,7 @@ function DashboardPage() {
   return (
     <SiteLayout>
       
-      <section className="mx-auto max-w-7xl px-4 pt-2 pb-10">
+      <section className="mx-auto max-w-7xl px-4 pb-12 pt-5">
         {/* Segment quick-switcher */}
         <div className="mb-8 grid gap-3 sm:grid-cols-3">
           {segmentCards.map((s) => {
@@ -98,17 +99,18 @@ function DashboardPage() {
           })}
         </div>
 
-        <div className="flex flex-wrap items-end justify-between gap-3">
+        <div className="ambient-health-bg rounded-xl border border-border p-6 sm:p-8">
+        <div className="grid grid-cols-[minmax(0,1fr)_auto] items-end gap-4">
           <div>
             <div className="text-xs uppercase tracking-wider text-primary">Health overview</div>
-            <h1 className="mt-1 font-serif text-3xl tracking-tight sm:text-4xl">
+             <h1 className="mt-2 text-4xl font-semibold tracking-normal sm:text-5xl">
               {patient?.patientName ? `${patient.patientName.split(" ")[0]}'s health story` : "Your health story"}
             </h1>
             <p className="mt-1 text-sm text-muted-foreground">
               Every clinical event from your reports, lined up so you can see what's getting better and what needs attention.
             </p>
           </div>
-          <div className="flex gap-2">
+          <div className="hidden gap-2 sm:flex">
             <Link to="/summary" className="inline-flex items-center gap-2 rounded-md border border-border bg-card px-4 py-2 text-sm font-medium hover:bg-accent">
               <FileDown className="h-4 w-4" /> Export summary report
             </Link>
@@ -117,17 +119,13 @@ function DashboardPage() {
             </Link>
           </div>
         </div>
-
         {patient?.patientName && (
-          <div className="mt-6 inline-flex items-center gap-3 rounded-full border border-border bg-card px-4 py-2 text-sm">
-            <UserRound className="h-4 w-4 text-primary" />
-            <span className="font-medium">{patient.patientName}</span>
-            {(patient.patientAge || patient.patientGender) && (
-              <span className="text-muted-foreground">· {[patient.patientAge, patient.patientGender].filter(Boolean).join(" · ")}</span>
-            )}
+          <div className="mt-7 flex items-center gap-3 text-sm">
+            <span className="grid h-10 w-10 place-items-center rounded-full bg-card shadow-sm"><UserRound className="h-5 w-5" /></span>
+            <div><div className="font-semibold">{patient.patientName}</div><div className="text-xs text-muted-foreground">{[patient.patientAge, patient.patientGender].filter(Boolean).join(" · ") || "Active family profile"}</div></div>
           </div>
         )}
-
+        </div>
 
         {visitDelta && (
           <div className="mt-8 overflow-hidden rounded-2xl border border-border bg-gradient-to-br from-card via-card to-accent/30 p-6 shadow-sm">
@@ -152,7 +150,7 @@ function DashboardPage() {
           </div>
         )}
 
-        <div className="mt-6 grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
+        <div className="mt-6 grid gap-3 sm:grid-cols-2 lg:grid-cols-4">
           <Kpi icon={CalendarDays} label="Visits" value={groups.length} />
           <Kpi icon={FlaskConical} label="Reports" value={docs.filter((d) => d.kind === "report").length} />
           <Kpi icon={Pill} label="Prescriptions" value={docs.filter((d) => d.kind === "prescription").length} />
@@ -232,10 +230,56 @@ function DashboardPage() {
           </div>
         </div>
 
+        <ReportLibrary docs={docs} />
+
         {/* Structured, filterable timeline */}
         <TimelineBlock groups={groups} />
       </section>
     </SiteLayout>
+  );
+}
+
+function ReportLibrary({ docs }: { docs: MedicalDoc[] }) {
+  if (docs.length === 0) return null;
+  return (
+    <section className="mt-12">
+      <div className="flex items-end justify-between gap-4">
+        <div><div className="text-xs font-bold uppercase tracking-[0.16em] text-primary">Report library</div><h2 className="mt-2 text-2xl font-semibold">Every report, ready to inspect</h2><p className="mt-1 text-sm text-muted-foreground">Read the extracted overview or open the original source file.</p></div>
+        <Link to="/upload" className="hidden text-sm font-semibold text-primary sm:block">Manage records</Link>
+      </div>
+      <div className="mt-5 grid gap-4 md:grid-cols-2 xl:grid-cols-3">
+        {docs.map((doc) => <ReportCard key={doc.id} doc={doc} />)}
+      </div>
+    </section>
+  );
+}
+
+function ReportCard({ doc }: { doc: MedicalDoc }) {
+  const sign = useServerFn(getDocumentSignedUrl);
+  const [opening, setOpening] = useState(false);
+  const flagged = (doc.labValues ?? []).filter((value) => value.flag && value.flag !== "normal").length;
+  async function viewOriginal() {
+    if (!doc.storagePath) return;
+    setOpening(true);
+    try {
+      const { url } = await sign({ data: { documentId: doc.id } });
+      const { openInNewTab } = await import("@/lib/ios-open");
+      openInNewTab(url);
+    } finally { setOpening(false); }
+  }
+  return (
+    <article className="dashboard-surface flex min-h-[245px] flex-col rounded-xl border border-border p-5">
+      <div className="grid grid-cols-[auto_minmax(0,1fr)_auto] items-start gap-3">
+        <span className="grid h-10 w-10 shrink-0 place-items-center rounded-lg bg-secondary">{doc.kind === "prescription" ? <Pill className="h-5 w-5" /> : <FlaskConical className="h-5 w-5" />}</span>
+        <div className="min-w-0"><h3 className="truncate font-semibold">{doc.title}</h3><p className="mt-1 text-xs text-muted-foreground">{new Date(`${doc.date}T00:00:00`).toLocaleDateString("en-IN", { day: "2-digit", month: "short", year: "numeric" })}</p></div>
+        {flagged > 0 && <span className="rounded-full bg-destructive/10 px-2 py-1 text-[10px] font-bold text-destructive">{flagged} flagged</span>}
+      </div>
+      <p className="mt-5 line-clamp-3 text-sm leading-relaxed text-muted-foreground">{doc.summary || "Structured details are available in this record."}</p>
+      <div className="mt-5 flex flex-wrap gap-2 text-[11px]">{(doc.diagnoses ?? []).slice(0, 3).map((diagnosis) => <span key={diagnosis} className="rounded-full bg-muted px-2.5 py-1">{diagnosis}</span>)}</div>
+      <div className="mt-auto pt-5">
+        <Button variant="outline" size="sm" className="w-full" disabled={!doc.storagePath || opening} onClick={viewOriginal}><ExternalLink className="h-4 w-4" />{opening ? "Opening…" : doc.storagePath ? "View original report" : "Original unavailable"}</Button>
+      </div>
+    </article>
   );
 }
 
@@ -470,9 +514,9 @@ function SummaryColumn({ title, items, tone, emptyText }: { title: string; items
 
 function Kpi({ icon: Icon, label, value }: { icon: any; label: string; value: number | string }) {
   return (
-    <div className="rounded-xl border border-border bg-card p-4">
+    <div className="dashboard-surface rounded-xl border border-border p-5">
       <div className="flex items-center gap-2 text-xs text-muted-foreground"><Icon className="h-4 w-4" /> {label}</div>
-      <div className="mt-2 text-2xl font-semibold">{value}</div>
+      <div className="mt-3 text-3xl font-semibold">{value}</div>
     </div>
   );
 }

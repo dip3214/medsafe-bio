@@ -1,6 +1,7 @@
 import { useEffect, useMemo, useRef, useState } from "react";
 import { phaseForHour, type LifestylePhase } from "@/lib/lifestyle-context";
 import type { Weather } from "@/lib/use-weather";
+import lifestyleIndia from "@/assets/lifestyle-india.jpg";
 
 export function LifestyleHeroBackground({
   phase: phaseProp,
@@ -78,7 +79,17 @@ export function LifestyleHeroBackground({
       style={{ ["--mx" as any]: 0, ["--my" as any]: 0 }}
     >
       <style>{`
-        .lifestyle-hero { transition: background 1.2s ease; }
+        .lifestyle-hero { transition: background 1.2s ease; background: var(--foreground); }
+        .lifestyle-hero .photo {
+          position:absolute; inset:-3%; width:106%; height:106%; object-fit:cover;
+          animation: ls-camera 18s ease-in-out infinite alternate;
+          filter: saturate(.92) contrast(.96);
+        }
+        .lifestyle-hero .photo-tint {
+          position:absolute; inset:0;
+          background: linear-gradient(90deg, color-mix(in oklab, var(--foreground) 68%, transparent) 0%, color-mix(in oklab, var(--foreground) 20%, transparent) 48%, transparent 78%), linear-gradient(0deg, color-mix(in oklab, var(--foreground) 30%, transparent), transparent 55%);
+        }
+        @keyframes ls-camera { from { transform:scale(1.02) translate3d(-.5%,0,0); } to { transform:scale(1.08) translate3d(1.5%,-1%,0); } }
 
         /* Palettes */
         .lifestyle-hero[data-phase="earlyMorning"] { --sky-1:#ffd7b4; --sky-2:#ffb197; --sky-3:#f0d9c2; --ink:rgba(60,25,20,.6); --ground:rgba(30,15,10,.18); --aurora:transparent; }
@@ -92,7 +103,7 @@ export function LifestyleHeroBackground({
         .lifestyle-hero .sky {
           position:absolute; inset:-4%;
           background: linear-gradient(180deg, var(--sky-1) 0%, var(--sky-2) 55%, var(--sky-3) 100%);
-          transition: background 1.2s ease;
+          transition: background 1.2s ease; opacity:.34; mix-blend-mode:soft-light;
           transform: translate3d(calc(var(--mx) * -8px), calc(var(--my) * -6px), 0);
         }
 
@@ -556,7 +567,7 @@ export function LifestyleHeroBackground({
           .lifestyle-hero .bird, .lifestyle-hero .leaf, .lifestyle-hero .steam,
           .lifestyle-hero .fly, .lifestyle-hero .shoot, .lifestyle-hero .rays,
           .lifestyle-hero .aurora, .lifestyle-hero .sun, .lifestyle-hero .sun-halo,
-          .lifestyle-hero .mote, .lifestyle-hero .grass, .lifestyle-hero .trees { animation: none !important; }
+          .lifestyle-hero .mote, .lifestyle-hero .grass, .lifestyle-hero .trees, .lifestyle-hero .photo { animation: none !important; }
         }
 
         /* ===== Weather layers ===== */
@@ -639,7 +650,9 @@ export function LifestyleHeroBackground({
         }
       `}</style>
 
+      <img src={lifestyleIndia} alt="" className="photo" width={1600} height={1000} />
       <div className="sky" />
+      <div className="photo-tint" />
       <div className="aurora" />
       {showSun && (
         <div className="sun-wrap">
@@ -739,12 +752,7 @@ export function LifestyleHeroBackground({
         </div>
       )}
 
-      <div className="mountains" />
-      <div className="skyline" />
-      <div className="trees" />
-      <div className="grass" />
       <div className="ground" />
-      <div className="path" />
 
       <div className="lamp lamp-1" />
       <div className="lamp lamp-2" />
@@ -758,7 +766,7 @@ export function LifestyleHeroBackground({
       <div className="fly f5" style={{ left: "50%", bottom: "40%" }} />
       <div className="fly f6" style={{ left: "12%", bottom: "36%" }} />
 
-      {/* Figures */}
+      {/* Contextual figures are retained as subtle activity cues over the photographic scene. */}
       <div className="fig fig-yoga">
         <svg viewBox="0 0 60 120">
           <circle className="head" cx="30" cy="16" r="8" />

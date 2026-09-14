@@ -243,38 +243,25 @@ function LifestylePage() {
       {/* Quick actions bar */}
       
       {/* Hero */}
-      <section className="relative overflow-hidden min-h-[520px] sm:min-h-[600px]">
+      <section className="relative min-h-[560px] overflow-hidden border-b border-border sm:min-h-[660px]">
         <LifestyleHeroBackground phase={ctx.phase} weather={weather} />
         {(() => {
           const isDay = ctx.ambient === "day";
           const isDusk = ctx.ambient === "dusk";
           // Adaptive text tokens per ambient — dark ink on bright skies, warm white on dusk/night
-          const inkColor = isDay ? "#1a1410" : "#fdf6ec";
+          const inkColor = "var(--primary-foreground)";
           const inkShadow = isDay
             ? "0 1px 0 rgba(255,255,255,0.5), 0 2px 12px rgba(255,240,220,0.7)"
             : isDusk
               ? "0 2px 18px rgba(30,10,40,0.55), 0 1px 2px rgba(0,0,0,0.4)"
               : "0 2px 24px rgba(0,0,0,0.65), 0 1px 2px rgba(0,0,0,0.5)";
-          const subColor = isDay ? "#2a1f18" : "rgba(253,246,236,0.96)";
-          const badgeClass = isDay
-            ? "bg-white/60 text-[#3a1f10] ring-1 ring-black/10"
-            : isDusk
-              ? "bg-white/20 text-white ring-1 ring-white/30"
-              : "bg-white/15 text-white ring-1 ring-white/25";
+          const subColor = "color-mix(in oklab, var(--primary-foreground) 88%, transparent)";
+          const badgeClass = "bg-card/20 text-primary-foreground ring-1 ring-primary-foreground/25";
           // Only add a scrim on dusk/night; day stays open so animation reads clearly
-          const scrim = isDay
-            ? null
-            : isDusk
-              ? "bg-gradient-to-t from-black/50 via-black/15 to-transparent"
-              : "bg-gradient-to-t from-black/70 via-black/25 to-transparent";
+          const scrim = isDusk || !isDay ? "bg-gradient-to-t from-foreground/70 via-foreground/20 to-transparent" : "bg-gradient-to-r from-foreground/60 via-foreground/15 to-transparent";
           return (
             <>
-              {scrim && (
-                <div
-                  aria-hidden
-                  className={`pointer-events-none absolute inset-x-0 bottom-0 h-2/3 ${scrim}`}
-                />
-              )}
+              <div aria-hidden className={`pointer-events-none absolute inset-0 ${scrim}`} />
               {/* Date + time pill — top-right, subtle so background stays visible */}
               <div
                 className={`pointer-events-auto absolute right-4 top-4 z-10 inline-flex items-center gap-2 rounded-full px-3 py-1 text-[11px] font-medium backdrop-blur-md sm:right-8 sm:top-6 sm:text-xs ${badgeClass}`}
@@ -333,12 +320,12 @@ function LifestylePage() {
                 </button>
               </div>
 
-              <div className="relative mx-auto max-w-5xl px-4 pt-28 pb-16 text-left sm:pt-40 sm:pb-24">
+              <div className="relative mx-auto max-w-6xl px-4 pb-20 pt-36 text-left sm:pb-28 sm:pt-48">
                 <div className={`inline-flex items-center gap-1.5 rounded-full px-3 py-1 text-xs font-semibold backdrop-blur-md ${badgeClass}`}>
                   <Sparkles className="h-3 w-3" /> {ctx.badge}
                 </div>
                 <h1
-                  className="mt-4 max-w-2xl font-display text-4xl leading-tight sm:text-6xl transition-colors duration-1000"
+                   className="mt-5 max-w-2xl text-5xl font-semibold leading-tight transition-colors duration-1000 sm:text-7xl"
                   style={{ color: inkColor, textShadow: inkShadow }}
                 >
                   {ctx.headline(displayName)}
@@ -355,9 +342,9 @@ function LifestylePage() {
         })()}
       </section>
 
-      <section className="mx-auto grid max-w-5xl gap-6 px-4 py-10 lg:grid-cols-[1.1fr_0.9fr]">
+      <section className="mx-auto grid max-w-6xl gap-6 px-4 py-14 lg:grid-cols-[1.15fr_0.85fr]">
         {/* Daily log */}
-        <div className="rounded-2xl border border-border bg-card p-6 shadow-sm">
+        <div className="dashboard-surface rounded-xl border border-border p-6 sm:p-8">
           <div className="flex items-center justify-between">
             <h2 className="font-display text-xl">Today's check-in</h2>
             {flash && (

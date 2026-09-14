@@ -9,6 +9,8 @@ import { MedBuddySide } from "@/components/MedBuddySide";
 import { useActiveMember } from "@/lib/active-member";
 
 const NAV = [
+  { to: "/" as const, label: "Home" },
+  { to: "/about" as const, label: "About us" },
   { to: "/chat", label: "MedBuddy" },
   { to: "/upload", label: "Upload" },
   { to: "/dashboard", label: "Dashboard" },
@@ -43,12 +45,12 @@ export function SiteLayout({ children }: { children: ReactNode }) {
   return (
     <div className="min-h-screen bg-background text-foreground">
       <header className="sticky top-0 z-40 border-b border-border/60 bg-background/85 backdrop-blur">
-        <div className="mx-auto flex max-w-7xl items-center justify-between gap-4 px-4 py-3">
-          <Link to="/" className="flex items-center gap-2.5">
+        <div className="mx-auto grid max-w-7xl grid-cols-[minmax(0,1fr)_auto] items-center gap-3 px-4 py-3 lg:flex lg:justify-between">
+          <Link to="/" className="flex min-w-0 items-center gap-2.5">
             <span className="grid h-9 w-9 place-items-center rounded-full bg-primary text-primary-foreground shadow-md">
               <HeartPulse className="h-5 w-5" />
             </span>
-            <span className="text-xl font-semibold tracking-tight">
+            <span className="truncate text-xl font-semibold tracking-normal">
               med<span className="text-primary">Safe</span>
             </span>
           </Link>
@@ -124,8 +126,8 @@ export function SiteLayout({ children }: { children: ReactNode }) {
               <Link to="/privacy" className="hover:text-foreground">Privacy</Link>
               <Link to="/dpdp-notice" className="hover:text-foreground">DPDP Notice</Link>
               <Link to="/account" className="hover:text-foreground">Your rights</Link>
-              <a href="/#about" className="hover:text-foreground">About us</a>
-              <a href="/#contact" className="hover:text-foreground">Contact</a>
+              <Link to="/about" className="hover:text-foreground">About us</Link>
+              <Link to="/about" hash="contact" className="hover:text-foreground">Contact</Link>
               <span>© {new Date().getFullYear()} MedSafe · A DeRiskBio initiative</span>
             </nav>
           </div>

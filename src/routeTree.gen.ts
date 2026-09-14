@@ -12,6 +12,7 @@ import { Route as rootRouteImport } from './routes/__root'
 import { Route as UnsubscribeRouteImport } from './routes/unsubscribe'
 import { Route as ServicesRouteImport } from './routes/services'
 import { Route as PrivacyRouteImport } from './routes/privacy'
+import { Route as FaqRouteImport } from './routes/faq'
 import { Route as DpdpNoticeRouteImport } from './routes/dpdp-notice'
 import { Route as DoctorsRouteImport } from './routes/doctors'
 import { Route as CareRouteImport } from './routes/care'
@@ -44,6 +45,11 @@ const ServicesRoute = ServicesRouteImport.update({
 const PrivacyRoute = PrivacyRouteImport.update({
   id: '/privacy',
   path: '/privacy',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const FaqRoute = FaqRouteImport.update({
+  id: '/faq',
+  path: '/faq',
   getParentRoute: () => rootRouteImport,
 } as any)
 const DpdpNoticeRoute = DpdpNoticeRouteImport.update({
@@ -143,6 +149,7 @@ export interface FileRoutesByFullPath {
   '/care': typeof CareRoute
   '/doctors': typeof DoctorsRoute
   '/dpdp-notice': typeof DpdpNoticeRoute
+  '/faq': typeof FaqRoute
   '/privacy': typeof PrivacyRoute
   '/services': typeof ServicesRoute
   '/unsubscribe': typeof UnsubscribeRoute
@@ -165,6 +172,7 @@ export interface FileRoutesByTo {
   '/care': typeof CareRoute
   '/doctors': typeof DoctorsRoute
   '/dpdp-notice': typeof DpdpNoticeRoute
+  '/faq': typeof FaqRoute
   '/privacy': typeof PrivacyRoute
   '/services': typeof ServicesRoute
   '/unsubscribe': typeof UnsubscribeRoute
@@ -189,6 +197,7 @@ export interface FileRoutesById {
   '/care': typeof CareRoute
   '/doctors': typeof DoctorsRoute
   '/dpdp-notice': typeof DpdpNoticeRoute
+  '/faq': typeof FaqRoute
   '/privacy': typeof PrivacyRoute
   '/services': typeof ServicesRoute
   '/unsubscribe': typeof UnsubscribeRoute
@@ -213,6 +222,7 @@ export interface FileRouteTypes {
     | '/care'
     | '/doctors'
     | '/dpdp-notice'
+    | '/faq'
     | '/privacy'
     | '/services'
     | '/unsubscribe'
@@ -235,6 +245,7 @@ export interface FileRouteTypes {
     | '/care'
     | '/doctors'
     | '/dpdp-notice'
+    | '/faq'
     | '/privacy'
     | '/services'
     | '/unsubscribe'
@@ -258,6 +269,7 @@ export interface FileRouteTypes {
     | '/care'
     | '/doctors'
     | '/dpdp-notice'
+    | '/faq'
     | '/privacy'
     | '/services'
     | '/unsubscribe'
@@ -282,6 +294,7 @@ export interface RootRouteChildren {
   CareRoute: typeof CareRoute
   DoctorsRoute: typeof DoctorsRoute
   DpdpNoticeRoute: typeof DpdpNoticeRoute
+  FaqRoute: typeof FaqRoute
   PrivacyRoute: typeof PrivacyRoute
   ServicesRoute: typeof ServicesRoute
   UnsubscribeRoute: typeof UnsubscribeRoute
@@ -312,6 +325,13 @@ declare module '@tanstack/react-router' {
       path: '/privacy'
       fullPath: '/privacy'
       preLoaderRoute: typeof PrivacyRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/faq': {
+      id: '/faq'
+      path: '/faq'
+      fullPath: '/faq'
+      preLoaderRoute: typeof FaqRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/dpdp-notice': {
@@ -475,6 +495,7 @@ const rootRouteChildren: RootRouteChildren = {
   CareRoute: CareRoute,
   DoctorsRoute: DoctorsRoute,
   DpdpNoticeRoute: DpdpNoticeRoute,
+  FaqRoute: FaqRoute,
   PrivacyRoute: PrivacyRoute,
   ServicesRoute: ServicesRoute,
   UnsubscribeRoute: UnsubscribeRoute,

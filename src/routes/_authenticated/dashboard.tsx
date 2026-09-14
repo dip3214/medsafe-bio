@@ -7,7 +7,7 @@ import { useServerFn } from "@tanstack/react-start";
 import { useQuery } from "@tanstack/react-query";
 import { useMemo, useState } from "react";
 import { LineChart, Line, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer } from "recharts";
-import { Activity, AlertTriangle, CalendarDays, FlaskConical, Pill, TrendingUp, TrendingDown, Upload, UserRound, Sparkles, HeartPulse, ShieldCheck, FileDown, Syringe, ChevronDown, ChevronRight, MessageSquare } from "lucide-react";
+import { Activity, AlertTriangle, CalendarDays, FlaskConical, Pill, TrendingUp, TrendingDown, Upload, UserRound, Sparkles, HeartPulse, ShieldCheck, FileDown, Syringe, ChevronDown, ChevronRight } from "lucide-react";
 import { useActiveMember } from "@/lib/active-member";
 
 export const Route = createFileRoute("/_authenticated/dashboard")({
@@ -97,23 +97,6 @@ function DashboardPage() {
             );
           })}
         </div>
-
-        {/* MedBuddy Assistant */}
-        <Link
-          to="/chat"
-          className="mb-6 flex items-center justify-between gap-4 rounded-2xl border border-primary/20 bg-gradient-to-br from-primary/10 via-card to-accent/30 p-4 shadow-sm transition hover:shadow-md"
-        >
-          <div className="flex items-center gap-3">
-            <span className="grid h-10 w-10 place-items-center rounded-full bg-primary text-primary-foreground shadow-sm">
-              <MessageSquare className="h-5 w-5" />
-            </span>
-            <div>
-              <div className="text-sm font-semibold">MedBuddy Assistant</div>
-              <p className="text-xs text-muted-foreground">Ask anything about {active?.name ? `${active.name}'s` : "your"} reports and records.</p>
-            </div>
-          </div>
-          <span className="rounded-full bg-primary px-3 py-1.5 text-xs font-medium text-primary-foreground">Open</span>
-        </Link>
 
         <div className="flex flex-wrap items-end justify-between gap-3">
           <div>

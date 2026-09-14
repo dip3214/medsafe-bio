@@ -4,6 +4,7 @@ import { LogOut, LogIn, ShieldCheck, BadgeCheck, HeartPulse } from "lucide-react
 import { supabase } from "@/integrations/supabase/client";
 import { MemberSwitcher } from "@/components/MemberSwitcher";
 import { ConsentBanner } from "@/components/ConsentBanner";
+import { MedBuddySide } from "@/components/MedBuddySide";
 import { useActiveMember } from "@/lib/active-member";
 
 const NAV = [
@@ -133,6 +134,7 @@ export function SiteLayout({ children }: { children: ReactNode }) {
         </div>
       </footer>
 
+      {!onChatPage && <MedBuddySide />}
       <ConsentBanner />
     </div>
   );

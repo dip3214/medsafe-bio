@@ -47,7 +47,10 @@ export function MedBuddySide() {
 
   const { data: initialMessages, isLoading: mLoading } = useQuery({
     queryKey: ["chat-messages", thread?.id],
-    queryFn: () => fetchMessages({ data: { threadId: thread!.id } }),
+    queryFn: () => {
+      if (!thread?.id) return Promise.resolve([]);
+      return fetchMessages({ data: { threadId: thread.id } });
+    },
     enabled: open && !!thread?.id,
   });
 

@@ -1,6 +1,7 @@
 import { Link, useNavigate, useRouterState } from "@tanstack/react-router";
 import { useEffect, useState, type ReactNode } from "react";
 import { LogOut, LogIn, ShieldCheck, BadgeCheck, HeartPulse } from "lucide-react";
+import { Button } from "@/components/ui/button";
 import { supabase } from "@/integrations/supabase/client";
 import { MemberSwitcher } from "@/components/MemberSwitcher";
 import { ConsentBanner } from "@/components/ConsentBanner";
@@ -44,14 +45,11 @@ export function SiteLayout({ children }: { children: ReactNode }) {
       <header className="sticky top-0 z-40 border-b border-border/60 bg-background/85 backdrop-blur">
         <div className="mx-auto flex max-w-7xl items-center justify-between gap-4 px-4 py-3">
           <Link to="/" className="flex items-center gap-2.5">
-            <span
-              className="grid h-9 w-9 place-items-center rounded-full text-white shadow-md"
-              style={{ background: "oklch(0.42 0.16 28)" }}
-            >
+            <span className="grid h-9 w-9 place-items-center rounded-full bg-primary text-primary-foreground shadow-md">
               <HeartPulse className="h-5 w-5" />
             </span>
             <span className="text-xl font-semibold tracking-tight">
-              med<span style={{ color: "oklch(0.42 0.16 28)" }}>Safe</span>
+              med<span className="text-primary">Safe</span>
             </span>
           </Link>
 
@@ -74,18 +72,16 @@ export function SiteLayout({ children }: { children: ReactNode }) {
               <ShieldCheck className="h-3 w-3 text-primary" /> Secure platform · DPDP-aligned
             </span>
             {email ? (
-              <button
+              <Button
                 onClick={signOut}
-                className="inline-flex items-center gap-1.5 rounded-full px-3.5 py-1.5 text-sm font-medium text-white shadow-md transition hover:opacity-90"
-                style={{ background: "oklch(0.42 0.16 28)" }}
+                className="rounded-full px-3.5"
               >
                 <LogOut className="h-3.5 w-3.5" /> <span className="hidden sm:inline">Sign out</span>
-              </button>
+              </Button>
             ) : (
               <Link
                 to="/auth"
-                className="inline-flex items-center gap-1.5 rounded-full px-3.5 py-1.5 text-sm font-semibold text-white shadow-md transition hover:opacity-90"
-                style={{ background: "oklch(0.42 0.16 28)" }}
+                className="inline-flex items-center gap-1.5 rounded-full bg-primary px-3.5 py-2 text-sm font-semibold text-primary-foreground shadow-md transition hover:bg-primary/90"
               >
                 <LogIn className="h-3.5 w-3.5" /> Sign in
               </Link>
@@ -122,12 +118,14 @@ export function SiteLayout({ children }: { children: ReactNode }) {
                 <BadgeCheck className="h-4 w-4 text-primary" />
                 MedSafe · One family. One health record.
               </div>
-              <div className="mt-1 text-xs">Structured clinical data · AI-grounded chat · Kolkata</div>
+              <div className="mt-1 text-xs">Structured clinical data · AI-grounded chat · Kolkata & London</div>
             </div>
             <nav className="flex flex-wrap gap-x-4 gap-y-1 text-xs">
               <Link to="/privacy" className="hover:text-foreground">Privacy</Link>
               <Link to="/dpdp-notice" className="hover:text-foreground">DPDP Notice</Link>
               <Link to="/account" className="hover:text-foreground">Your rights</Link>
+              <a href="/#about" className="hover:text-foreground">About us</a>
+              <a href="/#contact" className="hover:text-foreground">Contact</a>
               <span>© {new Date().getFullYear()} MedSafe · A DeRiskBio initiative</span>
             </nav>
           </div>

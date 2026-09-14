@@ -1,10 +1,11 @@
 import { createFileRoute, Link, useNavigate } from "@tanstack/react-router";
 import { useEffect, useState } from "react";
-import { ArrowRight, HeartPulse, ShieldCheck, Sparkles, Activity, Users } from "lucide-react";
+import { ArrowRight, HeartPulse, ShieldCheck, Sparkles, Activity, Users, MapPin, Phone, GraduationCap } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 
 import { Reveal } from "@/components/Reveal";
 import { SiteLayout } from "@/components/SiteLayout";
+import { Button } from "@/components/ui/button";
 
 import heroFamily from "@/assets/hero-family.jpg";
 import bubbleDad from "@/assets/bubble-dad.jpg";
@@ -30,6 +31,27 @@ export const Route = createFileRoute("/")({
         property: "og:description",
         content:
           "One private timeline for your family's prescriptions, labs and lifestyle — grounded in your own reports.",
+      },
+      { property: "og:type", content: "website" },
+      { name: "twitter:card", content: "summary_large_image" },
+      { name: "twitter:title", content: "MedSafe — AI-powered family healthcare" },
+      { name: "twitter:description", content: "Secure family health records and grounded AI explanations from MedBuddy." },
+    ],
+    links: [{ rel: "canonical", href: "https://med-safe.live/" }],
+    scripts: [
+      {
+        type: "application/ld+json",
+        children: JSON.stringify({
+          "@context": "https://schema.org",
+          "@type": "Organization",
+          name: "MedSafe",
+          url: "https://med-safe.live",
+          description: "A secure family health record platform with AI-grounded health explanations.",
+          founder: [{ "@type": "Person", name: "Dr. Jit Sarkar" }, { "@type": "Person", name: "Dipankar Mandal" }],
+          telephone: "+91 9007374836",
+          areaServed: ["India", "United Kingdom"],
+          location: [{ "@type": "Place", name: "Kolkata, India" }, { "@type": "Place", name: "London, United Kingdom" }],
+        }),
       },
     ],
   }),
@@ -99,22 +121,18 @@ function PrimaryCTA({ className = "" }: { className?: string }) {
     navigate({ to: "/start" });
   }
   return (
-    <button
-      onClick={onClick}
-      style={{ background: "oklch(0.42 0.16 28)" }}
-      className={`group inline-flex items-center gap-2.5 rounded-full px-5 py-3 text-sm font-semibold text-white shadow-lg shadow-black/20 ring-1 ring-black/10 transition hover:scale-[1.02] hover:brightness-110 ${className}`}
-    >
+    <Button onClick={onClick} size="lg" className={`group h-12 rounded-full px-6 shadow-lg transition hover:-translate-y-0.5 ${className}`}>
       <Sparkles className="h-4 w-4" />
       {authed ? "Open your timeline" : "Get started — it's free"}
       <ArrowRight className="h-4 w-4 transition-transform group-hover:translate-x-0.5" />
-    </button>
+    </Button>
   );
 }
 
 function Hero() {
   const authed = useAuthed();
   return (
-    <section className="relative isolate overflow-hidden">
+    <section className="relative isolate min-h-[76vh] overflow-hidden sm:min-h-[82vh]">
       <div className="absolute inset-0 -z-10">
         <img
           src={heroFamily}
@@ -123,27 +141,19 @@ function Hero() {
           width={1920}
           height={1200}
         />
-        <div
-          aria-hidden
-          className="absolute inset-0"
-          style={{
-            background:
-              "linear-gradient(180deg, color-mix(in oklch, var(--primary) 55%, transparent) 0%, color-mix(in oklch, var(--primary) 20%, transparent) 45%, color-mix(in oklch, var(--background) 40%, transparent) 78%, var(--background) 100%)",
-          }}
-        />
+        <div aria-hidden className="absolute inset-0 bg-gradient-to-b from-foreground/55 via-primary/20 to-background" />
       </div>
 
-      <div className="mx-auto flex max-w-5xl flex-col items-center gap-8 px-4 pb-28 pt-20 text-center sm:pt-24 md:pb-36 md:pt-28">
-        <div className="inline-flex items-center gap-2 rounded-full border border-white/25 bg-white/15 px-3 py-1 text-[11px] font-medium uppercase tracking-[0.18em] text-white backdrop-blur">
-          <Sparkles className="h-3 w-3" /> AI-powered · Secure platform · Whole-family healthcare
+      <div className="mx-auto flex min-h-[76vh] max-w-6xl flex-col items-center justify-center gap-7 px-4 pb-20 pt-16 text-center sm:min-h-[82vh] sm:pt-20">
+        <div className="inline-flex items-center gap-2 rounded-full border border-primary-foreground/30 bg-primary/25 px-3 py-1 text-[11px] font-medium uppercase tracking-[0.16em] text-primary-foreground backdrop-blur-md">
+          <Sparkles className="h-3 w-3" /> DPDP-aligned · Physician-led only
         </div>
         <h1
-          className="font-serif text-white"
+          className="font-serif text-primary-foreground"
           style={{
-            fontSize: "clamp(2.4rem, 5.6vw, 4.8rem)",
+            fontSize: "clamp(2.5rem, 6vw, 5.5rem)",
             lineHeight: 1.03,
-            letterSpacing: "-0.02em",
-            textShadow: "0 2px 24px rgba(0,0,0,0.35)",
+            textShadow: "0 2px 24px color-mix(in oklch, var(--foreground) 48%, transparent)",
           }}
         >
           When your whole family relies on you,
@@ -151,8 +161,7 @@ function Hero() {
           <span className="italic">rely on MedSafe.</span>
         </h1>
         <p
-          className="max-w-2xl text-base leading-relaxed text-white/95 sm:text-lg"
-          style={{ textShadow: "0 1px 12px rgba(0,0,0,0.4)" }}
+          className="max-w-2xl text-base leading-relaxed text-primary-foreground/95 sm:text-xl"
         >
           One private, AI-powered health record for every prescription, lab report and daily
           rhythm — grounded in what's actually happening with your family.
@@ -163,18 +172,19 @@ function Hero() {
               <PrimaryCTA />
               <Link
                 to="/auth"
-                className="inline-flex items-center gap-2 rounded-full border border-white/40 bg-white/15 px-5 py-3 text-sm font-semibold text-white backdrop-blur transition hover:bg-white/25"
+                className="inline-flex h-12 items-center gap-2 rounded-full border border-primary-foreground/40 bg-primary-foreground/15 px-6 text-sm font-semibold text-primary-foreground backdrop-blur transition hover:bg-primary-foreground/25"
               >
                 Log in
               </Link>
             </>
           )}
         </div>
-        <div className="mt-6 flex flex-wrap items-center justify-center gap-2 text-[11px] font-medium text-white/90">
-          <HeroChip>Secure platform</HeroChip>
+        <div className="mt-5 flex flex-wrap items-center justify-center gap-2 text-[11px] font-medium text-primary-foreground/90">
           <HeroChip>DPDP-aligned</HeroChip>
           <HeroChip>Physician-led</HeroChip>
-          <HeroChip>End-to-end encrypted</HeroChip>
+        </div>
+        <div className="pointer-events-none absolute inset-x-0 bottom-0 overflow-hidden" aria-hidden>
+          <div className="translate-y-[28%] whitespace-nowrap text-center font-serif text-[21vw] leading-none text-primary-foreground/20">MEDSAFE</div>
         </div>
       </div>
     </section>
@@ -183,7 +193,7 @@ function Hero() {
 
 function HeroChip({ children }: { children: React.ReactNode }) {
   return (
-    <span className="inline-flex items-center gap-1.5 rounded-full border border-white/30 bg-white/10 px-2.5 py-1 backdrop-blur">
+    <span className="inline-flex items-center gap-1.5 rounded-full border border-primary-foreground/30 bg-primary/20 px-2.5 py-1 backdrop-blur">
       <ShieldCheck className="h-3 w-3" /> {children}
     </span>
   );
@@ -466,22 +476,21 @@ const FOUNDERS = [
 
 function FoundersSection() {
   return (
-    <section className="bg-primary text-primary-foreground py-24 sm:py-32">
+    <section id="about" className="scroll-mt-24 bg-primary py-24 text-primary-foreground sm:py-32">
       <div className="mx-auto max-w-5xl px-4">
         <Reveal>
           <div className="mx-auto max-w-2xl text-center">
             <div className="text-xs font-semibold uppercase tracking-[0.2em] text-primary-foreground/70">
-              Founders
+               About MedSafe
             </div>
             <h2
               className="mt-3 font-serif"
               style={{ fontSize: "clamp(1.9rem, 3.6vw, 2.75rem)", lineHeight: 1.1, letterSpacing: "-0.02em" }}
             >
-              Science-backed. Clinician-led.
+               We help families turn scattered records into informed care.
             </h2>
             <p className="mx-auto mt-4 max-w-xl text-primary-foreground/80">
-              Not a generic health app — built by a physician-scientist and a healthtech operator
-              with academic ties to King's College London.
+               Our mission is to make every family's health history organised, understandable and useful at the moment it matters — without replacing the judgement of a qualified doctor.
             </p>
           </div>
         </Reveal>
@@ -514,6 +523,22 @@ function FoundersSection() {
           <div className="mt-10 flex flex-wrap items-center justify-center gap-3 text-xs text-primary-foreground/80">
             <TrustChip>DPDP-aligned</TrustChip>
             <TrustChip>Physician-led only</TrustChip>
+          </div>
+        </Reveal>
+        <Reveal delay={240}>
+          <div id="contact" className="mt-12 grid scroll-mt-24 gap-4 border-t border-primary-foreground/20 pt-8 sm:grid-cols-3">
+            <a href="tel:+919007374836" className="flex items-center gap-3 rounded-lg p-3 transition hover:bg-primary-foreground/10">
+              <Phone className="h-5 w-5" />
+              <span><span className="block text-xs text-primary-foreground/65">Contact us</span>+91 9007374836</span>
+            </a>
+            <div className="flex items-center gap-3 rounded-lg p-3">
+              <MapPin className="h-5 w-5" />
+              <span><span className="block text-xs text-primary-foreground/65">Our locations</span>Kolkata, India · London, UK</span>
+            </div>
+            <div className="flex items-center gap-3 rounded-lg p-3">
+              <GraduationCap className="h-5 w-5" />
+              <span><span className="block text-xs text-primary-foreground/65">Associated with</span>King's College London</span>
+            </div>
           </div>
         </Reveal>
       </div>

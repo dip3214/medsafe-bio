@@ -45,40 +45,39 @@
   --color-me: var(--seg-me);
   --color-me-foreground: var(--seg-me-foreground);
 
-  --font-serif: "DM Serif Display", "Source Serif Pro", Georgia, serif;
+  --font-serif: "Lora", Georgia, serif;
+  --font-sans: "Nunito Sans", system-ui, sans-serif;
 }
 
 :root {
   --radius: 0.875rem;
 
-  /* Luffu-inspired warm cream paper — brighter, airier */
-  --background: oklch(0.98 0.014 78);
-  --foreground: oklch(0.22 0.03 30);
+  /* Modern Care — clear teal, cool white, pale aqua and a warm human accent */
+  --background: oklch(0.985 0.003 248);
+  --foreground: oklch(0.25 0.035 215);
 
-  --card: oklch(0.995 0.006 78);
-  --card-foreground: oklch(0.22 0.03 30);
+  --card: oklch(1 0 0);
+  --card-foreground: oklch(0.25 0.035 215);
   --popover: oklch(1 0 0);
-  --popover-foreground: oklch(0.22 0.03 30);
+  --popover-foreground: oklch(0.25 0.035 215);
 
-  /* Rich terracotta — the same intense hue used by the logo/header for a
-     consistent, high-contrast look on every primary action button. */
-  --primary: oklch(0.42 0.16 28);
-  --primary-foreground: oklch(0.99 0.01 78);
+  --primary: oklch(0.48 0.09 215);
+  --primary-foreground: oklch(0.99 0.005 215);
 
-  --secondary: oklch(0.965 0.014 68);
-  --secondary-foreground: oklch(0.28 0.04 28);
-  --muted: oklch(0.955 0.012 68);
-  --muted-foreground: oklch(0.5 0.02 30);
+  --secondary: oklch(0.93 0.025 205);
+  --secondary-foreground: oklch(0.3 0.055 215);
+  --muted: oklch(0.96 0.012 210);
+  --muted-foreground: oklch(0.5 0.025 215);
 
-  --accent: oklch(0.94 0.028 40);
-  --accent-foreground: oklch(0.32 0.06 28);
+  --accent: oklch(0.74 0.13 29);
+  --accent-foreground: oklch(0.22 0.035 25);
 
   --destructive: oklch(0.58 0.18 28);
   --destructive-foreground: oklch(0.99 0.01 78);
 
-  --border: oklch(0.9 0.012 55);
-  --input: oklch(0.93 0.012 55);
-  --ring: oklch(0.42 0.16 28);
+  --border: oklch(0.89 0.018 210);
+  --input: oklch(0.92 0.018 210);
+  --ring: oklch(0.48 0.09 215);
 
   --chart-1: oklch(0.55 0.13 28);
   --chart-2: oklch(0.68 0.11 80);
@@ -130,6 +129,7 @@
     background-color: var(--color-background);
     color: var(--color-foreground);
     font-feature-settings: "ss01", "cv11";
+    font-family: var(--font-sans);
   }
   .font-display {
     font-family: var(--font-serif);

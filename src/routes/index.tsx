@@ -20,7 +20,7 @@ import refCheckin from "@/assets/ref-checkin.png.asset.json";
 export const Route = createFileRoute("/")({
   head: () => ({
     meta: [
-      { title: "MedSafe — AI-powered health record for the whole family." },
+      { title: "MedSafe | AI Family Health Records & MedBuddy" },
       {
         name: "description",
         content:
@@ -136,7 +136,7 @@ function Hero() {
       <div className="absolute inset-0 -z-10">
         <img
           src={heroFamily}
-          alt=""
+          alt="A multi-generational Indian family spending time together outdoors"
           className="h-full w-full object-cover"
           width={1920}
           height={1200}

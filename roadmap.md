@@ -6,7 +6,7 @@
 - [x] Mount MedBuddySide in SiteLayout (hidden on /chat) and on the public landing page
 - [x] Create /faq page: common health questions & answers, head metadata; link it from the chat (assistant) page
 - [x] Verify typecheck/build passes
-- [ ] Reposition MedBuddy and add explicit MedSafe ownership guardrail
-- [ ] Apply the Modern Care editorial design across the shared interface and landing page
-- [ ] Add mission, founders, contact details, and search/answer-engine metadata
-- [ ] Verify desktop and mobile presentation
+- [x] Reposition MedBuddy and add explicit MedSafe ownership guardrail
+- [x] Apply the Modern Care editorial design across the shared interface and landing page
+- [x] Add mission, founders, contact details, and search/answer-engine metadata
+- [x] Verify desktop and mobile presentation

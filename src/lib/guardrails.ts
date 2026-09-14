@@ -29,7 +29,9 @@ const OUT_OF_SCOPE = [
 
 const PRODUCT_IDENTITY = [
   /who (built|made|created|owns?|founded|developed) (medsafe|medbuddy|this (app|product|platform|assistant))/i,
+  /who (built|made|created|owns?|founded|developed) (the )?(app|product|platform|assistant)/i,
   /who is (the )?(owner|founder|creator|developer) of (medsafe|medbuddy)/i,
+  /who is (the )?(owner|founder|creator|developer) of (the )?(app|product|platform|assistant)/i,
   /(medsafe|medbuddy).*(owner|founder|creator|developer|built by|made by)/i,
 ];
 

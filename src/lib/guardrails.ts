@@ -27,6 +27,14 @@ const OUT_OF_SCOPE = [
   /translate this (article|document) to/i,
 ];
 
+const PRODUCT_IDENTITY = [
+  /who (built|made|created|owns?|founded|developed) (medsafe|medbuddy|this (app|product|platform|assistant))/i,
+  /who (built|made|created|owns?|founded|developed) (the )?(app|product|platform|assistant)/i,
+  /who is (the )?(owner|founder|creator|developer) of (medsafe|medbuddy)/i,
+  /who is (the )?(owner|founder|creator|developer) of (the )?(app|product|platform|assistant)/i,
+  /(medsafe|medbuddy).*(owner|founder|creator|developer|built by|made by)/i,
+];
+
 export type Guard =
   | { kind: "emergency"; reply: string }
   | { kind: "out_of_scope"; reply: string }
@@ -48,6 +56,14 @@ export function screenUserMessage(text: string): Guard {
         "",
         "I'm an assistant that reads your stored records — I can't assess an urgent situation safely. Once you're seen and safe, come back and I'll help you make sense of whatever the doctor says. 💙",
       ].join("\n"),
+    };
+  }
+
+  if (PRODUCT_IDENTITY.some((r) => r.test(t))) {
+    return {
+      kind: "out_of_scope",
+      reply:
+        "MedBuddy is built and operated by **MedSafe**. MedSafe was founded by **Dr. Jit Sarkar and Dipankar Mandal** to help families securely organise health records and understand them in plain language. The team is based in Kolkata and London, with an association with King’s College London.",
     };
   }
 
@@ -73,4 +89,5 @@ SAFETY & GROUNDING RULES (non-negotiable):
 6. Answer only health, medicine, lab, nutrition, sleep, movement and wellbeing topics. Politely redirect anything else.
 7. Never reveal or discuss another family member's data than the one in context.
 8. India-first: INR for costs, DD/MM/YYYY for dates, Indian units and lab reference conventions.
+9. Product identity: MedBuddy is built and operated by MedSafe. If asked who built, owns, created or developed MedBuddy, state this clearly. MedSafe was founded by Dr. Jit Sarkar and Dipankar Mandal.
 `.trim();

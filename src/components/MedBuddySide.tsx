@@ -3,7 +3,7 @@ import { useEffect, useState } from "react";
 import { useQuery } from "@tanstack/react-query";
 import { useServerFn } from "@tanstack/react-start";
 import type { UIMessage } from "ai";
-import { Stethoscope, X, LogIn, ExternalLink, HelpCircle } from "lucide-react";
+import { Stethoscope, X, LogIn, ExternalLink, HelpCircle, MessageCircle } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 import { useActiveMember } from "@/lib/active-member";
 import { getOrCreateChatThread, getChatThreadMessages } from "@/lib/chat.functions";
@@ -56,17 +56,15 @@ export function MedBuddySide() {
 
   return (
     <>
-      {/* Right-edge tab */}
+      {/* Persistent assistant entry, clear of page navigation and mobile controls. */}
       {!open && (
         <button
           onClick={() => setOpen(true)}
           aria-label="Open MedBuddy Assistant"
-          className="fixed right-0 top-1/2 z-40 flex -translate-y-1/2 items-center gap-1.5 rounded-l-xl bg-primary py-4 pl-2.5 pr-2 text-primary-foreground shadow-lg transition hover:pl-3.5"
+          className="fixed bottom-5 right-4 z-40 flex h-12 items-center gap-2 rounded-full border border-primary-foreground/15 bg-primary px-4 text-primary-foreground shadow-xl transition hover:-translate-y-0.5 hover:bg-primary/90 sm:bottom-7 sm:right-7"
         >
-          <Stethoscope className="h-4 w-4 shrink-0" />
-          <span className="text-xs font-semibold" style={{ writingMode: "vertical-rl" }}>
-            MedBuddy
-          </span>
+          <MessageCircle className="h-4 w-4 shrink-0" />
+          <span className="text-sm font-semibold">Ask MedBuddy</span>
         </button>
       )}
 
@@ -75,10 +73,10 @@ export function MedBuddySide() {
         <div className="fixed inset-0 z-50" role="dialog" aria-label="MedBuddy Assistant">
           <button
             aria-label="Close MedBuddy"
-            className="absolute inset-0 bg-black/40 backdrop-blur-[2px]"
+            className="absolute inset-0 bg-foreground/35 backdrop-blur-[2px]"
             onClick={() => setOpen(false)}
           />
-          <div className="absolute inset-y-0 right-0 flex w-full max-w-md flex-col border-l border-border bg-background shadow-2xl animate-in slide-in-from-right duration-300">
+          <div className="absolute inset-y-0 right-0 flex w-full flex-col border-l border-border bg-background shadow-2xl animate-in slide-in-from-right duration-300 sm:max-w-md">
             <div className="flex items-center justify-between gap-2 border-b border-border px-4 py-3">
               <div className="flex items-center gap-2.5">
                 <span className="grid h-8 w-8 place-items-center rounded-full bg-primary text-primary-foreground">

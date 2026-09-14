@@ -1,6 +1,6 @@
-- [ ] Restyle landing page from provided healthcare reference while preserving product features
-- [ ] Move About, mission, founders, and contact details to a dedicated page and navigation tab
-- [ ] Rebuild dashboard report presentation with modern overview and original-report actions
-- [ ] Redesign Lifestyle with Indian-context motion background while preserving features
-- [ ] Make Upcoming more interactive and presentable with motion
-- [ ] Verify metadata, type safety, and desktop/mobile rendering
+- [x] Restyle landing page from provided healthcare reference while preserving product features
+- [x] Move About, mission, founders, and contact details to a dedicated page and navigation tab
+- [x] Rebuild dashboard report presentation with modern overview and original-report actions
+- [x] Redesign Lifestyle with Indian-context motion background while preserving features
+- [x] Make Upcoming more interactive and presentable with motion
+- [x] Verify metadata, type safety, and desktop/mobile rendering

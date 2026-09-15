@@ -25,7 +25,7 @@ export function MemberSwitcher() {
     <div ref={ref} className="relative">
       <button
         onClick={() => setOpen((o) => !o)}
-        className="inline-flex items-center gap-2 rounded-full border border-border bg-card px-2.5 py-1 text-sm hover:bg-accent"
+        className="inline-flex items-center gap-2 rounded-full border border-primary/15 bg-secondary/70 px-2.5 py-1 text-sm transition hover:bg-accent/45"
       >
         <Avatar member={active} />
         <span className="hidden max-w-[10rem] truncate font-medium md:inline">{active.name}</span>
@@ -50,8 +50,8 @@ export function MemberSwitcher() {
                         setActiveId(m.id);
                         setOpen(false);
                       }}
-                      className={`flex w-full items-center gap-2 rounded-md px-2 py-1.5 text-left text-sm hover:bg-accent ${
-                        active.id === m.id ? "bg-accent" : ""
+                      className={`flex w-full items-center gap-2 rounded-md px-2 py-1.5 text-left text-sm hover:bg-secondary ${
+                        active.id === m.id ? "bg-accent/45 text-primary" : ""
                       }`}
                     >
                       <Avatar member={m} />
@@ -94,8 +94,7 @@ function Avatar({ member }: { member: Member }) {
     .toUpperCase();
   return (
     <span
-      className="grid h-7 w-7 shrink-0 place-items-center rounded-full text-[11px] font-semibold text-white"
-      style={{ background: member.avatar_color || "#dc2626" }}
+      className="grid h-7 w-7 shrink-0 place-items-center rounded-full bg-primary text-[11px] font-semibold text-primary-foreground ring-2 ring-brand-secondary/35"
     >
       {initials}
     </span>

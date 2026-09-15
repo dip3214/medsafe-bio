@@ -87,10 +87,7 @@ function MembersPage() {
                       activeId === m.id ? "border-primary/60 bg-primary/5" : "border-border bg-background"
                     }`}
                   >
-                    <span
-                      className="grid h-9 w-9 shrink-0 place-items-center rounded-full text-xs font-semibold text-white"
-                      style={{ background: m.avatar_color || "#dc2626" }}
-                    >
+                    <span className="grid h-9 w-9 shrink-0 place-items-center rounded-full bg-primary text-xs font-semibold text-primary-foreground ring-2 ring-brand-secondary/35">
                       {m.name.split(/\s+/).map((w) => w[0]).slice(0, 2).join("").toUpperCase()}
                     </span>
                     <div className="min-w-0 flex-1">

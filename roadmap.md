@@ -1,6 +1,6 @@
-- [x] Restyle landing page from provided healthcare reference while preserving product features
-- [x] Move About, mission, founders, and contact details to a dedicated page and navigation tab
-- [x] Rebuild dashboard report presentation with modern overview and original-report actions
-- [x] Redesign Lifestyle with Indian-context motion background while preserving features
-- [x] Make Upcoming more interactive and presentable with motion
-- [x] Verify metadata, type safety, and desktop/mobile rendering
+- [ ] Restyle Dashboard and Upload around the supplied modern health-overview reference
+- [ ] Add the supplied looping video to Lifestyle while preserving weather context
+- [ ] Modernize Lifestyle logging controls and panels
+- [ ] Unify palette across navigation, logo, profile switching, and page controls
+- [ ] Remove MedBuddy from navigation and place About us last
+- [ ] Verify metadata, type safety, desktop, and mobile rendering

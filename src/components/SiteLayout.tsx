@@ -1,17 +1,16 @@
 import { Link, useNavigate, useRouterState } from "@tanstack/react-router";
 import { useEffect, useState, type ReactNode } from "react";
-import { LogOut, LogIn, ShieldCheck, BadgeCheck, HeartPulse } from "lucide-react";
+import { LogOut, LogIn, ShieldCheck, BadgeCheck } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { supabase } from "@/integrations/supabase/client";
 import { MemberSwitcher } from "@/components/MemberSwitcher";
 import { ConsentBanner } from "@/components/ConsentBanner";
 import { MedBuddySide } from "@/components/MedBuddySide";
 import { useActiveMember } from "@/lib/active-member";
+import { BrandMark } from "@/components/BrandMark";
 
 const NAV = [
   { to: "/" as const, label: "Home" },
-  { to: "/about" as const, label: "About us" },
-  { to: "/chat", label: "MedBuddy" },
   { to: "/upload", label: "Upload" },
   { to: "/dashboard", label: "Dashboard" },
   { to: "/members", label: "Family" },
@@ -20,12 +19,13 @@ const NAV = [
 ] as const;
 
 const LIFESTYLE_NAV = { to: "/lifestyle" as const, label: "Lifestyle" };
+const ABOUT_NAV = { to: "/about" as const, label: "About us" };
 
 export function SiteLayout({ children }: { children: ReactNode }) {
   const [email, setEmail] = useState<string | null>(null);
   const navigate = useNavigate();
   const { active } = useActiveMember();
-  const navItems = active?.segment === "me" ? [...NAV, LIFESTYLE_NAV] : NAV;
+  const navItems = active?.segment === "me" ? [...NAV, LIFESTYLE_NAV, ABOUT_NAV] : [...NAV, ABOUT_NAV];
   const pathname = useRouterState({ select: (s) => s.location.pathname });
   const onChatPage = pathname === "/chat";
 
@@ -47,12 +47,7 @@ export function SiteLayout({ children }: { children: ReactNode }) {
       <header className="sticky top-0 z-40 border-b border-border/60 bg-background/85 backdrop-blur">
         <div className="mx-auto grid max-w-7xl grid-cols-[minmax(0,1fr)_auto] items-center gap-3 px-4 py-3 lg:flex lg:justify-between">
           <Link to="/" className="flex min-w-0 items-center gap-2.5">
-            <span className="grid h-9 w-9 place-items-center rounded-full bg-primary text-primary-foreground shadow-md">
-              <HeartPulse className="h-5 w-5" />
-            </span>
-            <span className="truncate text-xl font-semibold tracking-normal">
-              med<span className="text-primary">Safe</span>
-            </span>
+            <BrandMark />
           </Link>
 
           <nav className="hidden items-center gap-1 rounded-full bg-secondary/60 p-1 lg:flex">
@@ -128,7 +123,7 @@ export function SiteLayout({ children }: { children: ReactNode }) {
               <Link to="/account" className="hover:text-foreground">Your rights</Link>
               <Link to="/about" className="hover:text-foreground">About us</Link>
               <Link to="/about" hash="contact" className="hover:text-foreground">Contact</Link>
-              <span>© {new Date().getFullYear()} MedSafe · A DeRiskBio initiative</span>
+              <span suppressHydrationWarning>© {new Date().getFullYear()} MedSafe · A DeRiskBio initiative</span>
             </nav>
           </div>
         </div>
